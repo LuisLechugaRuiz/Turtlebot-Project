@@ -1,0 +1,8 @@
+prefix=/home/luis/TurtleBot_Project/install
+
+Name: openni2_camera
+Description: Description of openni2_camera
+Version: 0.4.2
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib -lopenni2_wrapper
+Requires: camera_info_manager dynamic_reconfigure image_transport nodelet sensor_msgs roscpp message_runtime

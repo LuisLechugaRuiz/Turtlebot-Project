@@ -1,0 +1,8 @@
+prefix=/home/luis/TurtleBot_Project/install
+
+Name: adhoc_communication
+Description: Description of adhoc_communication
+Version: 0.1.8
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib 
+Requires: message_runtime
