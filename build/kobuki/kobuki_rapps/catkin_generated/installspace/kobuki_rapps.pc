@@ -1,8 +1,0 @@
-prefix=/home/luis/TurtleBot_Project/install
-
-Name: kobuki_rapps
-Description: Description of kobuki_rapps
-Version: 0.7.6
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

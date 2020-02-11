@@ -1,1 +1,0 @@
-/usr/bin/cc   -rdynamic CMakeFiles/usb_reset.dir/src/usb_reset.c.o  -o /home/luis/TurtleBot_Project/devel/lib/openni2_camera/usb_reset 

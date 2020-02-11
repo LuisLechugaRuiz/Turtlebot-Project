@@ -1,8 +1,0 @@
-prefix=/home/luis/TurtleBot_Project/install
-
-Name: fake_localization
-Description: Description of fake_localization
-Version: 1.16.3
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: geometry_msgs nav_msgs roscpp rospy

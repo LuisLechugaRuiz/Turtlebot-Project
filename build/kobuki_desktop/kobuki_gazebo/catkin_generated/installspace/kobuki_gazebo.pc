@@ -1,8 +1,0 @@
-prefix=/home/luis/TurtleBot_Project/install
-
-Name: kobuki_gazebo
-Description: Description of kobuki_gazebo
-Version: 0.5.7
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 
