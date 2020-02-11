@@ -1,0 +1,40 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/adhoc_communication_generate_messages_cpp"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/ExpClusterElement.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/MmPoint.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/CMgrDimensions.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/ExpFrontier.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/MmControl.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/ExpCluster.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/ExpFrontierElement.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/MmListOfPoints.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/MmMapUpdate.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/CMgrRobotUpdate.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/ExpAuction.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/MmRobotPosition.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/RecvString.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/ExpAuctionElement.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/SendMmRobotPosition.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/SendMmPoint.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/SendCMgrRobotUpdate.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/ShutDown.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/GetNeighbors.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/SendMmControl.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/SendQuaternion.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/SendExpFrontier.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/SendOccupancyGrid.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/SendString.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/SendMmMapUpdate.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/SendTwist.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/ChangeMCMembership.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/BroadcastCMgrRobotUpdate.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/BroadcastString.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/SendExpAuction.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/SendExpCluster.h"
+  "/home/luis/TurtleBot_Project/devel/include/adhoc_communication/GetGroupState.h"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang )
+  include(CMakeFiles/adhoc_communication_generate_messages_cpp.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

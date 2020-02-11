@@ -1,0 +1,8 @@
+prefix=/home/luis/TurtleBot_Project/install
+
+Name: kobuki_description
+Description: Description of kobuki_description
+Version: 0.7.6
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: urdf xacro

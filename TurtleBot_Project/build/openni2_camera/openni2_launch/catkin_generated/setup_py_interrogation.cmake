@@ -1,0 +1,6 @@
+set(openni2_launch_SETUP_PY_VERSION "0.4.2")
+set(openni2_launch_SETUP_PY_SCRIPTS "")
+set(openni2_launch_SETUP_PY_PACKAGES "openni2_launch")
+set(openni2_launch_SETUP_PY_PACKAGE_DIRS "src/openni2_launch")
+set(openni2_launch_SETUP_PY_MODULES "")
+set(openni2_launch_SETUP_PY_MODULE_DIRS "")

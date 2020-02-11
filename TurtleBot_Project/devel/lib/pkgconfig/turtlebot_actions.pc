@@ -1,0 +1,8 @@
+prefix=/home/luis/TurtleBot_Project/devel
+
+Name: turtlebot_actions
+Description: Description of turtlebot_actions
+Version: 2.3.7
+Cflags: -I/home/luis/TurtleBot_Project/devel/include -I/home/luis/TurtleBot_Project/src/turtlebot_apps/turtlebot_actions/include
+Libs: -L${prefix}/lib 
+Requires: roscpp actionlib actionlib_msgs geometry_msgs message_runtime tf cv_bridge image_transport image_geometry turtlebot_bringup

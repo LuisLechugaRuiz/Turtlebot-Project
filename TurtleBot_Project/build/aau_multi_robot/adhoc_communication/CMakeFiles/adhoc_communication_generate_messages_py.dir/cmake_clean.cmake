@@ -1,0 +1,42 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/adhoc_communication_generate_messages_py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/msg/_ExpClusterElement.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/msg/_MmPoint.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/msg/_CMgrDimensions.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/msg/_ExpFrontier.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/msg/_MmControl.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/msg/_ExpCluster.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/msg/_ExpFrontierElement.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/msg/_MmListOfPoints.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/msg/_MmMapUpdate.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/msg/_CMgrRobotUpdate.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/msg/_ExpAuction.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/msg/_MmRobotPosition.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/msg/_RecvString.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/msg/_ExpAuctionElement.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/srv/_SendMmRobotPosition.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/srv/_SendMmPoint.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/srv/_SendCMgrRobotUpdate.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/srv/_ShutDown.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/srv/_GetNeighbors.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/srv/_SendMmControl.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/srv/_SendQuaternion.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/srv/_SendExpFrontier.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/srv/_SendOccupancyGrid.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/srv/_SendString.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/srv/_SendMmMapUpdate.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/srv/_SendTwist.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/srv/_ChangeMCMembership.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/srv/_BroadcastCMgrRobotUpdate.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/srv/_BroadcastString.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/srv/_SendExpAuction.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/srv/_SendExpCluster.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/srv/_GetGroupState.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/msg/__init__.py"
+  "/home/luis/TurtleBot_Project/devel/lib/python2.7/dist-packages/adhoc_communication/srv/__init__.py"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang )
+  include(CMakeFiles/adhoc_communication_generate_messages_py.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

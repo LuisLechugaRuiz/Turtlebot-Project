@@ -1,0 +1,8 @@
+prefix=/home/luis/TurtleBot_Project/devel
+
+Name: map_server
+Description: Description of map_server
+Version: 1.16.3
+Cflags: -I/home/luis/TurtleBot_Project/src/navigation/map_server/include
+Libs: -L${prefix}/lib -lmap_server_image_loader
+Requires: roscpp nav_msgs tf2

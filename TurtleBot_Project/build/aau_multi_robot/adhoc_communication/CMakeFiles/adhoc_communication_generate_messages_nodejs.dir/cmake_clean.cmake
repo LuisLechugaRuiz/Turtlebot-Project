@@ -1,0 +1,40 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/adhoc_communication_generate_messages_nodejs"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/msg/ExpClusterElement.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/msg/MmPoint.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/msg/CMgrDimensions.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/msg/ExpFrontier.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/msg/MmControl.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/msg/ExpCluster.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/msg/ExpFrontierElement.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/msg/MmListOfPoints.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/msg/MmMapUpdate.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/msg/CMgrRobotUpdate.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/msg/ExpAuction.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/msg/MmRobotPosition.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/msg/RecvString.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/msg/ExpAuctionElement.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/srv/SendMmRobotPosition.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/srv/SendMmPoint.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/srv/SendCMgrRobotUpdate.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/srv/ShutDown.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/srv/GetNeighbors.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/srv/SendMmControl.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/srv/SendQuaternion.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/srv/SendExpFrontier.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/srv/SendOccupancyGrid.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/srv/SendString.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/srv/SendMmMapUpdate.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/srv/SendTwist.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/srv/ChangeMCMembership.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/srv/BroadcastCMgrRobotUpdate.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/srv/BroadcastString.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/srv/SendExpAuction.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/srv/SendExpCluster.js"
+  "/home/luis/TurtleBot_Project/devel/share/gennodejs/ros/adhoc_communication/srv/GetGroupState.js"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang )
+  include(CMakeFiles/adhoc_communication_generate_messages_nodejs.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()
