@@ -6,7 +6,7 @@ Antes de nada creo que a partir del próximo update deberiamos de actualizar est
 
 En el proyecto podeis encontrar la carpeta src donde teneis varios packages (la mayoría se utilizan aunque queda limpiarla un poco), el interesante es turtlebot_2dnav. En este podeis encontrar una carpeta Param con los parámetros necesarios para el Move_Base y una carpeta launch donde esta el fichero que he creado para poder probar la conexión entre diferentes bloques, estos son:
 
-Turtlebot_world: Lanza gazebo (proporciona odometría) y un modelo (URDF) de Kobuki (posee una cámara cuyos datos convierte a Scanner (Ejercicio 1)), además lanza un Nodelet manager que crea topics del tipo Mobile_base para mover al robot y además realiza una transformación de imagen de la cámara a Scanner.
+Turtlebot_world: Lanza gazebo (proporciona odometría) y un modelo (URDF) de Kobuki (posee una cámara cuyos datos convierte a Scanner (Ejercicio 1)), además lanza un Nodelet manager que crea topics del tipo Mobile_base para mover al robot.
 
 Gmapping_Demo: Lanza Gmapping para crear el mapa a partir del Scanner, localizando a la vez el robot en este. Publica la info en un topic /Map y transforma de Odometría a Posición en el Mapa (haciendo Scan-Matching).
 
