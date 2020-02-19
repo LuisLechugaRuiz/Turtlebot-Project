@@ -1,8 +1,0 @@
-prefix=/home/luis/TurtleBot_Project/install
-
-Name: kobuki_safety_controller
-Description: Description of kobuki_safety_controller
-Version: 0.7.6
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib -lkobuki_safety_controller_nodelet
-Requires: roscpp nodelet pluginlib std_msgs geometry_msgs kobuki_msgs yocs_controllers ecl_threads
