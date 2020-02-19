@@ -1,0 +1,8 @@
+prefix=/home/luis/TurtleBot_Project/install
+
+Name: multirobot_map_merge
+Description: Description of multirobot_map_merge
+Version: 2.1.1
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: geometry_msgs map_msgs nav_msgs tf2_geometry_msgs

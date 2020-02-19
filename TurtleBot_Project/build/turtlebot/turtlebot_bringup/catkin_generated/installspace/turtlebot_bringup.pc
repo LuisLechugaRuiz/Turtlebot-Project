@@ -1,0 +1,8 @@
+prefix=/home/luis/TurtleBot_Project/install
+
+Name: turtlebot_bringup
+Description: Description of turtlebot_bringup
+Version: 2.4.2
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

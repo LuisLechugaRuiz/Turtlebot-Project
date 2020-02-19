@@ -1,0 +1,8 @@
+prefix=/home/luis/TurtleBot_Project/devel
+
+Name: EURECAT
+Description: Description of EURECAT
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
