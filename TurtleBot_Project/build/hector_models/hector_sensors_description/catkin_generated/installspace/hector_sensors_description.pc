@@ -1,8 +1,0 @@
-prefix=/home/luis/TurtleBot_Project/install
-
-Name: hector_sensors_description
-Description: Description of hector_sensors_description
-Version: 0.5.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

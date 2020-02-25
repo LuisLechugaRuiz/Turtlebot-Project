@@ -1,8 +1,0 @@
-prefix=/home/luis/TurtleBot_Project/devel
-
-Name: turtlebot_capabilities
-Description: Description of turtlebot_capabilities
-Version: 2.4.2
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

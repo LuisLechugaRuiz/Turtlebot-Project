@@ -1,1 +1,0 @@
-/usr/bin/c++    -rdynamic CMakeFiles/line_iterator.dir/test/line_iterator_test.cpp.o  -o /home/luis/TurtleBot_Project/devel/lib/base_local_planner/line_iterator  -L/home/luis/TurtleBot_Project/build/gtest -Wl,-rpath,/home/luis/TurtleBot_Project/build/gtest:/home/luis/TurtleBot_Project/build/gtest/googlemock/gtest ../../gtest/googlemock/gtest/libgtest.so -lpthread 

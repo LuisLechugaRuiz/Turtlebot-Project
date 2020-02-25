@@ -1,0 +1,20 @@
+<launch>
+
+<master auto="start"/>
+
+<include file="$(find turtlebot_navigation)/launch/includes/gmapping/gmapping.launch.xml"/>
+
+<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+ <rosparam file="$(find turtlebot_2dnav)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+ <rosparam file="$(find turtlebot_2dnav)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
+ <rosparam file="$(find turtlebot_2dnav)/param/local_costmap_params.yaml" command="load" />
+ <rosparam file="$(find turtlebot_2dnav)/param/global_costmap_params.yaml" command="load" />
+ <rosparam file="$(find turtlebot_2dnav)/param/dwa_local_planner_params.yaml" command="load" />
+ <rosparam file="$(find turtlebot_2dnav)/param/navfn_global_planner_params.yaml" command="load" />
+ <rosparam file="$(find turtlebot_2dnav)/param/global_planner_params.yaml" command="load" />
+ <rosparam file="$(find turtlebot_2dnav)/param/move_base_params.yaml" command="load" />
+ <remap from="cmd_vel" to="/cmd_vel_mux/input/navi"/>
+</node>
+
+
+</launch>
