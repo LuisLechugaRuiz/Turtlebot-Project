@@ -3,12 +3,12 @@
 #include <ros/ros.h>
 
 
-Database::Database() :
-    nh(ros::this_node::getName())
+
+
+Database::Database():
+  nh(ros::this_node::getName())
 {
-
-POI_sub = nh.subscribe("camera_POI", 1, &Database::camera_transformCallback, this);
-
+  POI_sub = n.subscribe("ros_img_processor/camera_POI", 1, &Database::camera_transformCallback, this);
 }
 
 void Database::process()

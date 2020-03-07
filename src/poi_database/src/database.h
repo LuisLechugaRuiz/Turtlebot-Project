@@ -4,16 +4,16 @@
 #include <ros_img_processor/camera_POI_msg.h>
 #include <ros/ros.h>
 
+
 class Database
 {
   protected:
     ros::NodeHandle nh;
+    ros::NodeHandle n;
 
     //Publishers
     ros::Publisher Database_POI_pub;
 
-    //Suscribers
-    ros::Subscriber POI_sub;
     //Listener
 
     ros_img_processor::camera_POI_msg POI;
@@ -30,6 +30,9 @@ class Database
     void camera_transformCallback(ros_img_processor::camera_POI_msg msg);
 
   public:
+
+    //Suscribers
+    ros::Subscriber POI_sub;
 
     void process();
 
