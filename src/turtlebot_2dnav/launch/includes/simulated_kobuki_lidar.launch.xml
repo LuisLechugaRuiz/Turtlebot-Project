@@ -4,7 +4,7 @@
   <arg name="3d_sensor"/>
   <arg name="lidar"/>
 
-  <arg name="urdf_file" default="$(find xacro)/xacro '$(find turtlebot_2dnav)/robots/kobuki_hexagons_kinect_rplidar.urdf.xacro'" />
+  <arg name="urdf_file" default="$(find xacro)/xacro '$(find turtlebot_2dnav)/robots/kobuki_hexagons_astra_rplidar.urdf.xacro'" />
   <param name="robot_description" command="$(arg urdf_file)" />
 
    <!-- Gazebo model spawner -->
