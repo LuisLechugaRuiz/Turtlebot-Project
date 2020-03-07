@@ -42,3 +42,5 @@ add_executable(database ${SRCS})
 target_link_libraries(database
    ${catkin_LIBRARIES}
  )
+
+add_dependencies(database ros_img_processor_gencpp)
