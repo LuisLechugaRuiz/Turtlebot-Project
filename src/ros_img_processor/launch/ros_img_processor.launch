@@ -1,0 +1,29 @@
+<!-- Launches ros_img_processor and two image windows-->
+
+<launch>
+	<arg name="show_image"  default="true" />
+
+
+	<!--Image processor-->
+	<node name="ros_img_processor"
+		pkg="ros_img_processor"
+		type="ros_img_processor"
+		output="screen"
+		args="1">
+	</node>
+
+	<!-- display in/out image -->
+	<group if="$(arg show_image)">
+		<node
+			name="image_view_raw"
+			pkg="image_view"
+			type="image_view"
+			respawn="false"
+			output="screen">
+			<remap from="image" to="camera/show"/>
+			<param name="autosize" value="false" />
+		</node>
+
+	</group>
+
+</launch>
