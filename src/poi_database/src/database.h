@@ -3,6 +3,7 @@
 
 #include <ros_img_processor/camera_POI_msg.h>
 #include <ros/ros.h>
+#include <tf/transform_listener.h>
 
 
 class Database
@@ -13,11 +14,15 @@ class Database
 
     //Publishers
     ros::Publisher Database_POI_pub;
+    ros::Publisher markers_pub;
 
     //Listener
+    tf::TransformListener listener;
 
+    //POI recived
     ros_img_processor::camera_POI_msg POI;
 
+    //POI in the mapframe
     geometry_msgs::Point map_point;
 
     std::vector<ros_img_processor::camera_POI_msg> database_r;

@@ -81,9 +81,6 @@ void RosImgProcessorNode::process()
             POI.point.x = points.x;
             POI.point.y = points.y;
             POI.point.z = points.z;
-            ROS_INFO("Point x: %f", POI.point.x);
-            ROS_INFO("Point y: %f", POI.point.y);
-            ROS_INFO("Point z: %f", POI.point.z);
             camera_POI.publish(POI);
           }
         }

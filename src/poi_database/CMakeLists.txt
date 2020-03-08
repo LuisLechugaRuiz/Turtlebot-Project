@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   roscpp
   std_msgs
+  tf2_geometry_msgs
   message_generation
   ros_img_processor
 )
@@ -28,7 +29,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 
 catkin_package(
-   CATKIN_DEPENDS geometry_msgs roscpp std_msgs message_runtime ros_img_processor
+   CATKIN_DEPENDS geometry_msgs roscpp std_msgs tf2_geometry_msgs message_runtime ros_img_processor
 )
 
 include_directories(
