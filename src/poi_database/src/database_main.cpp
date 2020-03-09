@@ -18,6 +18,8 @@ int main(int argc, char **argv)
             //Transform from camera
             Database_POI.process();
 
+            Database_POI.PublishMarkers();
+
             //relax to fit output rate
             loopRate.sleep();
       }

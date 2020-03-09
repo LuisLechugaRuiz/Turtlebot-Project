@@ -77,6 +77,8 @@ void RosImgProcessorNode::process()
           else{
             std::string id = identify[i];
             ros_img_processor::camera_POI_msg POI;
+            POI.Header.frame_id = "camera";
+            POI.Header.stamp = ros::Time::now();
             POI.type = id;
             POI.point.x = points.x;
             POI.point.y = points.y;

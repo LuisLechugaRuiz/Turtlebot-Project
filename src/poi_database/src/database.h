@@ -4,7 +4,7 @@
 #include <ros_img_processor/camera_POI_msg.h>
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
-
+#include <visualization_msgs/Marker.h>
 
 class Database
 {
@@ -25,9 +25,30 @@ class Database
     //POI in the mapframe
     geometry_msgs::Point map_point;
 
-    std::vector<ros_img_processor::camera_POI_msg> database_r;
-    std::vector<ros_img_processor::camera_POI_msg> database_e;
-    std::vector<ros_img_processor::camera_POI_msg> database_p;
+    //Extract type
+    std::string type;
+
+    //Determine the color
+    int color;
+
+    //Getting the transform
+    tf::StampedTransform transform;
+
+    //To advice that a new point has been referenced in the map_frame (maybe change for a method to know if the callback function triggers)
+    bool NewPoint;
+    bool already_saved;
+
+    //Provisional, could be removed if an optimized method is added to limit the region of each object
+      // or could be set as a parameter in a yaml (in progress)
+      float width = 0.6;
+      float height = 1.2;
+
+    std::vector<geometry_msgs::Point> database_r;
+    std::vector<geometry_msgs::Point> database_e;
+    std::vector<geometry_msgs::Point> database_p;
+    std::vector<geometry_msgs::Point> *database_ptr;
+
+    visualization_msgs::Marker markers;
 
 
   protected:
@@ -40,6 +61,8 @@ class Database
     ros::Subscriber POI_sub;
 
     void process();
+
+    void PublishMarkers();
 
     // Constructor
     Database();
