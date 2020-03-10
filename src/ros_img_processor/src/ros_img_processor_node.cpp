@@ -44,12 +44,11 @@ void RosImgProcessorNode::process()
     if ( cv_img_ptr_in_ != nullptr )
     {
       std::vector<cv::Mat> contours, color;
-      std::vector<cv::Rect> rectangles;
+      cv::Rect rectangle;
       cv::Point centre;
-      std::vector<std::vector<cv::Rect>> color_rectangles;
       std::vector<cv::String> identify = {"R","E","P"};
-      pcl::PointXYZ points;
-      std::vector<pcl::PointXYZ> vector_points;
+      pcl::PointXYZ point;
+
       cv_img_out_.image = cv_img_ptr_in_->image;
       cv::Mat hsv_image, blue_mask, red_mask, red_mask1, red_mask2, green_mask;
       cv::cvtColor(cv_img_ptr_in_->image, hsv_image, CV_BGR2HSV);
@@ -68,26 +67,24 @@ void RosImgProcessorNode::process()
         //Check if contours.size give back only an int or a vector.
         for(int j = 0; j < contours.size(); j++)
         {
-          rectangles.push_back(cv::boundingRect(contours[j]));
-          centre.x = rectangles[j].x + rectangles[j].width/2;
-          centre.y = rectangles[j].y + rectangles[j].height/2;
+          rectangle = cv::boundingRect(contours[j]);
+          centre.x = rectangle.x + rectangle.width/2;
+          centre.y = rectangle.y + rectangle.height/2;
           cv::putText(cv_img_out_.image, identify[i], centre, CV_FONT_HERSHEY_DUPLEX, 2, (0,255,0), 10);
-          points = depth.at(centre.x,centre.y);
-          if(std::isnan(points.x) || std::isnan(points.y));
+          point = depth.at(centre.x,centre.y);
+          if(std::isnan(point.x) || std::isnan(point.y) || rectangle.height/rectangle.width < 0.7);
           else{
             std::string id = identify[i];
             ros_img_processor::camera_POI_msg POI;
             POI.Header.frame_id = "camera";
             POI.Header.stamp = ros::Time::now();
             POI.type = id;
-            POI.point.x = points.x;
-            POI.point.y = points.y;
-            POI.point.z = points.z;
+            POI.point.x = point.x;
+            POI.point.y = point.y;
+            POI.point.z = point.z;
             camera_POI.publish(POI);
           }
         }
-        color_rectangles.push_back(rectangles);
-        rectangles.clear();
       }
     }
     //reset input image
