@@ -45,9 +45,9 @@ void RosImgProcessorNode::process()
     {
       std::vector<cv::Mat> contours, color;
       cv::Rect rectangle;
-      cv::Point centre;
       std::vector<cv::String> identify = {"R","E","P"};
-      pcl::PointXYZ point;
+      pcl::PointXYZ pointleft;
+      pcl::PointXYZ pointright;
 
       cv_img_out_.image = cv_img_ptr_in_->image;
       cv::Mat hsv_image, blue_mask, red_mask, red_mask1, red_mask2, green_mask;
@@ -68,20 +68,28 @@ void RosImgProcessorNode::process()
         for(int j = 0; j < contours.size(); j++)
         {
           rectangle = cv::boundingRect(contours[j]);
-          centre.x = rectangle.x + rectangle.width/2;
-          centre.y = rectangle.y + rectangle.height/2;
-          cv::putText(cv_img_out_.image, identify[i], centre, CV_FONT_HERSHEY_DUPLEX, 2, (0,255,0), 10);
-          point = depth.at(centre.x,centre.y);
-          if(std::isnan(point.x) || std::isnan(point.y) || rectangle.height/rectangle.width < 0.7);
+          cv::Point rectanglecorner;
+          rectanglecorner.x = rectangle.x;
+          rectanglecorner.y = rectangle.y;
+          cv::putText(cv_img_out_.image, identify[i], rectanglecorner, CV_FONT_HERSHEY_DUPLEX, 2, (0,255,0), 10);
+          pointleft = depth.at(rectangle.x, rectangle.y);
+          pointright = depth.at(rectangle.x + rectangle.width, rectangle.y);
+
+          //Fit this function to the new update (sending 2 points)
+          if(std::isnan(pointleft.x) || std::isnan(pointleft.y) || pointleft.z > 6 || rectangle.height/rectangle.width < 0.8);
           else{
             std::string id = identify[i];
             ros_img_processor::camera_POI_msg POI;
             POI.Header.frame_id = "camera";
-            POI.Header.stamp = ros::Time::now();
+            //is wrong, must save the time when the process start
+            POI.Header.stamp = ros::Time(0);
             POI.type = id;
-            POI.point.x = point.x;
-            POI.point.y = point.y;
-            POI.point.z = point.z;
+            POI.pointleft.x = pointleft.x;
+            POI.pointleft.y = pointleft.y;
+            POI.pointleft.z = pointleft.z;
+            POI.pointright.x = pointright.x;
+            POI.pointright.y = pointright.y;
+            POI.pointright.z = pointright.z;
             camera_POI.publish(POI);
           }
         }
