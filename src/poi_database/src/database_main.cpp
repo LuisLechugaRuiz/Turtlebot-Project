@@ -6,7 +6,7 @@ int main(int argc, char **argv)
 {
       ros::init(argc, argv, "POI_database_node");
 
-      DatabaseNode  Database_POI;
+      DatabaseNode  Database_ROI;
 
       //should be similar to ros_img_processor and camera (for a future optimization maybe)
       ros::Rate loopRate(10);
@@ -17,9 +17,9 @@ int main(int argc, char **argv)
             ros::spinOnce();
 
             //Transform from camera
-            Database_POI.process();
+            Database_ROI.process();
 
-            Database_POI.PublishMarkers();
+            Database_ROI.PublishMarkers();
 
             loopRate.sleep();
       }

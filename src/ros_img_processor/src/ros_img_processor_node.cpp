@@ -76,13 +76,14 @@ void RosImgProcessorNode::process()
           pointright = depth.at(rectangle.x + rectangle.width, rectangle.y);
 
           //Fit this function to the new update (sending 2 points)
-          if(std::isnan(pointleft.x) || std::isnan(pointleft.y) || pointleft.z > 6 || rectangle.height/rectangle.width < 0.8);
+          if(std::isnan(pointleft.x) || std::isnan(pointleft.y)
+            || std::isnan(pointright.x) || std::isnan(pointright.y));
           else{
             std::string id = identify[i];
             ros_img_processor::camera_POI_msg POI;
             POI.Header.frame_id = "camera";
             //is wrong, must save the time when the process start
-            POI.Header.stamp = ros::Time(0);
+            POI.Header.stamp = ros::Time::now();
             POI.type = id;
             POI.pointleft.x = pointleft.x;
             POI.pointleft.y = pointleft.y;

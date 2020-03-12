@@ -5,84 +5,125 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <visualization_msgs/Marker.h>
 
-
-
 DatabaseNode::DatabaseNode():
   nh(ros::this_node::getName())
 {
-  POI_sub = n.subscribe("ros_img_processor/camera_POI", 1, &DatabaseNode::camera_transformCallback, this);
+  ROI_sub = n.subscribe("ros_img_processor/camera_POI", 1, &DatabaseNode::camera_transformCallback, this);
   markers_pub = nh.advertise<visualization_msgs::Marker>("visualization_markers",10);
 }
 
 void DatabaseNode::process()
 {
 
-  if(!NewPoint) return;
-  already_saved = false;
-  Bound NewBound(map_point1, map_point2);
-  //lets check if the newbound is inside of an already saved once
-  for(int i = 0; i<database_ptr->size(); i++)
+  if(New_Point_notify)
   {
-    bool cond1 = inRange(database_ptr->at(i).min_x,database_ptr->at(i).max_x, NewBound.min_x, NewBound.max_x);
-    bool cond2 = (inRange(database_ptr->at(i).min_y,database_ptr->at(i).max_y, NewBound.min_y, NewBound.max_y);
-    if(cond1 && cond2)
-    {
-        Orderlimits(database_ptr->at(i).array, NewBound.array);
-    }
-    else
-    {
-      database_ptr->push_back(Candidates);
-    }
-  }
-  //A simple check to know if the point correspond to a saved object (a tolerance with the width of x size)
-  //for(int i = 0; i<database_ptr->size(); i++)
-  //{
-    //if(database_ptr->at(i).x - width/2 < map_point1.x && map_point1.x  < database_ptr->at(i).x + width/2)
-    //{
-    //  if(database_ptr->at(i).y - height/2 < map_point1.y && map_point1.y < database_ptr->at(i).y + height/2)
-    //  {
-    //    already_saved = true;
-    //    break;
-    //  }
-    //}
-  //}
 
-  if(!already_saved){
-  //  database_ptr->push_back(map_point);
-    //ROS_INFO("Point y %f", map_point.y);
-  }
+    Bound New_Bound(point1, point2);
 
+    //Four posibilities:
+      //-The New Bound is already saved as ROI
+      //-The New Bound is inside of the range of a candidate
+      //-The New Bound  meets the requirements to be a ROI
+      //-The New Bound doesnt meet the requirements to be a ROI, is saved as a candidate
+
+    bool insideROI = false;
+    std::vector<ROI> *d = database_ptr;
+    std::vector<ROI>::iterator cit_ROI;
+    for(cit_ROI = d->begin(); cit_ROI != d->end(); cit_ROI++)
+    {
+      //inRange can be optimized not needing the atributes min - max
+      bool cond_ROI = cit_ROI->bound->inRange(New_Bound.max_x, New_Bound.max_y, New_Bound.min_x, New_Bound.min_y);
+      if(cond_ROI)
+      {
+          ROS_INFO("Es ROI");
+          //if the bound is already a ROI tobedecided if recalculate the bound
+          //expand_Bound(database_ptr->at(j), New_Bound.array);
+          insideROI = true;
+          break;
+      }
+    }
+
+    bool isCandidate = false;
+    if(!insideROI)
+    {
+      ROS_INFO("No es ROI");
+      std::vector<Bound> *c = candidates_ptr;
+      std::vector<Bound>::iterator cit_cand;
+      for(cit_cand = c->begin(); cit_cand != c->end(); cit_cand++)
+      {
+        bool cond_cand = cit_cand->inRange(New_Bound.max_x, New_Bound.max_y, New_Bound.min_x, New_Bound.min_y);
+        if(cond_cand)
+        {
+            cit_cand->expand_Bound(New_Bound);
+            isCandidate = true;
+            if(cit_cand->isROI())
+            {
+              ROI New_ROI(&(*cit_cand));
+              global_ROI = New_ROI;
+              database_ptr->push_back(New_ROI);
+              candidates_ptr->erase(cit_cand);
+              New_ROI_notify = true;
+            }
+            break;
+        }
+      }
+    }
+
+    if(!insideROI && !isCandidate){
+      ROS_INFO("No es nada");
+      if(New_Bound.isROI())
+      {
+        //use constructor of bound to build a ROI?
+        ROI New_ROI(&New_Bound);
+        global_ROI = New_ROI;
+        database_ptr->push_back(New_ROI);
+        New_ROI_notify = true;
+      }
+      else{
+        candidates_ptr->push_back(New_Bound);
+      }
+
+      ROS_INFO("max_x = %f",New_Bound.max_x);
+      ROS_INFO("max_y = %f",New_Bound.max_y);
+      ROS_INFO("min_x = %f",New_Bound.min_x);
+      ROS_INFO("min_y = %f",New_Bound.min_y);
+    }
+    New_Point_notify = false;
+  }
 }
 
 
 void DatabaseNode::camera_transformCallback(ros_img_processor::camera_POI_msg msg)
 {
 
-  //Evaluate type of the POI
+  //Evaluate type of the ROI
   type = msg.type;
   if(type == "R")
   {
     color = 0;
     database_ptr = &database_r;
+    candidates_ptr = &candidates_r;
   }
   if(type == "E")
   {
     color = 1;
     database_ptr = &database_e;
+    candidates_ptr = &candidates_e;
   }
   if(type == "P")
   {
     color = 2;
     database_ptr = &database_p;
+    candidates_ptr = &candidates_p;
   }
 
-  //Evaluate point of the POI -> Transform from camera_frame (to robot_frame) to map_frame
+  //Evaluate point of the ROI -> Transform from camera_frame (to robot_frame) to map_frame
   geometry_msgs::Point point_cameraframe1;
   geometry_msgs::Point point_cameraframe2;
   point_cameraframe1.x = msg.pointleft.z;
   point_cameraframe1.y = -msg.pointleft.x;
   point_cameraframe1.z = -msg.pointleft.y;
-  point_cameraframe2.x = msg.pointright.z;
+  point_cameraframe2.x =  msg.pointright.z;
   point_cameraframe2.y = -msg.pointright.x;
   point_cameraframe2.z = -msg.pointright.y;
 
@@ -98,17 +139,16 @@ void DatabaseNode::camera_transformCallback(ros_img_processor::camera_POI_msg ms
 
   geometry_msgs::TransformStamped stampedTransform;
   tf::transformStampedTFToMsg(transform, stampedTransform);
-  tf2::doTransform(point_cameraframe1, map_point1, stampedTransform);
-  tf2::doTransform(point_cameraframe2, map_point2, stampedTransform);
+  tf2::doTransform(point_cameraframe1, point1, stampedTransform);
+  tf2::doTransform(point_cameraframe2, point2, stampedTransform);
 
-  NewPoint = true;
-
+  New_Point_notify = true;
 }
 
 void DatabaseNode::PublishMarkers()
 {
 
-  if(NewPoint && !already_saved)
+  if(New_ROI_notify)
   {
     switch(color)
     {
@@ -128,12 +168,14 @@ void DatabaseNode::PublishMarkers()
         markers.color.b = 1.0;
         break;
     }
-  //  markers.color.a = 1.0;
-  //  markers.colors.push_back(markers.color);
-  // map_point.z = 0.15;
-  //  markers.points.push_back(map_point);
+    markers.color.a = 1.0;
+    markers.colors.push_back(markers.color);
+    geometry_msgs::Point publish_point;
+    publish_point.x = global_ROI.center_x;
+    publish_point.y = global_ROI.center_y;
+    publish_point.z = 0.15;
+    markers.points.push_back(publish_point);
   }
-
   markers.header.frame_id = "map";
   markers.header.stamp = ros::Time::now();
   markers.scale.x = 0.2;
@@ -143,6 +185,8 @@ void DatabaseNode::PublishMarkers()
   markers.type = visualization_msgs::Marker::SPHERE_LIST;
   markers_pub.publish(markers);
 
+  New_ROI_notify = false;
+
 }
 
 DatabaseNode::~DatabaseNode()
@@ -150,21 +194,45 @@ DatabaseNode::~DatabaseNode()
     //
 }
 
-bool DatabaseNode::inRange(float min_, float max_, float value_1, float value_2)
+bool DatabaseNode::Bound::inRange(float new_max_x, float new_max_y, float new_min_x, float new_min_y)
 {
   bool cond1;
   bool cond2;
-  cond1 = min_ < value_1 && value_1 < max_;
-  cond2 = min_ < value_2 && value_2 < max_;
-  return (cond1 || cond2);
+  cond1 = min_x < new_max_x && new_max_x < max_x;
+  cond2 = min_x < new_min_x && new_min_x < max_x;
+
+  bool cond3;
+  bool cond4;
+  cond3 = min_y < new_max_y && new_max_y < max_y;
+  cond4 = min_y < new_min_y && new_min_y < max_y;
+  return ((cond1 || cond2) && (cond3 || cond4));
 }
 
-void DatabaseNode::Orderlimits(std::array<float, 4> &limits_1, std::array<float, 4> limits_2)
+void DatabaseNode::Bound::expand_Bound(Bound New_Bound)
 {
-  limits_1[0] = std::max(limits_1[0], limits_2[0]);
-  limits_1[1] = std::max(limits_1[1], limits_2[1]);
-  limits_1[2] = std::min(limits_1[2], limits_2[2]);
-  limits_1[3] = std::min(limits_1[3], limits_2[3]);
+  max_x = std::max(max_x, New_Bound.max_x);
+  max_y = std::max(max_y, New_Bound.max_y);
+  min_x = std::min(min_x, New_Bound.min_x);
+  min_y = std::min(min_y, New_Bound.min_y);
+  size_x = max_x - min_x;
+  size_y = max_y - min_y;
+}
+
+bool DatabaseNode::Bound::isROI()
+{
+  return (size_x > 0.5 && size_y > 1);
+}
+
+DatabaseNode::ROI::ROI(Bound* new_bound)
+{
+  bound = new_bound;
+  center_x = (bound->max_x - bound->min_x)/2 + bound->min_x;
+  center_y = (bound->max_y - bound->min_y)/2 + bound->min_y;
+}
+
+DatabaseNode::ROI::ROI()
+{
+
 }
 
 DatabaseNode::Bound::Bound(geometry_msgs::Point p1, geometry_msgs::Point p2)
@@ -173,5 +241,6 @@ DatabaseNode::Bound::Bound(geometry_msgs::Point p1, geometry_msgs::Point p2)
   max_y = std::max(p1.y, p2.y);
   min_x = std::min(p1.x, p2.x);
   min_y = std::min(p1.y, p2.y);
-  array = {max_x, max_y, min_x, min_y};
+  size_x = max_x - min_x;
+  size_y = max_y - min_y;
 }
