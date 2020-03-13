@@ -68,22 +68,28 @@ void RosImgProcessorNode::process()
         for(int j = 0; j < contours.size(); j++)
         {
           rectangle = cv::boundingRect(contours[j]);
-          cv::Point rectanglecorner;
-          rectanglecorner.x = rectangle.x;
-          rectanglecorner.y = rectangle.y;
-          cv::putText(cv_img_out_.image, identify[i], rectanglecorner, CV_FONT_HERSHEY_DUPLEX, 2, (0,255,0), 10);
-          pointleft = depth.at(rectangle.x, rectangle.y);
-          pointright = depth.at(rectangle.x + rectangle.width, rectangle.y);
+          cv::Point rectanglecenter;
+          rectanglecenter.x = rectangle.x + rectangle.width/2;
+          rectanglecenter.y = rectangle.y + rectangle.height/2;
+          pointleft = depth.at(rectangle.x + 10, rectangle.y + rectangle.height/2);
+          pointright = depth.at(rectangle.x + rectangle.width - 10, rectangle.y + rectangle.height/2);
+          cv::putText(cv_img_out_.image, identify[i], rectanglecenter, CV_FONT_HERSHEY_DUPLEX, 2, (0,255,0), 10);
 
-          //Fit this function to the new update (sending 2 points)
           if(std::isnan(pointleft.x) || std::isnan(pointleft.y)
             || std::isnan(pointright.x) || std::isnan(pointright.y));
           else{
+            ROS_INFO("Identify: %s", identify[i].c_str());
+            ROS_INFO("Img_Processor left x: %f", pointleft.x);
+            ROS_INFO(" y: %f", pointleft.y);
+            ROS_INFO(" z: %f", pointleft.z);
+            ROS_INFO("Img_Processor right x: %f", pointright.x);
+            ROS_INFO(" y: %f", pointright.y);
+            ROS_INFO(" z: %f", pointright.z);
             std::string id = identify[i];
             ros_img_processor::camera_POI_msg POI;
             POI.Header.frame_id = "camera";
             //is wrong, must save the time when the process start
-            POI.Header.stamp = ros::Time::now();
+            POI.Header.stamp = arriveTime;
             POI.type = id;
             POI.pointleft.x = pointleft.x;
             POI.pointleft.y = pointleft.y;
@@ -130,6 +136,7 @@ void RosImgProcessorNode::cloudCallback(const sensor_msgs::PointCloud2ConstPtr &
         pcl::toROSMsg( *_msg, *image );
         cv_img_ptr_in_ = cv_bridge::toCvCopy(image, sensor_msgs::image_encodings::BGR8);//get image
         pcl::fromROSMsg( *_msg, depth);
+        arriveTime = ros::Time::now();
     }
     catch (cv_bridge::Exception& e)
     {

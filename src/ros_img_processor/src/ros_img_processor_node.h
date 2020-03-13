@@ -38,6 +38,9 @@ class RosImgProcessorNode
         image_transport::Publisher image_pub_;
         ros::Publisher camera_POI;
 
+        //Time of pcl arrive
+        ros::Time arriveTime;
+
         //pointer to received (in) and published (out) images
         cv_bridge::CvImagePtr cv_img_ptr_in_;
         cv_bridge::CvImage cv_img_out_;

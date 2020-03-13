@@ -24,8 +24,8 @@ class DatabaseNode
     ros_img_processor::camera_POI_msg POI;
 
     //points in the mapframe
-    geometry_msgs::Point point1;
-    geometry_msgs::Point point2;
+    geometry_msgs::Point pointleft;
+    geometry_msgs::Point pointright;
 
     std::array<float, 4> NewLimits;
 
@@ -44,8 +44,8 @@ class DatabaseNode
 
     //Provisional, could be removed if an optimized method is added to limit the region of each object
     // or could be set as a parameter in a yaml (in progress)
-    float width = 0.6;
-    float height = 1.3;
+    float width = 0.9;
+    float height = 0.5;
 
     class Bound
     {
@@ -56,9 +56,13 @@ class DatabaseNode
         float min_y;
         float size_x;
         float size_y;
+        bool size_x_cond = false;
+        bool size_y_cond = false;
+        bool too_big();
         void expand_Bound(Bound New_Bound);
         bool isROI();
         bool inRange(float new_max_x, float new_max_y, float new_min_x, float new_min_y);
+        Bound();
         Bound(geometry_msgs::Point p1, geometry_msgs::Point p2);
     };
 
@@ -68,10 +72,10 @@ class DatabaseNode
       public:
         float center_x;
         float center_y;
-        Bound* bound;
+        Bound bound;
         //Bound ROI_Bound;
         ROI();
-        ROI(Bound* new_bound);
+        ROI(Bound new_bound);
     };
 
     ROI global_ROI;
