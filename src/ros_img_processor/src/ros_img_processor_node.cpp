@@ -78,13 +78,6 @@ void RosImgProcessorNode::process()
           if(std::isnan(pointleft.x) || std::isnan(pointleft.y)
             || std::isnan(pointright.x) || std::isnan(pointright.y));
           else{
-            ROS_INFO("Identify: %s", identify[i].c_str());
-            ROS_INFO("Img_Processor left x: %f", pointleft.x);
-            ROS_INFO(" y: %f", pointleft.y);
-            ROS_INFO(" z: %f", pointleft.z);
-            ROS_INFO("Img_Processor right x: %f", pointright.x);
-            ROS_INFO(" y: %f", pointright.y);
-            ROS_INFO(" z: %f", pointright.z);
             std::string id = identify[i];
             ros_img_processor::camera_POI_msg POI;
             POI.Header.frame_id = "camera";

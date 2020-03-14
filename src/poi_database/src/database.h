@@ -42,10 +42,10 @@ class DatabaseNode
     bool New_Point_notify = false;
     bool New_ROI_notify = false;
 
-    //Provisional, could be removed if an optimized method is added to limit the region of each object
-    // or could be set as a parameter in a yaml (in progress)
-    float width = 0.9;
-    float height = 0.5;
+    //Params:
+
+    //float max_width = 0.9;
+    //float max_height = 0.5;
 
     class Bound
     {
@@ -58,6 +58,7 @@ class DatabaseNode
         float size_y;
         bool size_x_cond = false;
         bool size_y_cond = false;
+        void update_size_conditions();
         bool too_big();
         void expand_Bound(Bound New_Bound);
         bool isROI();
