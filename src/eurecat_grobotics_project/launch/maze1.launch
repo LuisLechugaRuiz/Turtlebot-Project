@@ -5,7 +5,7 @@
   <arg name="gui" default="true" />
   <arg name="headless" default="false" />
   <!-- MODIFY THIS LINE -->
-  <arg name="world_name" default="$(find eurecat_grobotics_project)/worlds/maze1closed.world"/>
+  <arg name="world_name" default="$(find eurecat_grobotics_project)/worlds/maze1.world"/>
   <arg name="stacks"    value="$(optenv TURTLEBOT_STACKS hexagons)"/>  <!-- circles, hexagons -->
   <arg name="3d_sensor" value="$(optenv TURTLEBOT_3D_SENSOR astra)"/>  
   <arg name="lidar" value="$(optenv TURTLEBOT_LIDAR rplidar)"/>  <!-- -->
