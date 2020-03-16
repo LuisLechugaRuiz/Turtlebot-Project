@@ -4,6 +4,8 @@
 
 <include file="$(find turtlebot_navigation)/launch/includes/gmapping/gmapping.launch.xml"/>
 
+<include file="$(find ros_img_processor)/launch/ros_img_processor.launch"/>
+
 <node pkg="explore_lite" type="explore" respawn="false" name="explore" output="screen">
   <param name="robot_base_frame" value="base_footprint"/>
   <param name="costmap_topic" value="move_base/global_costmap/costmap"/>

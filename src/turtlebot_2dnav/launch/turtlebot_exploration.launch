@@ -4,6 +4,25 @@
 
 <include file="$(find turtlebot_navigation)/launch/includes/gmapping/gmapping.launch.xml"/>
 
+<include file="$(find ros_img_processor)/launch/ros_img_processor.launch"/>
+
+<node pkg="explore_lite" type="explore" respawn="false" name="explore" output="screen">
+  <param name="robot_base_frame" value="base_footprint"/>
+  <param name="costmap_topic" value="move_base/global_costmap/costmap"/>
+  <param name="costmap_updates_topic" value="move_base/global_costmap/costmap_updates"/>
+  <param name="visualize" value="true"/>
+  <param name="planner_frequency" value="0.33"/>
+  <param name="progress_timeout" value="30.0"/>
+  <param name="potential_scale" value="10.0"/>
+  <param name="orientation_scale" value="0.0"/>
+  <param name="gain_scale" value="1.0"/>
+  <param name="transform_tolerance" value="0.3"/>
+  <param name="min_frontier_size" value="0.75"/>
+</node>
+
+
+<node pkg="poi_database" type="database" respawn="false" name="database" output="screen">
+</node>
 
 
 <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">

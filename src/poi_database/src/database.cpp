@@ -29,29 +29,31 @@ void DatabaseNode::process()
         //-The New Bound is inside of the range of a candidate
         //-The New Bound  meets the requirements to be a ROI
         //-The New Bound doesnt meet the requirements to be a ROI, is saved as a candidate
-      bool insideROI = false;
       std::vector<ROI> *d = database_ptr;
       std::vector<ROI>::iterator cit_ROI;
+      bool insideROI = false;
       for(cit_ROI = d->begin(); cit_ROI != d->end(); cit_ROI++)
       {
         float p_min_x = cit_ROI->bound.min_x;
         float p_max_x = cit_ROI->bound.max_x;
         float p_min_y = cit_ROI->bound.min_y;
         float p_max_y = cit_ROI->bound.max_y;
-        //ROS_INFO("Dentro database ROIs");
-        //ROS_INFO("ROI min_x: %f", p_min_x);
-        //ROS_INFO("ROI max_x: %f", p_max_x);
-        //ROS_INFO("ROI min_y: %f", p_min_y);
-        //ROS_INFO("ROI max_y: %f", p_max_y);
+        ROS_INFO("Dentro database ROIs");
+        ROS_INFO("ROI min_x: %f", p_min_x);
+        ROS_INFO("ROI max_x: %f", p_max_x);
+        ROS_INFO("ROI min_y: %f", p_min_y);
+        ROS_INFO("ROI max_y: %f", p_max_y);
         bool cond_ROI = cit_ROI->bound.inRange(New_Bound.max_x, New_Bound.max_y, New_Bound.min_x, New_Bound.min_y);
         if(cond_ROI)
         {
-            //ROS_INFO("checkeado: Es ROI");
-            if(!cit_ROI->bound.size_x_cond || !cit_ROI->bound.size_y_cond) cit_ROI->bound.expand_Bound(New_Bound);
+            ROS_INFO("checkeado: Es ROI");
+            if(!cit_ROI->bound.size_x_cond || !cit_ROI->bound.size_y_cond) ROI_expanded = cit_ROI->bound.expand_Bound(New_Bound);
+            if(ROI_expanded) cit_ROI->update_ROI();
+            global_ROI = *cit_ROI;
             float s_x = cit_ROI->bound.size_x;
             float s_y = cit_ROI->bound.size_y;
-            //ROS_INFO("Size ROI x: %f", s_x);
-            //ROS_INFO("Size ROI y: %f", s_y);
+            ROS_INFO("Size ROI x: %f", s_x);
+            ROS_INFO("Size ROI y: %f", s_y);
             insideROI = true;
             break;
         }
@@ -60,9 +62,9 @@ void DatabaseNode::process()
       bool isCandidate = false;
       if(!insideROI)
       {
-        //ROS_INFO("checkeado: No es ROI, checkeando candidates");
         std::vector<Bound> *c = candidates_ptr;
         std::vector<Bound>::iterator cit_cand;
+        //ROS_INFO("checkeado: No es ROI, checkeando candidates");
         for(cit_cand = c->begin(); cit_cand != c->end(); cit_cand++)
         {
           bool cond_cand = cit_cand->inRange(New_Bound.max_x, New_Bound.max_y, New_Bound.min_x, New_Bound.min_y);
@@ -72,10 +74,10 @@ void DatabaseNode::process()
               cit_cand->expand_Bound(New_Bound);
               isCandidate = true;
               //ROS_INFO("Bound expand: ");
-              float p_cand_min_x = cit_cand->min_x;
-              float p_cand_max_x = cit_cand->max_x;
-              float p_cand_min_y = cit_cand->min_y;
-              float p_cand_max_y = cit_cand->max_y;
+              //float p_cand_min_x = cit_cand->min_x;
+              //float p_cand_max_x = cit_cand->max_x;
+              //float p_cand_min_y = cit_cand->min_y;
+              //float p_cand_max_y = cit_cand->max_y;
               //ROS_INFO("Cand min_x: %f", p_cand_min_x);
               //ROS_INFO("Cand max_x: %f", p_cand_max_x);
               //ROS_INFO("Cand min_y: %f", p_cand_min_y);
@@ -84,6 +86,7 @@ void DatabaseNode::process()
               {
                 ROI New_ROI(*cit_cand);
                 global_ROI = New_ROI;
+                database_size = database_ptr->size();
                 database_ptr->push_back(New_ROI);
                 candidates_ptr->erase(cit_cand);
                 New_ROI_notify = true;
@@ -95,13 +98,14 @@ void DatabaseNode::process()
 
       if(!insideROI && !isCandidate){
         //ROS_INFO("checkeado: no es ni ROI, ni candidate");
-        //eliminate residual points which are bigger than the max size!
+        //eliminate residual points which are big than the max size!
         if(New_Bound.isROI())
         {
           //ROS_INFO("Nuevo ROI");
           //use constructor of bound to build a ROI?
           ROI New_ROI(New_Bound);
           global_ROI = New_ROI;
+          database_size = database_ptr->size();
           database_ptr->push_back(New_ROI);
           New_ROI_notify = true;
         }
@@ -173,15 +177,15 @@ void DatabaseNode::camera_transformCallback(ros_img_processor::camera_POI_msg ms
   //ROS_INFO("Point right x: %f", pointright.x);
   //ROS_INFO("Point right y: %f", pointright.y);
   //ROS_INFO("Point right z: %f", pointright.z);
-  int r = database_r.size();
-  int p = database_p.size();
-  int e = database_e.size();
+  //int r = database_r.size();
+  //int p = database_p.size();
+  //int e = database_e.size();
   //ROS_INFO("Size database_r: %d", r);
   //ROS_INFO("Size database_p: %d", p);
   //ROS_INFO("Size database_e: %d", e);
-  int r_c = candidates_r.size();
-  int p_c = candidates_p.size();
-  int e_c = candidates_e.size();
+  //int r_c = candidates_r.size();
+  //int p_c = candidates_p.size();
+  //int e_c = candidates_e.size();
   //ROS_INFO("Size candidates_r: %d", r_c);
   //ROS_INFO("Size candidates_p: %d", p_c);
   //ROS_INFO("Size candidates_e: %d", e_c);
@@ -210,7 +214,8 @@ void DatabaseNode::PublishMarkers()
         markers.color.b = 1.0;
         break;
     }
-    //ROS_INFO("inside");
+    database_ptr->at(database_size).marker_index = index;
+    index++;
     markers.color.a = 1.0;
     markers.colors.push_back(markers.color);
     geometry_msgs::Point publish_point;
@@ -219,6 +224,15 @@ void DatabaseNode::PublishMarkers()
     publish_point.z = 0.15;
     markers.points.push_back(publish_point);
   }
+
+  if(ROI_expanded)
+  {
+    markers.points.at(global_ROI.marker_index).x = global_ROI.center_x;
+    markers.points.at(global_ROI.marker_index).y = global_ROI.center_y;
+    ROI_expanded = false;
+    ROS_INFO("EXPANDED center");
+  }
+
   markers.header.frame_id = "map";
   markers.header.stamp = ros::Time::now();
   markers.scale.x = 0.2;
@@ -232,6 +246,7 @@ void DatabaseNode::PublishMarkers()
 
 }
 
+
 DatabaseNode::~DatabaseNode()
 {
     //
@@ -239,70 +254,126 @@ DatabaseNode::~DatabaseNode()
 
 
 //if the ROI only has 1D saved could happen that (as the other dimension is close to 0) the condition "&&" fails
-// to fix this the size_x/y conditions will be checked and a variable tolerance added to the check.
+// to fix this the size_x/y conditions will be checked and a variable tol added to the check.
 bool DatabaseNode::Bound::inRange(float new_max_x, float new_max_y, float new_min_x, float new_min_y)
 {
-  //to be a ROI the size_y_cond = true so the y tolerance is fixed.
-  float tolerance_y = 0.05;
+  //to be a ROI the size_y_cond = true so the y tol is fixed.
+  float tol_y = 0.05;
 
-  float tolerance_x;
-  if(size_x_cond) tolerance_x = 0.2;
-  else tolerance_x = 0.4;
+  float tol_x;
+  if(size_x_cond) tol_x = 0.2;
+  else tol_x = 0.4;
 
   bool cond1;
   bool cond2;
-  cond1 = min_x - tolerance_x <= new_max_x && new_max_x <= max_x + tolerance_x;
-  cond2 = min_x - tolerance_x <= new_min_x && new_min_x <= max_x + tolerance_x;
+  cond1 = min_x - tol_x <= new_max_x && new_max_x <= max_x + tol_x;
+  cond2 = min_x - tol_x <= new_min_x && new_min_x <= max_x + tol_x;
 
   bool cond3;
   bool cond4;
-  cond3 = min_y -tolerance_y <= new_max_y && new_max_y <= max_y + tolerance_y;
-  cond4 = min_y -tolerance_y <= new_min_y && new_min_y <= max_y + tolerance_y;
+  cond3 = min_y -tol_y <= new_max_y && new_max_y <= max_y + tol_y;
+  cond4 = min_y -tol_y <= new_min_y && new_min_y <= max_y + tol_y;
   return ((cond1 || cond2) && (cond3 || cond4));
 }
 
-void DatabaseNode::Bound::expand_Bound(Bound New_Bound)
+bool DatabaseNode::Bound::expand_Bound(Bound New_Bound)
 {
+  //Consider if expanded in case of ROIs to update the marker!
+  bool expanded = false;
   //ROS_INFO("EXPAND BOUND");
   if(!size_x_cond)
   {
     max_x = std::max(max_x, New_Bound.max_x);
     min_x = std::min(min_x, New_Bound.min_x);
+    float size_x_last = size_x;
     size_x = max_x - min_x;
+    if((size_x - size_x_last) > 0.05)
+    {
+      expanded = true;
+    }
   }
   if(!size_y_cond)
   {
     max_y = std::max(max_y, New_Bound.max_y);
     min_y = std::min(min_y, New_Bound.min_y);
     size_y = max_y - min_y;
+    float size_y_last = size_y;
+    size_y = max_y - min_y;
+    if((size_y - size_y_last) > 0.05)
+    {
+      expanded = true;
+    }
   }
   update_size_conditions();
+  return expanded;
 }
 
 void DatabaseNode::Bound::update_size_conditions()
 {
-  if(size_x > 0.3 && size_x < 0.4)
+  //Until one of the conditions is accomplished both side conditions should be checked. Once one of the
+  // conditions meet the requirements the other axis only checks the conditions of the other side.
+  //If one of the conditions is the big side the other one only can be the small but in the other candidates_e
+  // it could happen that the side needs to be expanded.
+  if(!size_x_cond)
   {
-    size_x_cond = true;
+    if(size_x > min_size_big_side && size_x < max_size_big_side)
+    {
+      size_x_cond_vertical = true;
+      //ROS_INFO("HORIZONTAL TRUE");
+    }
+    else if(size_x > min_size_small_side && size_x < max_size_small_side)
+    {
+      size_x_cond_horizontal = true;
+    }
+    else if(size_x_cond_horizontal == true)
+    {
+      size_x_cond_horizontal = false;
+    }
   }
-  if(size_y > 0.9 && size_y < 1.4)
+
+  if(!size_y_cond)
   {
-    size_y_cond = true;
+    if(size_y > min_size_big_side && size_y < max_size_big_side)
+    {
+      size_y_cond_horizontal = true;
+      //ROS_INFO("VERTICAL TRUE");
+    }
+    else if(size_y > min_size_small_side && size_y < max_size_small_side)
+    {
+      size_y_cond_vertical = true;
+    }
+    else if(size_y_cond_vertical == true)
+    {
+      size_y_cond_vertical = false;
+    }
   }
+
+  //When the bound is horizontal x is the bigger size so if the x_cond_horizontal is true is enough
+  // to asure x_cond = true. In the other case check first the y_cond_vertical.
+  size_x_cond = size_x_cond_vertical || (size_x_cond_horizontal && size_y_cond_horizontal);
+  size_y_cond = size_y_cond_horizontal || (size_x_cond_vertical && size_y_cond_vertical);
   //ROS_INFO("Condiciones ROI: ");
   //ROS_INFO("Size x: %f", size_x);
   //ROS_INFO("Size y: %f", size_y);
 }
 
+//We will consider that is ROI if one of the 4 conditions for the side is true but the ROI can still be expanded
+// so the marker needs to be relocated.
 bool DatabaseNode::Bound::isROI()
 {
   update_size_conditions();
-  return size_y_cond;
+  return (size_x_cond_vertical || size_y_cond_horizontal);
 }
 
 bool DatabaseNode::Bound::too_big()
 {
-  return(size_x > 0.4 || size_y > 1.4);
+  return(size_x > max_size_big_side || size_y > max_size_big_side || (size_x > max_size_small_side && size_y > max_size_small_side));
+}
+
+void DatabaseNode::ROI::update_ROI()
+{
+  center_x = (bound.max_x - bound.min_x)/2 + bound.min_x;
+  center_y = (bound.max_y - bound.min_y)/2 + bound.min_y;
 }
 
 DatabaseNode::ROI::ROI(Bound new_bound)
@@ -332,4 +403,5 @@ DatabaseNode::Bound::Bound(geometry_msgs::Point p1, geometry_msgs::Point p2)
   min_y = std::min(p1.y, p2.y);
   size_x = max_x - min_x;
   size_y = max_y - min_y;
+  update_size_conditions();
 }
