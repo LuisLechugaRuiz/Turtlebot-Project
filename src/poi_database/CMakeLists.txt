@@ -6,14 +6,19 @@ project(poi_database)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
-  geometry_msgs
   roscpp
-  std_msgs
   tf2_geometry_msgs
+  std_msgs
+  geometry_msgs
   message_generation
   ros_img_processor
 )
 
+
+add_message_files(
+  FILES
+  ROI.msg
+)
 
 ## Generate added messages and services with any dependencies listed here
  generate_messages(
@@ -21,6 +26,7 @@ find_package(catkin REQUIRED COMPONENTS
    geometry_msgs
    std_msgs
  )
+
 
 
  SET(SRCS

@@ -4,12 +4,15 @@
 #include <tf/transform_listener.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <visualization_msgs/Marker.h>
+#include <poi_database/ROI.h>
+
 
 DatabaseNode::DatabaseNode():
   nh(ros::this_node::getName())
 {
   ROI_sub = n.subscribe("ros_img_processor/camera_POI", 1, &DatabaseNode::camera_transformCallback, this);
   markers_pub = nh.advertise<visualization_msgs::Marker>("visualization_markers",10);
+  ROI_pub = nh.advertise<poi_database::ROI>("ROI", 1);
 }
 
 void DatabaseNode::process()
@@ -34,26 +37,26 @@ void DatabaseNode::process()
       bool insideROI = false;
       for(cit_ROI = d->begin(); cit_ROI != d->end(); cit_ROI++)
       {
-        float p_min_x = cit_ROI->bound.min_x;
-        float p_max_x = cit_ROI->bound.max_x;
-        float p_min_y = cit_ROI->bound.min_y;
-        float p_max_y = cit_ROI->bound.max_y;
-        ROS_INFO("Dentro database ROIs");
-        ROS_INFO("ROI min_x: %f", p_min_x);
-        ROS_INFO("ROI max_x: %f", p_max_x);
-        ROS_INFO("ROI min_y: %f", p_min_y);
-        ROS_INFO("ROI max_y: %f", p_max_y);
+        //float p_min_x = cit_ROI->bound.min_x;
+        //float p_max_x = cit_ROI->bound.max_x;
+        //float p_min_y = cit_ROI->bound.min_y;
+        //float p_max_y = cit_ROI->bound.max_y;
+        //ROS_INFO("Dentro database ROIs");
+        //ROS_INFO("ROI min_x: %f", p_min_x);
+        //ROS_INFO("ROI max_x: %f", p_max_x);
+        //ROS_INFO("ROI min_y: %f", p_min_y);
+        //ROS_INFO("ROI max_y: %f", p_max_y);
         bool cond_ROI = cit_ROI->bound.inRange(New_Bound.max_x, New_Bound.max_y, New_Bound.min_x, New_Bound.min_y);
         if(cond_ROI)
         {
-            ROS_INFO("checkeado: Es ROI");
+            //ROS_INFO("checkeado: Es ROI");
             if(!cit_ROI->bound.size_x_cond || !cit_ROI->bound.size_y_cond) ROI_expanded = cit_ROI->bound.expand_Bound(New_Bound);
             if(ROI_expanded) cit_ROI->update_ROI();
             global_ROI = *cit_ROI;
-            float s_x = cit_ROI->bound.size_x;
-            float s_y = cit_ROI->bound.size_y;
-            ROS_INFO("Size ROI x: %f", s_x);
-            ROS_INFO("Size ROI y: %f", s_y);
+            //float s_x = cit_ROI->bound.size_x;
+            //float s_y = cit_ROI->bound.size_y;
+            //ROS_INFO("Size ROI x: %f", s_x);
+            //ROS_INFO("Size ROI y: %f", s_y);
             insideROI = true;
             break;
         }
@@ -215,14 +218,31 @@ void DatabaseNode::PublishMarkers()
         break;
     }
     database_ptr->at(database_size).marker_index = index;
-    index++;
+
     markers.color.a = 1.0;
+    markers.scale.x = 1.0;
+    markers.scale.y = 1.0;
+    markers.scale.z = 1.0;
     markers.colors.push_back(markers.color);
     geometry_msgs::Point publish_point;
     publish_point.x = global_ROI.center_x;
     publish_point.y = global_ROI.center_y;
     publish_point.z = 0.15;
     markers.points.push_back(publish_point);
+
+    poi_database::ROI ROI_publish;
+    ROI_publish.Header.stamp = ros::Time::now();
+    ROI_publish.Header.frame_id = "Map";
+    ROI_publish.type = type;
+    ROI_publish.center.x = global_ROI.center_x;
+    ROI_publish.center.y = global_ROI.center_y;
+    ROI_publish.size_x = global_ROI.bound.size_x;
+    ROI_publish.size_y = global_ROI.bound.size_y;
+    ROI_publish.index = index;
+    ROI_publish.isnew = true;
+    ROI_pub.publish(ROI_publish);
+
+    index++;
   }
 
   if(ROI_expanded)
@@ -230,7 +250,20 @@ void DatabaseNode::PublishMarkers()
     markers.points.at(global_ROI.marker_index).x = global_ROI.center_x;
     markers.points.at(global_ROI.marker_index).y = global_ROI.center_y;
     ROI_expanded = false;
-    ROS_INFO("EXPANDED center");
+
+    poi_database::ROI ROI_publish;
+    ROI_publish.Header.stamp = ros::Time::now();
+    ROI_publish.Header.frame_id = "Map";
+    ROI_publish.type = type;
+    ROI_publish.center.x = global_ROI.center_x;
+    ROI_publish.center.y = global_ROI.center_y;
+    ROI_publish.size_x = global_ROI.bound.size_x;
+    ROI_publish.size_y = global_ROI.bound.size_y;
+    ROI_publish.index = global_ROI.marker_index;
+    ROI_publish.isnew = false;
+    ROI_pub.publish(ROI_publish);
+
+    //ROS_INFO("EXPANDED center");
   }
 
   markers.header.frame_id = "map";
@@ -278,7 +311,6 @@ bool DatabaseNode::Bound::inRange(float new_max_x, float new_max_y, float new_mi
 
 bool DatabaseNode::Bound::expand_Bound(Bound New_Bound)
 {
-  //Consider if expanded in case of ROIs to update the marker!
   bool expanded = false;
   //ROS_INFO("EXPAND BOUND");
   if(!size_x_cond)

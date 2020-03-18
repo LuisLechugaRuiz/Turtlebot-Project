@@ -5,6 +5,7 @@
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 #include <visualization_msgs/Marker.h>
+#include <poi_database/ROI.h>
 
 class DatabaseNode
 {
@@ -13,7 +14,7 @@ class DatabaseNode
     ros::NodeHandle n;
 
     //Publishers
-    ros::Publisher Database_ROI_pub;
+    ros::Publisher ROI_pub;
     ros::Publisher markers_pub;
 
     //Listener
