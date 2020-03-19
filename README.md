@@ -10,7 +10,7 @@ The purpose is to simulate a rescue task using a mobile robot in an unknown inte
 
 A fixed number of persons are located in unknow positions, the maze has one exit and some risks which needs to be avoided when the robot is carrying a person. 
 
-The objective is to take all the persons out in the minimum time, the robot can only carry one person at the same time. The persons that the robot take out before the half time give double of points. 
+The objective is to take all the persons out in the minimum time, the robot can only carry one person at the same time. Each person the robot takes out before half time gives double of points. 
 
 Walls of differents colors are placed inside of the maze to ease the perception task:
 
