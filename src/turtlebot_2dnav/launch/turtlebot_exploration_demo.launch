@@ -13,7 +13,6 @@
  <rosparam file="$(find turtlebot_2dnav)/param/local_costmap_params.yaml" command="load" />
  <rosparam file="$(find turtlebot_2dnav)/param/global_costmap_params.yaml" command="load" />
  <rosparam file="$(find turtlebot_2dnav)/param/dwa_local_planner_params.yaml" command="load" />
- <rosparam file="$(find turtlebot_2dnav)/param/navfn_global_planner_params.yaml" command="load" />
  <rosparam file="$(find turtlebot_2dnav)/param/global_planner_params.yaml" command="load" />
  <rosparam file="$(find turtlebot_2dnav)/param/move_base_params.yaml" command="load" />
  <remap from="cmd_vel" to="/cmd_vel_mux/input/navi"/>

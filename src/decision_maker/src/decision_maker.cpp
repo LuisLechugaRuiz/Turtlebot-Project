@@ -38,6 +38,10 @@ void Decision::ROI_callBack(poi_database::ROI New_ROI){
 
 void Decision::process(){
   //Try to move in order to every ROI received
+  ROS_INFO("i:  %d", i);
+  int size = received_ROIs.size();
+  ROS_INFO("ROI size: %d", size);
+  //CARE if the plan is not finished the state doesnt return succeded so the execution blocks
   if ((i == 0 && new_roi_received) || (i < received_ROIs.size() && ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED))
   {
     goal.target_pose.header.stamp = ros::Time::now();
