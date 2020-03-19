@@ -46,13 +46,13 @@ void Decision::process(){
     if(received_ROIs.at(i)->size_x > received_ROIs.at(i)->size_y)
     {
       goal.target_pose.pose.position.x = received_ROIs.at(i)->center.x;
-      goal.target_pose.pose.position.y = received_ROIs.at(i)->center.y - 0.5;
+      goal.target_pose.pose.position.y = received_ROIs.at(i)->center.y - 1;
       goal.target_pose.pose.orientation.w = 0.707;
       goal.target_pose.pose.orientation.z = 0.707;
     }
     else
     {
-      goal.target_pose.pose.position.x = received_ROIs.at(i)->center.x - 0.5;
+      goal.target_pose.pose.position.x = received_ROIs.at(i)->center.x - 1;
       goal.target_pose.pose.position.y = received_ROIs.at(i)->center.y;
       goal.target_pose.pose.orientation.w = 1;
     }

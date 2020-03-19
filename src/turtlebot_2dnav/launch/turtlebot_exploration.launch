@@ -2,7 +2,7 @@
 
 <master auto="start"/>
 
-<include file="$(find turtlebot_navigation)/launch/includes/gmapping/gmapping.launch.xml"/>
+<node pkg="gmapping" type="slam_gmapping" respawn="false" name="slam_gmapping" output="screen"/>
 
 <include file="$(find ros_img_processor)/launch/ros_img_processor.launch"/>
 

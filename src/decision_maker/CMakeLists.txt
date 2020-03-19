@@ -49,7 +49,7 @@ find_package(catkin REQUIRED COMPONENTS
         src/decision_maker.cpp)
 
 catkin_package(
-  CATKIN_DEPENDS geometry_msgs roscpp std_msgs message_runtime poi_database  move_base_msgs actionlib
+  CATKIN_DEPENDS geometry_msgs roscpp std_msgs message_runtime poi_database move_base_msgs actionlib
 )
 
 include_directories(
@@ -60,7 +60,7 @@ include_directories(
 add_executable(decision ${SRCS})
 
 
-add_dependencies(decision database_gencpp)
+add_dependencies(decision poi_database_gencpp)
 
 target_link_libraries(decision
    ${catkin_LIBRARIES}
