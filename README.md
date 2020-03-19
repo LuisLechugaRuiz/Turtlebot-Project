@@ -1,6 +1,6 @@
-# Turtlebot Project
+# <center> Turtlebot Project </center>
 
-## Description:
+## <center> Description: </center>
 
 This project is part of the Master in Robotics of the UVIC - Eurecat.
 
