@@ -20,7 +20,7 @@ Walls of differents colors are placed inside of the maze to ease the perception 
 ## Distribution
 
 ### Hardware
-The robot is a Kobuki based on a turtlebot2. The main difference with the standar turtlebots is the use of a LiDAR (in our case the RPLidar 360º). RPLiDAR URDF -> (https://github.com/LuisLechugaRuiz/Turtlebot-Project/blob/master/src/turtlebot_2dnav/sensors/rplidar.urdf.xacro)
+The robot is a Kobuki based on a turtlebot2. The main difference with the standar turtlebots is the use of a LiDAR (in our case the RPLidar 360º https://github.com/LuisLechugaRuiz/Turtlebot-Project/blob/master/src/turtlebot_2dnav/sensors/rplidar.urdf.xacro)
 
 ### Mapping
 
