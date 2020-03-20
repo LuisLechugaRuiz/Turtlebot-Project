@@ -4,8 +4,10 @@
 #include <ros/ros.h>
 #include <poi_database/ROI.h>
 #include <move_base_msgs/MoveBaseAction.h>
+#include <explore_lite/greedyAction.h>
 #include <actionlib/client/simple_action_client.h>
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
+typedef actionlib::SimpleActionClient<explore_lite::greedyAction> ExploreGreedyClient;
 
 class Decision{
   public:
@@ -21,8 +23,10 @@ class Decision{
 
     ros::Subscriber ROI_sub;
 
-    MoveBaseClient ac;
+    MoveBaseClient acMove;
+    ExploreGreedyClient acGreedy;
     move_base_msgs::MoveBaseGoal goal;
+    explore_lite::greedyGoal greedy;
 
     void ROI_callBack(poi_database::ROI);
 

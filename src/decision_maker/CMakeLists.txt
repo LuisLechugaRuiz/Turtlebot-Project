@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   poi_database
+  explore_lite
   move_base_msgs
   actionlib
   actionlib_msgs
@@ -51,7 +52,8 @@ find_package(Boost REQUIRED COMPONENTS system)
         src/decision_maker.cpp)
 
 catkin_package(
-  CATKIN_DEPENDS geometry_msgs roscpp std_msgs message_runtime poi_database move_base_msgs actionlib actionlib_msgs
+  CATKIN_DEPENDS geometry_msgs roscpp std_msgs message_runtime poi_database
+                 move_base_msgs actionlib actionlib_msgs explore_lite
 )
 
 include_directories(
@@ -63,6 +65,7 @@ add_executable(decision ${SRCS})
 
 
 add_dependencies(decision poi_database_gencpp)
+add_dependencies(decision explore_gencpp)
 
 target_link_libraries(decision
    ${catkin_LIBRARIES}

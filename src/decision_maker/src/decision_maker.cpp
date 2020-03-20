@@ -2,18 +2,16 @@
 #include <poi_database/ROI.h>
 #include "decision_maker.h"
 #include <move_base_msgs/MoveBaseAction.h>
+#include <explore_lite/greedyAction.h>
 #include <actionlib/client/simple_action_client.h>
 
 Decision::Decision():
-  nh(ros::this_node::getName()),ac("move_base", true)
+  nh(ros::this_node::getName()),
+  acMove("move_base", true),
+  acGreedy("explore_greedy", true)
 {
   ROI_sub = n.subscribe("POI_database_node/ROI", 1, &Decision::ROI_callBack, this);
 }
-
-  //while(!ac.waitForServer(ros::Duration(5.0))){
-  //ROS_INFO("Waiting for the move_base action server to come up");
-  //}
-
 
 void Decision::ROI_callBack(poi_database::ROI New_ROI)
 {
@@ -41,21 +39,27 @@ void Decision::doneCb(const actionlib::SimpleClientGoalState& state)
 {
     if (state == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
+      ROS_INFO("Goal reached");
       isMoving = false;
     }
 }
 
-
-
 void Decision::process()
 {
   //Try to move in order to every ROI received
-  ROS_INFO("i:  %d", i);
+  //ROS_INFO("i:  %d", i);
   int size = received_ROIs.size();
-  ROS_INFO("ROI size: %d", size);
-  //CARE if the plan is not finished the state doesnt return succeded so the execution blocks
+  //ROS_INFO("ROI size: %d", size);
+
   if (i < received_ROIs.size() && !isMoving)
   {
+    //We are going to try if we can control the goals when a ROI is detected.
+    if(greedy.greedy)
+    {
+      greedy.greedy = false;
+      acGreedy.sendGoal(greedy);
+    }
+
     goal.target_pose.header.stamp = ros::Time::now();
     goal.target_pose.header.frame_id = "map";
     //if is in vertical position
@@ -76,8 +80,17 @@ void Decision::process()
     ROS_INFO("Moving to type: %s", type2.c_str());
     ROS_INFO("Pos x: %f", received_ROIs.at(i)->center.x);
     ROS_INFO("Pos y: %f", received_ROIs.at(i)->center.y);
-    ac.sendGoal(goal, boost::bind(&Decision::doneCb, this, _1));
+    acMove.sendGoal(goal, boost::bind(&Decision::doneCb, this, _1));
+    isMoving = true;
     i++;
-    isMoving = false;
+  }
+
+  else if(!isMoving)
+  {
+    if(!greedy.greedy)
+    {
+      greedy.greedy = true;
+      acGreedy.sendGoal(greedy);
+    }
   }
 }
