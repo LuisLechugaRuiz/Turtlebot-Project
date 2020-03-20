@@ -319,8 +319,8 @@ void Explore::stop()
 }
 
 greedyAction::greedyAction(std::string name) :
-          as_(nh, name, boost::bind(&greedyAction::executeCB, this, _1), false)
-          //action_name_(name)
+          as_(nh, name, boost::bind(&greedyAction::executeCB, this, _1), false),
+          action_name_(name)
 {
   as_.start();
 }
