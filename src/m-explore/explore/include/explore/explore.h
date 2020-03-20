@@ -72,7 +72,7 @@ namespace explore
     actionlib::SimpleActionServer<explore_lite::greedyAction> as_;
     explore_lite::greedyFeedback greedy_feedback_;
     std::string action_name_;
-    bool greedy_;
+    bool greedy_ = false;
  };
 
 
