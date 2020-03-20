@@ -37,10 +37,10 @@ void DatabaseNode::process()
       bool insideROI = false;
       for(cit_ROI = d->begin(); cit_ROI != d->end(); cit_ROI++)
       {
-        //float p_min_x = cit_ROI->bound.min_x;
-        //float p_max_x = cit_ROI->bound.max_x;
-        //float p_min_y = cit_ROI->bound.min_y;
-        //float p_max_y = cit_ROI->bound.max_y;
+        float p_min_x = cit_ROI->bound.min_x;
+        float p_max_x = cit_ROI->bound.max_x;
+        float p_min_y = cit_ROI->bound.min_y;
+        float p_max_y = cit_ROI->bound.max_y;
         //ROS_INFO("Dentro database ROIs");
         //ROS_INFO("ROI min_x: %f", p_min_x);
         //ROS_INFO("ROI max_x: %f", p_max_x);
@@ -101,7 +101,6 @@ void DatabaseNode::process()
 
       if(!insideROI && !isCandidate){
         //ROS_INFO("checkeado: no es ni ROI, ni candidate");
-        //eliminate residual points which are big than the max size!
         if(New_Bound.isROI())
         {
           //ROS_INFO("Nuevo ROI");
@@ -291,7 +290,8 @@ DatabaseNode::~DatabaseNode()
 bool DatabaseNode::Bound::inRange(float new_max_x, float new_max_y, float new_min_x, float new_min_y)
 {
   //to be a ROI the size_y_cond = true so the y tol is fixed.
-  float tol_y = 0.05;
+  //CHECK IT AS IS TOO LOW.
+  float tol_y = 0.08;
 
   float tol_x;
   if(size_x_cond) tol_x = 0.2;
