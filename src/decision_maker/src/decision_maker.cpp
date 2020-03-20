@@ -6,16 +6,17 @@
 
 Decision::Decision():
   nh(ros::this_node::getName()),ac("move_base", true)
-  {
-    ROI_sub = n.subscribe("POI_database_node/ROI", 1, &Decision::ROI_callBack, this);
-  }
+{
+  ROI_sub = n.subscribe("POI_database_node/ROI", 1, &Decision::ROI_callBack, this);
+}
 
   //while(!ac.waitForServer(ros::Duration(5.0))){
   //ROS_INFO("Waiting for the move_base action server to come up");
   //}
 
 
-void Decision::ROI_callBack(poi_database::ROI New_ROI){
+void Decision::ROI_callBack(poi_database::ROI New_ROI)
+{
     geometry_msgs::Point Nuevo;
     if(New_ROI.isnew)
     {
@@ -36,13 +37,24 @@ void Decision::ROI_callBack(poi_database::ROI New_ROI){
     }
 }
 
-void Decision::process(){
+void Decision::doneCb(const actionlib::SimpleClientGoalState& state)
+{
+    if (state == actionlib::SimpleClientGoalState::SUCCEEDED)
+    {
+      isMoving = false;
+    }
+}
+
+
+
+void Decision::process()
+{
   //Try to move in order to every ROI received
   ROS_INFO("i:  %d", i);
   int size = received_ROIs.size();
   ROS_INFO("ROI size: %d", size);
   //CARE if the plan is not finished the state doesnt return succeded so the execution blocks
-  if ((i == 0 && new_roi_received) || (i < received_ROIs.size() && ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED))
+  if (i < received_ROIs.size() && !isMoving)
   {
     goal.target_pose.header.stamp = ros::Time::now();
     goal.target_pose.header.frame_id = "map";
@@ -64,8 +76,8 @@ void Decision::process(){
     ROS_INFO("Moving to type: %s", type2.c_str());
     ROS_INFO("Pos x: %f", received_ROIs.at(i)->center.x);
     ROS_INFO("Pos y: %f", received_ROIs.at(i)->center.y);
-    ac.sendGoal(goal);
+    ac.sendGoal(goal, boost::bind(&Decision::doneCb, this, _1));
     i++;
+    isMoving = false;
   }
-
 }
