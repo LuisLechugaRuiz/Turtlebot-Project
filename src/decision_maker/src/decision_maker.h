@@ -22,11 +22,13 @@ class Decision{
     ros::NodeHandle n;
 
     ros::Subscriber ROI_sub;
+    ros::ServiceClient cost_client;
 
     MoveBaseClient acMove;
     ExploreGreedyClient acGreedy;
     move_base_msgs::MoveBaseGoal goal;
     explore_lite::greedyGoal greedy;
+    turtlebot_2dnav::returnCost cost_request;
 
     void ROI_callBack(poi_database::ROI);
 

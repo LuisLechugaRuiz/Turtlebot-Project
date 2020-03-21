@@ -11,6 +11,7 @@ Decision::Decision():
   acGreedy("explore_greedy", true)
 {
   ROI_sub = n.subscribe("POI_database_node/ROI", 1, &Decision::ROI_callBack, this);
+  cost_client = n.serviceClient<turtlebot_2dnav::returnCost>("move_base/GlobalPlanner/return_cost");
 }
 
 void Decision::ROI_callBack(poi_database::ROI New_ROI)
@@ -65,6 +66,9 @@ void Decision::process()
     //if is in vertical position
     if(received_ROIs.at(i)->size_x > received_ROIs.at(i)->size_y)
     {
+      //Need to know the actual robot position
+      //cost_request.start =
+      //cost_request.goal =  
       goal.target_pose.pose.position.x = received_ROIs.at(i)->center.x;
       goal.target_pose.pose.position.y = received_ROIs.at(i)->center.y - 1;
       goal.target_pose.pose.orientation.w = 0.707;
