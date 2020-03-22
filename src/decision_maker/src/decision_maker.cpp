@@ -4,11 +4,13 @@
 #include <move_base_msgs/MoveBaseAction.h>
 #include <explore_lite/greedyAction.h>
 #include <actionlib/client/simple_action_client.h>
+#include <tf/transform_listener.h>
+#include <turtlebot_2dnav/returnCost.h>
 
 Decision::Decision():
   nh(ros::this_node::getName()),
   acMove("move_base", true),
-  acGreedy("explore_greedy", true)
+  acGreedy("explore_greedy", false)
 {
   ROI_sub = n.subscribe("POI_database_node/ROI", 1, &Decision::ROI_callBack, this);
   cost_client = n.serviceClient<turtlebot_2dnav::returnCost>("move_base/GlobalPlanner/return_cost");
@@ -45,45 +47,70 @@ void Decision::doneCb(const actionlib::SimpleClientGoalState& state)
     }
 }
 
+void Decision::getActualPose()
+{
+  tf::StampedTransform transform;
+  listener.lookupTransform("/map","/base_link",ros::Time(0), transform);
+  actualPose.header.stamp = ros::Time::now();
+  actualPose.header.frame_id = "map";
+  actualPose.pose.position.x = transform.getOrigin().x();
+  actualPose.pose.position.y = transform.getOrigin().y();
+  actualPose.pose.position.z = transform.getOrigin().z();
+  actualPose.pose.orientation.x = transform.getRotation().x();
+  actualPose.pose.orientation.y = transform.getRotation().y();
+  actualPose.pose.orientation.z = transform.getRotation().z();
+  actualPose.pose.orientation.w = transform.getRotation().w();
+}
+
+void Decision::setGoalPose(float posx, float posy, float orientationz, float orientationw)
+{
+  goalPose.header.stamp = ros::Time::now();
+  goalPose.header.frame_id = "map";
+  goalPose.pose.position.x = posx;
+  goalPose.pose.position.y = posy;
+  goalPose.pose.orientation.z = orientationz;
+  goalPose.pose.orientation.w = orientationw;
+}
+
 void Decision::process()
 {
-  //Try to move in order to every ROI received
-  //ROS_INFO("i:  %d", i);
-  int size = received_ROIs.size();
-  //ROS_INFO("ROI size: %d", size);
 
   if (i < received_ROIs.size() && !isMoving)
   {
-    //We are going to try if we can control the goals when a ROI is detected.
+    //Set Greedy to false so we can control the move action
     if(greedy.greedy)
     {
+      ROS_INFO("Greedy False");
       greedy.greedy = false;
       acGreedy.sendGoal(greedy);
     }
 
-    goal.target_pose.header.stamp = ros::Time::now();
-    goal.target_pose.header.frame_id = "map";
-    //if is in vertical position
+    getActualPose();
+
+    //if is in vertical position rotate the final orientation to look frontly the ROI
     if(received_ROIs.at(i)->size_x > received_ROIs.at(i)->size_y)
     {
-      //Need to know the actual robot position
-      //cost_request.start =
-      //cost_request.goal =  
-      goal.target_pose.pose.position.x = received_ROIs.at(i)->center.x;
-      goal.target_pose.pose.position.y = received_ROIs.at(i)->center.y - 1;
-      goal.target_pose.pose.orientation.w = 0.707;
-      goal.target_pose.pose.orientation.z = 0.707;
+
+      setGoalPose(received_ROIs.at(i)->center.x, received_ROIs.at(i)->center.y - 1, 0.707, 0.707);
     }
     else
     {
-      goal.target_pose.pose.position.x = received_ROIs.at(i)->center.x - 1;
-      goal.target_pose.pose.position.y = received_ROIs.at(i)->center.y;
-      goal.target_pose.pose.orientation.w = 1;
+      setGoalPose(received_ROIs.at(i)->center.x - 1, received_ROIs.at(i)->center.y, 0, 1);
     }
+
+    cost_request.request.start = actualPose;
+    cost_request.request.goal = goalPose;
+    goal.target_pose = goalPose;
+    cost_client.call(cost_request);
+
+    //prueba
+    int cost = cost_request.response.cost;
     std::string type2 = received_ROIs.at(i)->type;
     ROS_INFO("Moving to type: %s", type2.c_str());
     ROS_INFO("Pos x: %f", received_ROIs.at(i)->center.x);
     ROS_INFO("Pos y: %f", received_ROIs.at(i)->center.y);
+    ROS_INFO("cost : %d", cost);
+
     acMove.sendGoal(goal, boost::bind(&Decision::doneCb, this, _1));
     isMoving = true;
     i++;
@@ -93,6 +120,7 @@ void Decision::process()
   {
     if(!greedy.greedy)
     {
+      ROS_INFO("Greedy");
       greedy.greedy = true;
       acGreedy.sendGoal(greedy);
     }

@@ -6,6 +6,9 @@
 #include <move_base_msgs/MoveBaseAction.h>
 #include <explore_lite/greedyAction.h>
 #include <actionlib/client/simple_action_client.h>
+#include <tf/transform_listener.h>
+#include <turtlebot_2dnav/returnCost.h>
+
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 typedef actionlib::SimpleActionClient<explore_lite::greedyAction> ExploreGreedyClient;
 
@@ -24,11 +27,14 @@ class Decision{
     ros::Subscriber ROI_sub;
     ros::ServiceClient cost_client;
 
+    tf::TransformListener listener;
+
     MoveBaseClient acMove;
     ExploreGreedyClient acGreedy;
-    move_base_msgs::MoveBaseGoal goal;
-    explore_lite::greedyGoal greedy;
-    turtlebot_2dnav::returnCost cost_request;
+
+    void getActualPose();
+
+    void setGoalPose(float posx, float posy, float orientationz, float orientationw);
 
     void ROI_callBack(poi_database::ROI);
 
@@ -42,6 +48,13 @@ class Decision{
     bool isMoving = false;
 
     int i = 0;
+
+    geometry_msgs::PoseStamped actualPose;
+    geometry_msgs::PoseStamped goalPose;
+
+    move_base_msgs::MoveBaseGoal goal;
+    explore_lite::greedyGoal greedy;
+    turtlebot_2dnav::returnCost cost_request;
 
     std::vector<poi_database::ROI *> received_ROIs;
     std::vector<poi_database::ROI> database_r;

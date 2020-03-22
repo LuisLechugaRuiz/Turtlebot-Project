@@ -6,6 +6,9 @@ int main(int argc,char **argv)
 
   Decision decision;
 
+  //Wait till all the communications are stablished
+  ros::Duration(1).sleep();
+
   ros::Rate loopRate(10);
 
   while( ros::ok() )
