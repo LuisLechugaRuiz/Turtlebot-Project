@@ -1,0 +1,8 @@
+prefix=/home/luis/Turtlebot-Project/devel
+
+Name: turtlebot_gazebo
+Description: Description of turtlebot_gazebo
+Version: 2.2.3
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
