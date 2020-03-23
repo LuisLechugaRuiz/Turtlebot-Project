@@ -117,7 +117,7 @@ void Explore::visualizeFrontiers(
   green.b = 0;
   green.a = 1.0;
 
-  ROS_DEBUG("visualising %lu frontiers", frontiers.size());
+  //ROS_DEBUG("visualising %lu frontiers", frontiers.size());
   visualization_msgs::MarkerArray markers_msg;
   std::vector<visualization_msgs::Marker>& markers = markers_msg.markers;
   visualization_msgs::Marker m;
@@ -188,9 +188,9 @@ void Explore::makePlan()
   auto pose = costmap_client_.getRobotPose();
   // get frontiers sorted according to cost
   auto frontiers = search_.searchFrom(pose.position);
-  ROS_DEBUG("found %lu frontiers", frontiers.size());
+  //ROS_DEBUG("found %lu frontiers", frontiers.size());
   for (size_t i = 0; i < frontiers.size(); ++i) {
-    ROS_DEBUG("frontier %zd cost: %f", i, frontiers[i].cost);
+    //ROS_DEBUG("frontier %zd cost: %f", i, frontiers[i].cost);
   }
 
   if (frontiers.empty()) {
@@ -291,10 +291,10 @@ void Explore::reachedGoal(const actionlib::SimpleClientGoalState& status,
                           const move_base_msgs::MoveBaseResultConstPtr&,
                           const geometry_msgs::Point& frontier_goal)
 {
-    ROS_DEBUG("Reached goal with status: %s", status.toString().c_str());
+    //ROS_DEBUG("Reached goal with status: %s", status.toString().c_str());
     if (status == actionlib::SimpleClientGoalState::ABORTED) {
       frontier_blacklist_.push_back(frontier_goal);
-      ROS_DEBUG("Adding current goal to black list");
+      //ROS_DEBUG("Adding current goal to black list");
 }
 
   // find new goal immediatelly regardless of planning frequency.
