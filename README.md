@@ -76,7 +76,7 @@ When the robot has rescued all the person this node stops and return the time sp
 
 - The packages http://wiki.ros.org/kobuki, http://wiki.ros.org/kobuki_desktop and http://wiki.ros.org/kobuki_msgs for the real and simulated base.
 
-- One of the main packages is http://wiki.ros.org/turtlebot_navigation which contains gmapping and a lot of different techinques to localizate and navigate based on a turtlebot. This node has been modify to include a funcionality at the Global Planner which provides the cost to reach a specific coordinates on the map, this modification is stored at: https://github.com/LuisLechugaRuiz/Turtlebot-Project/tree/globalcost/src/navigation (on globalcost branch but will be merged in master soon). 
+- One of the main packages is http://wiki.ros.org/turtlebot_navigation which contains gmapping and a lot of different techinques to localizate and navigate based on a turtlebot. This node has been modify to include a funcionality at the Global Planner which provides the cost to reach a specific coordinates on the map, this modification is stored at: https://github.com/LuisLechugaRuiz/Turtlebot-Project/tree/master/src/navigation. 
 
 - The eurecat_grobotics_project includes the map to realize the simulation.
 
