@@ -1,8 +1,0 @@
-prefix=/home/luis/Turtlebot-Project/devel
-
-Name: move_base
-Description: Description of move_base
-Version: 1.16.6
-Cflags: -I/home/luis/Turtlebot-Project/devel/include
-Libs: -L${prefix}/lib 
-Requires: dynamic_reconfigure geometry_msgs move_base_msgs nav_msgs roscpp
