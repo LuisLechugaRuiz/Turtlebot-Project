@@ -21,4 +21,4 @@ obstacles_laser:
     track_unknown_space:  true    #true needed for disabling global path planning through unknown space
 
 inflation:
-    inflation_radius: 0.3
+    inflation_radius: 0.25
