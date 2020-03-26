@@ -306,7 +306,7 @@ bool Decision::process()
     break;
 
     case _state_finished:
-      ROS_INFO("congratulations, you are a f**** beast");
+      ROS_INFO("congratulations! you saved the world ;P");
       return true;
     break;
   }
