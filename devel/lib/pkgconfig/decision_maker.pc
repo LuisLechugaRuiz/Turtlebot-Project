@@ -1,0 +1,8 @@
+prefix=/home/luis/Turtlebot-Project/devel
+
+Name: decision_maker
+Description: Description of decision_maker
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: geometry_msgs roscpp std_msgs message_runtime poi_database move_base_msgs actionlib actionlib_msgs explore_lite turtlebot_2dnav

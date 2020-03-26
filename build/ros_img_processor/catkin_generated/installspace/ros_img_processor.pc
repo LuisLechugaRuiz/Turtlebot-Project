@@ -1,0 +1,8 @@
+prefix=/home/luis/Turtlebot-Project/install
+
+Name: ros_img_processor
+Description: Description of ros_img_processor
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib 
+Requires: roscpp rospy image_transport cv_bridge pcl_conversions pcl_ros message_runtime

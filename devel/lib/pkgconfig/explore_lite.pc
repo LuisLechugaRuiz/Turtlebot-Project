@@ -1,0 +1,8 @@
+prefix=/home/luis/Turtlebot-Project/devel
+
+Name: explore_lite
+Description: Description of explore_lite
+Version: 2.1.1
+Cflags: -I/home/luis/Turtlebot-Project/devel/include
+Libs: -L${prefix}/lib 
+Requires: actionlib_msgs geometry_msgs map_msgs move_base_msgs nav_msgs std_msgs visualization_msgs
