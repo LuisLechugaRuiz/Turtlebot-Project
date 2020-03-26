@@ -210,7 +210,7 @@ bool Decision::process()
 {
 //Three states:
 // searching_exit   -> Initially it would just look for the exit (moving greedy)
-// rescuing         -> Once we found it start rescuing persons if there is anynone in the vector (cost_p_not_rescued)
+// rescuing         -> If we found a person and we are not carrying anyone start rescueing
 // searching_person -> In case we already rescued anyone on the list search persons again and if one is found return to rescue state
 // finished         -> If all the persons have been rescued then finish
   switch(_state)
@@ -238,7 +238,7 @@ bool Decision::process()
       }
       else
       {
-        ROS_INFO("State 1: GOING GREEDY SEARCHING PERSON");
+        ROS_INFO("State 2: GOING GREEDY SEARCHING PERSON");
         _state = _state_searching_person;
       }
     break;
@@ -299,6 +299,7 @@ bool Decision::process()
     case _state_searching_person:
       if (database_p.size() > persons_rescued)
       {
+        ROS_INFO("State 1: GOING TO RESCUE NEAREST PERSON");
         _state = _state_rescuing;
         setGreedyAction(false);
       }
