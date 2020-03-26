@@ -2,6 +2,8 @@
 # Turtlebot Project
 ## Description:
 
+![Example](https://github.com/LuisLechugaRuiz/Turtlebot-Project/blob/master/images/Screenshot%20from%202020-03-26%2021-55-58.png) 
+
 This project is part of the Master in Robotics of the UVIC - Eurecat.
 
 The framework used is ROS (Melodic), Gazebo as simulator and RVIZ as visualizator.
