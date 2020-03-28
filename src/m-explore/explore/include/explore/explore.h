@@ -70,9 +70,11 @@ namespace explore
   protected:
     ros::NodeHandle nh;
     actionlib::SimpleActionServer<explore_lite::greedyAction> as_;
-    explore_lite::greedyFeedback greedy_feedback_;
+    explore_lite::greedyResult greedy_result_;
     std::string action_name_;
     bool greedy_ = false;
+    geometry_msgs::PoseStamped return_frontier_;
+    int number_of_frontiers = 0;
  };
 
 

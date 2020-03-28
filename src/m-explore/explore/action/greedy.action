@@ -1,5 +1,5 @@
 bool greedy
 ---
-
+geometry_msgs/PoseStamped frontier
+int64 number_of_frontiers
 ---
-bool received

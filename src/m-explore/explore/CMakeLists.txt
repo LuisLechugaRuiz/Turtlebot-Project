@@ -25,7 +25,7 @@ find_package(Boost REQUIRED COMPONENTS system)
  )
 
 generate_messages(
-  DEPENDENCIES actionlib_msgs std_msgs
+  DEPENDENCIES actionlib_msgs std_msgs geometry_msgs
 )
 
 ###################################

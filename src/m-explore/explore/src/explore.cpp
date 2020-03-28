@@ -266,7 +266,38 @@ void Explore::makePlan()
       });
   }
   else{
-    //Here it must just public the goal in a topic where the decision_maker is subscribed!
+    //check if the frontiers are close as we want to return one frontier for each way
+    int number_of_frontiers_ = 0;
+    auto copy_frontiers = frontiers;
+
+    for(int i = 0; i <= copy_frontiers.size(); i++)
+    {
+      auto frontier = copy_frontiers[0];
+      number_of_frontiers_++;
+      copy_frontiers.erase(copy_frontiers.begin());
+
+      // index to save the iteration and delete the frontier2 if is in range x, y
+      for(int j = 0; j < copy_frontiers.size(); j++)
+      {
+        auto frontier2 = copy_frontiers[j];
+        //in range x
+        if((frontier.centroid.x + 2 > frontier2.centroid.x) && (frontier.centroid.x - 2 < frontier2.centroid.x))
+        {
+          //in range y
+          if((frontier.centroid.y + 2 > frontier2.centroid.y) && (frontier.centroid.y - 2 < frontier2.centroid.y))
+          {
+            copy_frontiers.erase(copy_frontiers.begin()+j);
+            j--;
+          }
+        }
+      }
+    }
+    //return the feedback of the action filled with the best frontier
+    number_of_frontiers = number_of_frontiers_;
+    return_frontier_.pose.position = target_position;
+    return_frontier_.pose.orientation.w = 1.;
+    return_frontier_.header.frame_id = costmap_client_.getGlobalFrameID();
+    return_frontier_.header.stamp = ros::Time::now();
   }
 }
 
@@ -315,7 +346,6 @@ void Explore::stop()
 {
   move_base_client_.cancelAllGoals();
   exploring_timer_.stop();
-  ROS_INFO("Exploration stopped.");
 }
 
 greedyAction::greedyAction(std::string name) :
@@ -327,9 +357,10 @@ greedyAction::greedyAction(std::string name) :
 
 void greedyAction::executeCB(const explore_lite::greedyGoalConstPtr &goal)
 {
-  greedy_feedback_.received = true;
-  as_.publishFeedback(greedy_feedback_);
   greedy_ = goal->greedy;
+  greedy_result_.frontier = return_frontier_;
+  greedy_result_.number_of_frontiers = number_of_frontiers;
+  as_.setSucceeded(greedy_result_);
 }
 
 
