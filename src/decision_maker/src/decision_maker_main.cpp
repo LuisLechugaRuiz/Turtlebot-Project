@@ -3,7 +3,7 @@
 
 int main(int argc,char **argv)
 {
-  ros::init(argc, argv, "decision_maker_node");
+  ros::init(argc, argv, "decision_maker");
 
   Decision decision;
 
