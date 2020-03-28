@@ -9,5 +9,6 @@
 <node pkg="poi_database" type="database" respawn="false" name="database" output="screen">
 </node>
 
+<node name="rviz" pkg="rviz" type="rviz" args="-d $(find turtlebot_2dnav)/launch/configuration.rviz" />
 
 </launch>
