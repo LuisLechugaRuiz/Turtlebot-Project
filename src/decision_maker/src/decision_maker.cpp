@@ -145,12 +145,9 @@ bool Decision::isFrontier_worth(int iteration)
   data frontier_(bestFrontier);
   float probability = (number_of_persons - persons_rescued) / number_of_frontiers;
   //to get the cost here we override goal pose which is dangerous.
-  ROS_INFO("Number of frontiers: %d", number_of_frontiers);
   setGoalPose(frontier_);
   float cost_prob = getCost()/probability;
   if(iteration > 0) cost_prob = cost_prob * iteration;
-  ROS_INFO("COST PROB FRONTIER %f", cost_prob);
-  ROS_INFO("COST PERSON %d", database_p[0].cost);
   if(cost_prob < database_p[0].cost) isWorth = true;
   return isWorth;
 }
@@ -195,11 +192,12 @@ void Decision::callMoveAction()
 bool Decision::takeRisk(bool riskymode)
 {
   bool risky;
+  time_now = ros::Time::now();
   //Already found the exit
-  if (database_e.size() > 0 && riskymode && ((time_exit_found.sec - time_inic.sec) < total_time/4))
+  if (database_e.size() > 0 && riskymode && ((time_now.sec - time_now.sec) < total_time/4))
   {
-    ROS_INFO("Min: %d", (time_exit_found.sec - time_inic.sec) / 60);
-    ROS_INFO("segundos: %d", (time_exit_found.sec - time_inic.sec) % 60);
+    ROS_INFO("Min: %d", (time_now.sec - time_inic.sec) / 60);
+    ROS_INFO("segundos: %d", (time_now.sec - time_inic.sec) % 60);
     risky = true;
   }
   else risky =false;
@@ -207,12 +205,19 @@ bool Decision::takeRisk(bool riskymode)
   return risky;
 }
 
+
 //Five states:
+
 // searching_exit   -> Initially it would just look for the exit (moving greedy)
 // rescuing         -> If we found a person and we are not carrying anyone start rescuing
+  // The states (directions)
+    //Wait   -> take decision to where to go depending on different factors
+    //Person -> moving to the closer person
+    //Exit   -> carrying a person to the exit
 // exploring        -> In case we want to run risky_mode go to the nearest frontier in case is worth it
 // searching_person -> In case we already rescued anyone on the list search persons again and if one is found return to rescue state
 // finished         -> If all the persons have been rescued then finish
+
 bool Decision::process()
 {
   switch(_state)
@@ -237,13 +242,11 @@ bool Decision::process()
       {
         ROS_INFO("State 1: GOING TO RESCUE NEAREST PERSON");
         setGreedyAction(false);
-        time_exit_found = ros::Time::now();
         _state = _rescuing;
       }
       else
       {
         ROS_INFO("State 2: GOING GREEDY SEARCHING PERSON");
-        time_exit_found = ros::Time::now();
         _state = _searching_person;
       }
     break;
@@ -325,7 +328,6 @@ bool Decision::process()
 
       if (persons_found < database_p.size() || database_p[0].cost < getCost() )
       {
-        ROS_INFO("OVERRIDE!");
         //OVERRIDE THE MOVE_BASE ACTION!
         isMoving = false;
         _state = _rescuing;

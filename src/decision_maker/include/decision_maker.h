@@ -71,7 +71,7 @@ class Decision{
 
 
     ros::Time time_inic;
-    ros::Time time_exit_found;
+    ros::Time time_now;
 
     int total_time_min, total_time_sec, total_time;
 
