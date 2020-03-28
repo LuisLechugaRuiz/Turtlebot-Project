@@ -1,9 +1,21 @@
-
 # Turtlebot Project
 
 ![Example](https://github.com/LuisLechugaRuiz/Turtlebot-Project/blob/master/images/Screenshot%20from%202020-03-26%2021-55-58.png) 
 
 This project is part of the Master in Robotics of the UVIC - Eurecat.
+
+## How to run:
+
+Install of the dependencies commented in the description.
+
+To run the gazebo simulation with the navigation stack do:
+```
+roslaunch turtlebot_2dnav navigation_demo.launch
+```
+To run the maze logic solver do:
+```
+roslaunch turtlebot_2dnav logic_demo.launch
+``` 
 
 ## Description:
 
