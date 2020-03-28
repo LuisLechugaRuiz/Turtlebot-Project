@@ -1,0 +1,14 @@
+  number_of_persons: 6
+  total_time_min: 25
+  total_time_sec: 30
+
+  points_exit: 5
+  points_person: 3
+  points_danger: 2
+  points_person_rescued_half_time: 5
+  points_person_rescued_full_time: 3
+
+  initial_cost: 10000000
+  rescued_cost: 100000000
+
+  riskymode: true
