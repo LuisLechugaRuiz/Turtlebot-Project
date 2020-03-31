@@ -29,9 +29,9 @@ class data
 class person : public data
 {
   public:
-    person(poi_database::ROI ROI_, int initial_cost);
+    person(poi_database::ROI ROI_, double initial_distance_);
 
-    void updateData(int New_Cost);
+    void updateData(double New_Distance);
 
     void updateData(bool rescued_);
 
@@ -39,9 +39,9 @@ class person : public data
 
     bool get_rescued();
 
-    int get_cost();
+    double get_distance();
 
-    int cost;
+    double distance;
   private:
 
     bool rescued;

@@ -44,7 +44,7 @@
 
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/server/simple_action_server.h>
-#include <explore_lite/greedyAction.h>
+#include <turtlebot_2dnav/greedyAction.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <ros/ros.h>
@@ -65,14 +65,15 @@ namespace explore
 {
   public:
     greedyAction(std::string name);
-    void executeCB(const explore_lite::greedyGoalConstPtr &goal);
+    void executeCB(const turtlebot_2dnav::greedyGoalConstPtr &goal);
 
   protected:
     ros::NodeHandle nh;
-    actionlib::SimpleActionServer<explore_lite::greedyAction> as_;
-    explore_lite::greedyResult greedy_result_;
+    actionlib::SimpleActionServer<turtlebot_2dnav::greedyAction> as_;
+    turtlebot_2dnav::greedyResult greedy_result_;
     std::string action_name_;
     bool greedy_ = false;
+    bool return_ = false;
     geometry_msgs::PoseStamped return_frontier_;
     int number_of_frontiers = 0;
  };

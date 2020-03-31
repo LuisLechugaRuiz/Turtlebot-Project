@@ -8,8 +8,8 @@
   points_person_rescued_half_time: 5
   points_person_rescued_full_time: 3
 
-  initial_cost: 10000000
-  rescued_cost: 100000000
+  initial_distance: 10000
+  rescued_distance: 100000
 
   #It works better but need to edit the costmap to avoid exiting the maze to explore
-  riskymode: false
+  riskymode: true

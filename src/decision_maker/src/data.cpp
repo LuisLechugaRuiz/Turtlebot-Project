@@ -43,16 +43,16 @@ float data::get_center_y()
   return center.y;
 }
 
-person::person(poi_database::ROI ROI_, int initial_cost_) : data::data(ROI_)
+person::person(poi_database::ROI ROI_, double initial_distance_) : data::data(ROI_)
 {
-  updateData(initial_cost_);
+  updateData(initial_distance_);
   updateData(false);
 }
 
 
-void person::updateData(int New_cost)
+void person::updateData(double New_Distance)
 {
-  cost = New_cost;
+  distance = New_Distance;
 }
 
 void person::updateData(bool rescued_)
@@ -60,9 +60,9 @@ void person::updateData(bool rescued_)
   rescued = rescued_;
 }
 
-int person::get_cost()
+double person::get_distance()
 {
-  return cost;
+  return distance;
 }
 
 bool person::get_rescued()

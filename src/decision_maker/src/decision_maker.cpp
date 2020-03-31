@@ -7,7 +7,7 @@ Decision::Decision():
   acGreedy("explore_greedy", true)
 {
   ROI_sub = n.subscribe("database/ROI", 1, &Decision::ROI_callBack, this);
-  cost_client = n.serviceClient<turtlebot_2dnav::returnCost>("move_base/GlobalPlanner/return_cost");
+  plan_client = n.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
   nh.param("number_of_persons", number_of_persons, 6);
   nh.param("total_time_min", total_time_min, 25);
   nh.param("total_time_sec", total_time_sec, 30);
@@ -16,8 +16,8 @@ Decision::Decision():
   nh.param("points_danger", points_person, 2);
   nh.param("points_person_rescued_half_time", points_person_rescued_half_time, 5);
   nh.param("points_person_rescued_full_time", points_person_rescued_full_time, 3);
-  nh.param("initial_cost", initial_cost, 10000000);
-  nh.param("rescued_cost", rescued_cost, 100000000);
+  nh.param("initial_distance", initial_distance, 10000.00);
+  nh.param("rescued_distance", rescued_distance, 100000.00);
   nh.param("riskymode", riskymode, false);
   total_time = total_time_min * 60 + total_time_sec;
   time_inic = ros::Time::now();
@@ -33,7 +33,7 @@ void Decision::ROI_callBack(poi_database::ROI New_ROI)
     {
       if(type == "P")
       {
-        person New_Person(New_ROI, initial_cost);
+        person New_Person(New_ROI, initial_distance);
         database_p.push_back(New_Person);
       }
       else
@@ -108,17 +108,18 @@ void Decision::setGoalPose(data target_goal)
   }
 }
 
-void Decision::setGreedyAction(bool state)
+void Decision::setGreedyAction(bool greedyState, bool greedyReturn)
 {
-  greedy.greedy = state;
+  greedy.greedy = greedyState;
+  greedy.return_frontier = greedyReturn;
   acGreedy.sendGoal(greedy, boost::bind(&Decision::getGreedyresult, this, _1, _2),NULL, NULL);
 }
 
 
 void Decision::getGreedyresult(const actionlib::SimpleClientGoalState& state,
-                               const explore_lite::greedyResultConstPtr& result)
+                               const turtlebot_2dnav::greedyResultConstPtr& result)
 {
-  if (greedy.greedy == false)
+  if (greedy.return_frontier == true)
   {
     if (state == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
@@ -143,32 +144,66 @@ bool Decision::isFrontier_worth(int iteration)
   //make harder to be worth after each iteration
   iteration = iteration*5;
   data frontier_(bestFrontier);
-  float probability = (number_of_persons - persons_rescued) / number_of_frontiers;
-  //to get the cost here we override goal pose which is dangerous.
-  setGoalPose(frontier_);
-  float cost_prob = getCost()/probability;
-  if(iteration > 0) cost_prob = cost_prob * iteration;
-  if(cost_prob < database_p[0].cost) isWorth = true;
+  double distance_prob = getDistanceProb(frontier_);
+  if(iteration > 0) distance_prob = distance_prob * iteration;
+  if(distance_prob < database_p[0].distance) isWorth = true;
   return isWorth;
 }
 
-
-int Decision::getCost()
+double Decision::getDistanceProb(data Frontier)
 {
-  cost_request.request.start = actualPose;
-  cost_request.request.goal = goalPose;
-  cost_client.call(cost_request);
-  return cost_request.response.cost;
+  double probability = (double)(number_of_persons - persons_rescued) / number_of_frontiers;
+  ROS_INFO("1");
+  //to get the cost here we override goal pose which is dangerous.
+  setGoalPose(Frontier);
+  ROS_INFO("2");
+  auto Frontier_path = getPlan();
+  ROS_INFO("3");
+  double distance_frontier = getDistance(Frontier_path);
+  ROS_INFO("4");
+  return (distance_frontier/probability);
 }
 
-static bool sortbycost(const person &a, const person &b)
+
+
+nav_msgs::Path Decision::getPlan()
 {
-    return (a.cost < b.cost);
+  plan_request.request.start = actualPose;
+  plan_request.request.goal = goalPose;
+  plan_request.request.tolerance = tolerance;
+  plan_client.call(plan_request);
+  return plan_request.response.plan;
+}
+
+double Decision::calculateEuclideanDistance(geometry_msgs::Point point1, geometry_msgs::Point point2)
+{
+  double x = abs(point2.x - point1.x);
+  double y = abs(point2.y - point1.y);
+  return(sqrt(pow(x,2) + pow(y,2)));
+}
+
+double Decision::getDistance(nav_msgs::Path path)
+{
+  double path_distance = 0.00;
+  int size = path.poses.size();
+  ROS_INFO("PATH SIZE: %d", size);
+  for(int i = 0; i < (path.poses.size() - 1); i++)
+  {
+    path_distance += calculateEuclideanDistance(path.poses[i].pose.position, path.poses[i+1].pose.position);
+  }
+  ROS_INFO("distance: %f", path_distance);
+  return path_distance;
+}
+
+static bool sortbydistance(const person &a, const person &b)
+{
+    return (a.distance < b.distance);
 }
 
 
 void Decision::findNearestPerson()
 {
+  persons_found = database_p.size();
   getActualPose();
   for(auto& person_ : database_p)
   {
@@ -176,10 +211,11 @@ void Decision::findNearestPerson()
     if(person_.get_rescued() == false)
     {
       setGoalPose(person_);
-      person_.updateData(getCost());
+      auto New_path = getPlan();
+      person_.updateData( getDistance(New_path) );
     }
   }
-  std::sort(database_p.begin(), database_p.end(), sortbycost);
+  std::sort(database_p.begin(), database_p.end(), sortbydistance);
 }
 
 
@@ -200,7 +236,7 @@ bool Decision::takeRisk(bool riskymode)
     ROS_INFO("segundos: %d", (time_now.sec - time_inic.sec) % 60);
     risky = true;
   }
-  else risky =false;
+  else risky = false;
 
   return risky;
 }
@@ -228,12 +264,12 @@ bool Decision::process()
         if(!greedy.greedy)
         {
           ROS_INFO("State 0: GOING GREEDY SEARCHING EXIT");
-          setGreedyAction(true);
+          setGreedyAction(true, false);
         }
         if(database_p.size() > 0 && !carrying_person)
         {
           ROS_INFO("State 1: GOING TO RESCUE NEAREST PERSON");
-          setGreedyAction(false);
+          setGreedyAction(false, false);
           _state = _rescuing;
           _direction = _person;
         }
@@ -241,7 +277,7 @@ bool Decision::process()
       else if (database_p.size() > 0)
       {
         ROS_INFO("State 1: GOING TO RESCUE NEAREST PERSON");
-        setGreedyAction(false);
+        setGreedyAction(false, false);
         _state = _rescuing;
       }
       else
@@ -260,39 +296,42 @@ bool Decision::process()
             carrying_person = false;
             if(persons_rescued != number_of_persons)
             {
-              setGreedyAction(false);
+              setGreedyAction(false, true);
               //Recalculate the costs and reorder the database_p
               findNearestPerson();
               setGoalPose(database_p.at(0));
               if(database_p.at(0).get_rescued() == false)
               {
                 //Already found the exit
-                if (takeRisk(riskymode) && isFrontier_worth(exploring_iteration)) _state = _exploring;
-                else
+                if (takeRisk(riskymode) && isFrontier_worth(exploring_iteration))
                 {
-                  _direction = _person;
-                  ROS_INFO("Direction: Person");
+                  _state = _exploring;
+                  _exploration_mode = _starting;
                 }
+                else _direction = _person;
               }
               else
               {
                 ROS_INFO("State 2: GOING GREEDY SEARCHING PERSON");
-                setGreedyAction(true);
+                setGreedyAction(true, false);
                 _state = _searching_person;
               }
             }
             else _state = _finished;
           break;
 
+
           case _person:
+            ROS_INFO("Direction: Person");
             setGoalPose(database_p.at(0));
             callMoveAction();
             isMoving = true;
             _direction = _exit;
-            ROS_INFO("Direction: Exit");
           break;
 
+
           case _exit:
+            ROS_INFO("Direction: Exit");
             carrying_person = true;
             if (database_e.size() == 0) _state = _searching_exit;
             else
@@ -301,39 +340,57 @@ bool Decision::process()
               callMoveAction();
               //update the rescued bool of the person
               database_p.at(0).set_rescued();
-              database_p.at(0).updateData(rescued_cost);
+              database_p.at(0).updateData(rescued_distance);
               isMoving = true;
               persons_rescued++;
               _direction = _wait;
             }
-          }
+          break;
         }
+      }
     break;
 
 
     case _exploring:
-      if(!isMoving)
+
+      switch (_exploration_mode)
       {
-        persons_found = database_p.size();
-        ROS_INFO("EXPLORING");
-        data frontier(bestFrontier);
-        setGoalPose(frontier);
-        callMoveAction();
-        isMoving = true;
-        exploring_iteration++;
+        case _starting:
+          if(!isMoving)
+          {
+            ROS_INFO("EXPLORING");
+            data frontier(bestFrontier);
+            frontier_distance = getDistanceProb(frontier);
+            setGoalPose(frontier);
+            callMoveAction();
+            isMoving = true;
+            exploring_iteration++;
+            _exploration_mode = _moving;
+            ROS_INFO("Direction: Fontier");
+          }
+        break;
+
+        case _moving:
+          //check if new persons found during the way!
+          if (persons_found < database_p.size())
+          {
+            findNearestPerson();
+            if (!isFrontier_worth(exploring_iteration))
+            {
+              _state = _rescuing;;
+              _direction = _person;
+              //OVERRIDE THE MOVE_BASE ACTION!
+              isMoving = false;
+            }
+          }
+          if (!isMoving) _exploration_mode = _stopped;
+        break;
+
+        case _stopped:
         _state = _rescuing;
         _direction = _wait;
-        ROS_INFO("Direction: Fontier");
+        break;
       }
-
-      if (persons_found < database_p.size() || database_p[0].cost < getCost() )
-      {
-        //OVERRIDE THE MOVE_BASE ACTION!
-        isMoving = false;
-        _state = _rescuing;
-        _direction = _wait;
-      }
-
     break;
 
     case _searching_person:
@@ -341,7 +398,7 @@ bool Decision::process()
       {
         ROS_INFO("State 1: GOING TO RESCUE NEAREST PERSON");
         _state = _rescuing;
-        setGreedyAction(false);
+        setGreedyAction(false, false);
       }
     break;
 

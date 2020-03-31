@@ -265,7 +265,8 @@ void Explore::makePlan()
         reachedGoal(status, result, target_position);
       });
   }
-  else{
+  if (return_)
+  {
     //check if the frontiers are close as we want to return one frontier for each way
     int number_of_frontiers_ = 0;
     auto copy_frontiers = frontiers;
@@ -355,9 +356,10 @@ greedyAction::greedyAction(std::string name) :
   as_.start();
 }
 
-void greedyAction::executeCB(const explore_lite::greedyGoalConstPtr &goal)
+void greedyAction::executeCB(const turtlebot_2dnav::greedyGoalConstPtr &goal)
 {
   greedy_ = goal->greedy;
+  return_ = goal->return_frontier;
   greedy_result_.frontier = return_frontier_;
   greedy_result_.number_of_frontiers = number_of_frontiers;
   as_.setSucceeded(greedy_result_);

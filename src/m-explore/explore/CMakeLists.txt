@@ -18,12 +18,6 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Boost REQUIRED COMPONENTS system)
 
-## Generate actions in the 'action' folder
- add_action_files(
-   FILES
-   greedy.action
- )
-
 generate_messages(
   DEPENDENCIES actionlib_msgs std_msgs geometry_msgs
 )
