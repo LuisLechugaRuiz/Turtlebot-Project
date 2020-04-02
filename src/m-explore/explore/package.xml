@@ -29,8 +29,9 @@
   <depend>tf</depend>
   <depend>costmap_2d</depend>
   <depend>actionlib</depend>
+  <depend>turtlebot_2dnav</depend>
 
   <exec_depend>message_generation</exec_depend>
-  
+
   <test_depend>roslaunch</test_depend>
 </package>

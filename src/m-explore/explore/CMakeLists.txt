@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   tf
   visualization_msgs
+  turtlebot_2dnav
 )
 
 find_package(Boost REQUIRED COMPONENTS system)
@@ -34,6 +35,7 @@ catkin_package(
     nav_msgs
     std_msgs
     visualization_msgs
+    turtlebot_2dnav
 )
 
 ###########

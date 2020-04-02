@@ -54,8 +54,6 @@ Explore::Explore()
   : private_nh_("~")
   , tf_listener_(ros::Duration(10.0))
   , costmap_client_(private_nh_, relative_nh_, &tf_listener_)
-  , move_base_client_("move_base")
-  , greedyAction("explore_greedy")
   , prev_distance_(0)
   , last_markers_count_(0)
 {
@@ -76,16 +74,11 @@ Explore::Explore()
 
   if (visualize_) {
     marker_array_publisher_ =
-        private_nh_.advertise<visualization_msgs::MarkerArray>("frontiers", 10);
+        private_nh_.advertise<visualization_msgs::MarkerArray>("frontiers_markers", 10);
   }
 
+  frontier_publisher = private_nh_.advertise<turtlebot_2dnav::frontier>("frontier", 100);
 
-  ROS_INFO("Waiting to connect to move_base server");
-
-  if (greedy_) {
-  move_base_client_.waitForServer();
-  ROS_INFO("Connected to move_base server");
-  }
 
   exploring_timer_ =
       relative_nh_.createTimer(ros::Duration(1. / planner_frequency_),
@@ -149,11 +142,7 @@ void Explore::visualizeFrontiers(
     m.scale.y = 0.1;
     m.scale.z = 0.1;
     m.points = frontier.points;
-    if (goalOnBlacklist(frontier.centroid)) {
-      m.color = red;
-    } else {
-      m.color = blue;
-    }
+    m.color = blue;
     markers.push_back(m);
     ++id;
     m.type = visualization_msgs::Marker::SPHERE;
@@ -189,9 +178,7 @@ void Explore::makePlan()
   // get frontiers sorted according to cost
   auto frontiers = search_.searchFrom(pose.position);
   //ROS_DEBUG("found %lu frontiers", frontiers.size());
-  for (size_t i = 0; i < frontiers.size(); ++i) {
-    //ROS_DEBUG("frontier %zd cost: %f", i, frontiers[i].cost);
-  }
+
 
   if (frontiers.empty()) {
     stop();
@@ -203,140 +190,39 @@ void Explore::makePlan()
     visualizeFrontiers(frontiers);
   }
 
-//need to declare it outside of if
   geometry_msgs::Point target_position;
   auto frontier = frontiers.begin();
 
-  if (greedy_)
-  {
-    // find non blacklisted frontier
-    frontier =
-        std::find_if_not(frontiers.begin(), frontiers.end(),
-                       [this](const frontier_exploration::Frontier& f) {
-                         return goalOnBlacklist(f.centroid);
-                       });
-    if (frontier == frontiers.end()) {
-      stop();
-      return;
-    }
-     target_position = frontier->centroid;
+  target_position = frontier->centroid;
+
+
+  // time out if we are not making any progress
+  bool same_goal = prev_goal_ == target_position;
+  prev_goal_ = target_position;
+  if (!same_goal || prev_distance_ > frontier->min_distance) {
+  //we have different goal or we made some progress
+  last_progress_ = ros::Time::now();
+  prev_distance_ = frontier->min_distance;
   }
 
-//Not blacklist so just save the frontier.
-  else{
-    target_position = frontier->centroid;
+  ROS_INFO("target_position x: %f", target_position.x);
+  ROS_INFO("target_position y: %f", target_position.y);
+  // we don't need to do anything if we still pursuing the same goal
+  if (same_goal) {
+    return;
   }
 
-
-
-  if (greedy_)
-  {
-    // time out if we are not making any progress
-    bool same_goal = prev_goal_ == target_position;
-    prev_goal_ = target_position;
-    if (!same_goal || prev_distance_ > frontier->min_distance) {
-      //we have different goal or we made some progress
-        last_progress_ = ros::Time::now();
-        prev_distance_ = frontier->min_distance;
-    }
-    // black list if we've made no progress for a long time
-    if (ros::Time::now() - last_progress_ > progress_timeout_) {
-        frontier_blacklist_.push_back(target_position);
-    //  ROS_DEBUG("Adding current goal to black list");
-        makePlan();
-        return;
-    }
-
-    // we don't need to do anything if we still pursuing the same goal
-    if (same_goal) {
-      return;
-    }
-
-    // send goal to move_base if we have something new to pursue
-    move_base_msgs::MoveBaseGoal goal;
-    goal.target_pose.pose.position = target_position;
-    goal.target_pose.pose.orientation.w = 1.;
-    goal.target_pose.header.frame_id = costmap_client_.getGlobalFrameID();
-    goal.target_pose.header.stamp = ros::Time::now();
-    move_base_client_.sendGoal(
-      goal, [this, target_position](
-                const actionlib::SimpleClientGoalState& status,
-                const move_base_msgs::MoveBaseResultConstPtr& result) {
-        reachedGoal(status, result, target_position);
-      });
-  }
-  if (return_)
-  {
-    //check if the frontiers are close as we want to return one frontier for each way
-    int number_of_frontiers_ = 0;
-    auto copy_frontiers = frontiers;
-
-    for(int i = 0; i <= copy_frontiers.size(); i++)
-    {
-      auto frontier = copy_frontiers[0];
-      number_of_frontiers_++;
-      copy_frontiers.erase(copy_frontiers.begin());
-
-      // index to save the iteration and delete the frontier2 if is in range x, y
-      for(int j = 0; j < copy_frontiers.size(); j++)
-      {
-        auto frontier2 = copy_frontiers[j];
-        //in range x
-        if((frontier.centroid.x + 2 > frontier2.centroid.x) && (frontier.centroid.x - 2 < frontier2.centroid.x))
-        {
-          //in range y
-          if((frontier.centroid.y + 2 > frontier2.centroid.y) && (frontier.centroid.y - 2 < frontier2.centroid.y))
-          {
-            copy_frontiers.erase(copy_frontiers.begin()+j);
-            j--;
-          }
-        }
-      }
-    }
-    //return the feedback of the action filled with the best frontier
-    number_of_frontiers = number_of_frontiers_;
-    return_frontier_.pose.position = target_position;
-    return_frontier_.pose.orientation.w = 1.;
-    return_frontier_.header.frame_id = costmap_client_.getGlobalFrameID();
-    return_frontier_.header.stamp = ros::Time::now();
-  }
+  // send goal to move_base if we have something new to pursue
+  geometry_msgs::PoseStamped goal;
+  frontier_msg.goal.pose.position = target_position;
+  frontier_msg.goal.pose.orientation.w = 1.;
+  frontier_msg.goal.header.frame_id = costmap_client_.getGlobalFrameID();
+  frontier_msg.goal.header.stamp = ros::Time::now();
+  frontier_msg.frontiers_count = frontiers.size();
+  frontier_publisher.publish(frontier_msg);
+  ROS_INFO("PUBLISHED");
 }
 
-bool Explore::goalOnBlacklist(const geometry_msgs::Point& goal)
-    {
-      constexpr static size_t tolerace = 5;
-      costmap_2d::Costmap2D* costmap2d = costmap_client_.getCostmap();
-
-    // check if a goal is on the blacklist for goals that we're pursuing
-      for (auto& frontier_goal : frontier_blacklist_) {
-        double x_diff = fabs(goal.x - frontier_goal.x);
-        double y_diff = fabs(goal.y - frontier_goal.y);
-
-        if (x_diff < tolerace * costmap2d->getResolution() &&
-            y_diff < tolerace * costmap2d->getResolution())
-            return true;
-        }
-        return false;
-      }
-
-void Explore::reachedGoal(const actionlib::SimpleClientGoalState& status,
-                          const move_base_msgs::MoveBaseResultConstPtr&,
-                          const geometry_msgs::Point& frontier_goal)
-{
-    //ROS_DEBUG("Reached goal with status: %s", status.toString().c_str());
-    if (status == actionlib::SimpleClientGoalState::ABORTED) {
-      frontier_blacklist_.push_back(frontier_goal);
-      //ROS_DEBUG("Adding current goal to black list");
-}
-
-  // find new goal immediatelly regardless of planning frequency.
-  // execute via timer to prevent dead lock in move_base_client (this is
-  // callback for sendGoal, which is called in makePlan). the timer must live
-  // until callback is executed.
-  oneshot_ = relative_nh_.createTimer(
-      ros::Duration(0, 0), [this](const ros::TimerEvent&) { makePlan(); },
-      true);
-}
 
 void Explore::start()
 {
@@ -345,24 +231,7 @@ void Explore::start()
 
 void Explore::stop()
 {
-  move_base_client_.cancelAllGoals();
   exploring_timer_.stop();
-}
-
-greedyAction::greedyAction(std::string name) :
-          as_(nh, name, boost::bind(&greedyAction::executeCB, this, _1), false),
-          action_name_(name)
-{
-  as_.start();
-}
-
-void greedyAction::executeCB(const turtlebot_2dnav::greedyGoalConstPtr &goal)
-{
-  greedy_ = goal->greedy;
-  return_ = goal->return_frontier;
-  greedy_result_.frontier = return_frontier_;
-  greedy_result_.number_of_frontiers = number_of_frontiers;
-  as_.setSucceeded(greedy_result_);
 }
 
 
