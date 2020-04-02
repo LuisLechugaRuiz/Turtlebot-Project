@@ -60,7 +60,7 @@ Explore::Explore()
   double timeout;
   double min_frontier_size;
   private_nh_.param("planner_frequency", planner_frequency_, 1.0);
-  private_nh_.param("progress_timeout", timeout, 30.0);
+  private_nh_.param("progress_timeout", timeout, 1000.0);
   progress_timeout_ = ros::Duration(timeout);
   private_nh_.param("visualize", visualize_, false);
   private_nh_.param("potential_scale", potential_scale_, 1e-3);
@@ -178,12 +178,12 @@ void Explore::makePlan()
   // get frontiers sorted according to cost
   auto frontiers = search_.searchFrom(pose.position);
   //ROS_DEBUG("found %lu frontiers", frontiers.size());
+  if (frontiers.size() == 0) return;
 
-
-  if (frontiers.empty()) {
-    stop();
-    return;
-  }
+  //if (frontiers.empty()) {
+  //  stop();
+  //  return;
+  //}
 
   // publish frontiers as visualization markers
   if (visualize_) {
@@ -208,10 +208,9 @@ void Explore::makePlan()
   ROS_INFO("target_position x: %f", target_position.x);
   ROS_INFO("target_position y: %f", target_position.y);
   // we don't need to do anything if we still pursuing the same goal
-  if (same_goal) {
-    return;
-  }
-
+  //if (same_goal) {
+  //  return;
+  //}
   // send goal to move_base if we have something new to pursue
   geometry_msgs::PoseStamped goal;
   frontier_msg.goal.pose.position = target_position;
@@ -219,6 +218,8 @@ void Explore::makePlan()
   frontier_msg.goal.header.frame_id = costmap_client_.getGlobalFrameID();
   frontier_msg.goal.header.stamp = ros::Time::now();
   frontier_msg.frontiers_count = frontiers.size();
+  int size = frontiers.size();
+  ROS_INFO("frontiers number: %d", size);
   frontier_publisher.publish(frontier_msg);
   ROS_INFO("PUBLISHED");
 }
