@@ -11,6 +11,7 @@ int main(int argc, char **argv)
       //create ros wrapper object
       RosImgProcessorNode imgp;
 
+      ros::Duration(1).sleep();
       //set node loop rate
       ros::Rate loopRate(imgp.getRate());
 

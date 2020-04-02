@@ -1,0 +1,14 @@
+<launch>
+
+<node pkg="decision_maker" type="decision" respawn="false" name="decision_maker" output="screen">
+   <rosparam file="$(find turtlebot_2dnav)/param/decision_maker_params.yaml" command="load"/>
+</node>
+
+<include file="$(find ros_img_processor)/launch/ros_img_processor.launch"/>
+
+<node pkg="poi_database" type="database" respawn="false" name="database" output="screen">
+</node>
+
+<node name="rviz" pkg="rviz" type="rviz" args="-d $(find turtlebot_2dnav)/launch/configuration.rviz" />
+
+</launch>

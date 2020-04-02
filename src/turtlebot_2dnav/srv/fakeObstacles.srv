@@ -1,0 +1,9 @@
+geometry_msgs/Point map_pointleft
+geometry_msgs/Point map_pointright
+
+bool vertical
+
+bool fakingObstacles
+
+---
+bool completed

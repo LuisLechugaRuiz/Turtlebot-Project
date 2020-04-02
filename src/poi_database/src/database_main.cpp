@@ -4,11 +4,12 @@
 //node main
 int main(int argc, char **argv)
 {
-      ros::init(argc, argv, "POI_database_node");
+      ros::init(argc, argv, "POI_database");
 
       DatabaseNode  Database_ROI;
 
-      //should be similar to ros_img_processor and camera (for a future optimization maybe)
+      ros::Duration(1).sleep();
+
       ros::Rate loopRate(10);
 
       while ( ros::ok() )

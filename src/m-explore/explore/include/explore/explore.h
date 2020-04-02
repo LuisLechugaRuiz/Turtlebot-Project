@@ -44,7 +44,7 @@
 
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/server/simple_action_server.h>
-#include <explore_lite/greedyAction.h>
+#include <turtlebot_2dnav/frontier.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <ros/ros.h>
@@ -61,22 +61,7 @@ namespace explore
  * robot base to explore its environment.
  */
 
- class greedyAction
-{
-  public:
-    greedyAction(std::string name);
-    void executeCB(const explore_lite::greedyGoalConstPtr &goal);
-
-  protected:
-    ros::NodeHandle nh;
-    actionlib::SimpleActionServer<explore_lite::greedyAction> as_;
-    explore_lite::greedyFeedback greedy_feedback_;
-    std::string action_name_;
-    bool greedy_ = false;
- };
-
-
-class Explore : public greedyAction
+class Explore
 {
 public:
   Explore();
@@ -99,23 +84,21 @@ private:
   void visualizeFrontiers(
       const std::vector<frontier_exploration::Frontier>& frontiers);
 
-  void reachedGoal(const actionlib::SimpleClientGoalState& status,
-                   const move_base_msgs::MoveBaseResultConstPtr& result,
-                   const geometry_msgs::Point& frontier_goal);
 
-  bool goalOnBlacklist(const geometry_msgs::Point& goal);
 
   ros::NodeHandle private_nh_;
   ros::NodeHandle relative_nh_;
+  ros::Publisher frontier_publisher;
   ros::Publisher marker_array_publisher_;
   tf::TransformListener tf_listener_;
 
   Costmap2DClient costmap_client_;
-  actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> move_base_client_;
 
   frontier_exploration::FrontierSearch search_;
   ros::Timer exploring_timer_;
   ros::Timer oneshot_;
+
+  turtlebot_2dnav::frontier frontier_msg;
 
   std::vector<geometry_msgs::Point> frontier_blacklist_;
   geometry_msgs::Point prev_goal_;

@@ -14,18 +14,13 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   tf
   visualization_msgs
+  turtlebot_2dnav
 )
 
 find_package(Boost REQUIRED COMPONENTS system)
 
-## Generate actions in the 'action' folder
- add_action_files(
-   FILES
-   greedy.action
- )
-
 generate_messages(
-  DEPENDENCIES actionlib_msgs std_msgs
+  DEPENDENCIES actionlib_msgs std_msgs geometry_msgs
 )
 
 ###################################
@@ -40,6 +35,7 @@ catkin_package(
     nav_msgs
     std_msgs
     visualization_msgs
+    turtlebot_2dnav
 )
 
 ###########

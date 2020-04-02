@@ -1,10 +1,14 @@
 global_costmap:
-    track_unknown_space: true
-    global_frame: map
-    rolling_window: false
+   global_frame: map
+   rolling_window: false
 
-    plugins:
-    - {name: external,            type: "costmap_2d::StaticLayer"}
+   width: 100
+   height: 100
+
+   origin_x: 0.0
+   origin_y: 0.0
+   plugins:
+    - {name: static,              type: "costmap_2d::StaticLayer"}
     #Can disable sensor layer if gmapping is fast enough to update scans
     - {name: obstacles_laser,     type: "costmap_2d::ObstacleLayer"}
     - {name: inflation,           type: "costmap_2d::InflationLayer"}
