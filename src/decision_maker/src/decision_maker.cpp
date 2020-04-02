@@ -40,23 +40,28 @@ Decision::Decision():
 void Decision::ROI_callBack(poi_database::ROI New_ROI)
 {
     type = New_ROI.type;
-    if(type == "R") data_ptr = &database_r;
-    if(type == "E") data_ptr = &database_e;
-
+    //Maybe make a template for person/data ?
     if(New_ROI.isnew)
     {
       if(type == "P")
       {
-        person New_Person(New_ROI, initial_distance);
-        database_p.push_back(New_Person);
+        person Person(New_ROI, initial_distance);
+        database_p.push_back(Person);
+        New_Person = true;
       }
-      else
+      if(type == "R")
       {
         data New_data(New_ROI);
-        data_ptr->push_back(New_data);
+        database_r.push_back(New_data);
+      }
+      if(type == "E")
+      {
+        data New_data(New_ROI);
+        database_e.push_back(New_data);
+        if (!exit_found) exit_found = true;
+        else ROS_INFO ("2 exits found!?");
       }
     }
-
     else
     {
       if(type == "P"){
@@ -65,11 +70,16 @@ void Decision::ROI_callBack(poi_database::ROI New_ROI)
           if(data_p_.data_index_equal_to(New_ROI.index)) data_p_.updateData(New_ROI);
         }
       }
-      else
-      {
-        for(auto& data_ : *data_ptr)
+      if(type == "R"){
+        for(data data_r_ : database_r)
         {
-          if(data_.data_index_equal_to(New_ROI.index)) data_.updateData(New_ROI);
+          if(data_r_.data_index_equal_to(New_ROI.index)) data_r_.updateData(New_ROI);
+        }
+      }
+      if(type == "E"){
+        for(data data_e_ : database_e)
+        {
+          if(data_e_.data_index_equal_to(New_ROI.index)) data_e_.updateData(New_ROI);
         }
       }
     }
@@ -88,14 +98,14 @@ void Decision::Frontier_callBack(turtlebot_2dnav::frontier frontier)
   number_of_frontiers = frontier.frontiers_count;
 }
 
+
 //This is the only function that sets isMoving to false
 void Decision::moving_done_Callback(const actionlib::SimpleClientGoalState& state)
 {
     if (state == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
-      isMoving = false;
-      if(carrying_person) ROS_INFO("LEFT AT EXIT. PERSON: %d", persons_rescued);
-      else ROS_INFO("CARRYING PERSON");
+      if(_state == _exploring) frontierTargetReached = true;
+      if(_state == _waiting) rescuedTargetReached = true;
     }
 }
 
@@ -116,23 +126,25 @@ void Decision::getActualPose()
 }
 
 
-void Decision::setGoalPose(data target_goal)
+geometry_msgs::PoseStamped Decision::setPose(data target_goal)
 {
-  goalPose.header.stamp = ros::Time::now();
-  goalPose.header.frame_id = "map";
+  geometry_msgs::PoseStamped goal;
+  goal.header.stamp = ros::Time::now();
+  goal.header.frame_id = "map";
   if(target_goal.is_vertical())
   {
-    goalPose.pose.position.x = target_goal.get_center_x();
-    goalPose.pose.position.y = target_goal.get_center_y() - 1;
-    goalPose.pose.orientation.z = 0.707;
-    goalPose.pose.orientation.w = 0.707;
+    goal.pose.position.x = target_goal.get_center_x();
+    goal.pose.position.y = target_goal.get_center_y() - 1;
+    goal.pose.orientation.z = 0.707;
+    goal.pose.orientation.w = 0.707;
   }
   else
   {
-    goalPose.pose.position.x = target_goal.get_center_x() - 1;
-    goalPose.pose.position.y = target_goal.get_center_y();
-    goalPose.pose.orientation.w = 1;
+    goal.pose.position.x = target_goal.get_center_x() - 1;
+    goal.pose.position.y = target_goal.get_center_y();
+    goal.pose.orientation.w = 1;
   }
+  return goal;
 }
 
 
@@ -142,19 +154,16 @@ void Decision::setGoalPose(data target_goal)
   // Divide them (probability of find a person behind each frontier) Person / frontier
   // Then divide the cost of the closer frontier by this number (make the cost higher);
   // If frontier cost < person go to explore controlled!
-bool Decision::isFrontier_worth(int iteration)
+bool Decision::isFrontier_worth(int iteration, geometry_msgs::PoseStamped inic_pose)
 {
   ROS_INFO("ITERATION: %d", iteration);
   bool isWorth = false;
   //make harder to be worth after each iteration
   iteration = iteration*5;
   data frontier_(bestFrontier);
-  double distance_prob = getDistanceProb(frontier_);
-  if(iteration > 0)
-  {
-    distance_prob = distance_prob * iteration;
-    ROS_INFO("INSIDE");
-  }
+  double distance_prob = getDistanceProb(frontier_, inic_pose);
+  if( iteration > 0 ) distance_prob = distance_prob * iteration;
+  ROS_INFO("INSIDE");
   ROS_INFO("distance prob2: %f", distance_prob);
   if(distance_prob > 0 && distance_prob < database_p[0].distance)
   {
@@ -164,13 +173,12 @@ bool Decision::isFrontier_worth(int iteration)
   return isWorth;
 }
 
-double Decision::getDistanceProb(data Frontier)
+double Decision::getDistanceProb(data Frontier, geometry_msgs::PoseStamped inic_pose)
 {
   double probability = (double)(number_of_persons - persons_rescued) / (double)number_of_frontiers;
   ROS_INFO("probability: %f", probability);
   //to get the cost here we override goal pose which is dangerous.
-  setGoalPose(Frontier);
-  auto Frontier_path = getPlan();
+  auto Frontier_path = getPlan(inic_pose, setPose(Frontier) );
   double distance_frontier = getDistance(Frontier_path);
   distance_frontier = distance_frontier/probability;
   ROS_INFO("distance prob1: %f", distance_frontier);
@@ -178,10 +186,10 @@ double Decision::getDistanceProb(data Frontier)
 }
 
 
-nav_msgs::Path Decision::getPlan()
+nav_msgs::Path Decision::getPlan(geometry_msgs::PoseStamped inic, geometry_msgs::PoseStamped goal)
 {
-  plan_request.request.start = actualPose;
-  plan_request.request.goal = goalPose;
+  plan_request.request.start = inic;
+  plan_request.request.goal = goal ;
   plan_request.request.tolerance = tolerance;
   plan_client.call(plan_request);
   return plan_request.response.plan;
@@ -193,17 +201,15 @@ static bool sortbydistance(const person &a, const person &b)
 }
 
 
-void Decision::findNearestPerson()
+void Decision::findNearestPerson(geometry_msgs::PoseStamped inic_pose)
 {
   persons_found = database_p.size();
-  getActualPose();
   for(auto& person_ : database_p)
   {
     //Only update the cost if the person is not rescued, else the cost will be standar
     if(person_.get_rescued() == false)
     {
-      setGoalPose(person_);
-      auto New_path = getPlan();
+      auto New_path = getPlan( inic_pose, setPose(person_) );
       person_.updateData( getDistance(New_path) );
     }
   }
@@ -213,7 +219,7 @@ void Decision::findNearestPerson()
 }
 
 
-void Decision::callMoveAction()
+void Decision::callMoveAction( geometry_msgs::PoseStamped goalPose )
 {
   goal.target_pose = goalPose;
   acMove.sendGoal(goal, boost::bind(&Decision::moving_done_Callback, this, _1));
@@ -235,13 +241,23 @@ bool Decision::takeRisk(bool riskymode)
   return risky;
 }
 
+
+void Decision::updatePersonsbyDistance()
+{
+  std::sort(database_p.begin(), database_p.end(), sortbydistance);
+}
+
 void Decision::updateFrontier()
 {
   bestFrontier = NewFrontier;
-  setGoalPose(bestFrontier);
-  callMoveAction();
-  isMoving = true;
-  ROS_INFO("New Frontier");
+  data Frontier(bestFrontier);
+  callMoveAction(  setPose(Frontier) );
+  frontierTargetReached = false;
+  explore_override = false;
+  calculatedNew = false;
+  //ROS_INFO("New Frontier");
+  //ROS_INFO("Pos x: %f", bestFrontier.pose.position.x);
+  //ROS_INFO("Pos y: %f", bestFrontier.pose.position.y);
 }
 
 bool Decision::fastUpdateFrontier()
@@ -261,184 +277,206 @@ bool Decision::fastUpdateFrontier()
 
 void Decision::explore()
 {
-  //IF PATH DIES NEED TO SEND IT AGAIN!
-  //check if same frontier!
-  if (sameFrontier(bestFrontier.pose.position, NewFrontier.pose.position))
-  {
-    if (number_of_frontiers == 0) ROS_INFO("No frontiers!");
-    if (!isMoving) ROS_INFO ("Waiting New Frontier");
-  }
+
+  // IF PATH DIES NEED TO SEND IT AGAIN!
+
+  if (number_of_frontiers == 0) ROS_INFO("No frontiers!");
+  //if is the same frontier and has not been overrided dont publish nothing just wait!
+  else if (sameFrontier(bestFrontier.pose.position, NewFrontier.pose.position) && !explore_override);
   else
   {
     getActualPose();
-    if (!isMoving || fastUpdateFrontier()) updateFrontier();
-    else if(CostSecondLower(actualPose.pose, bestFrontier.pose.position, NewFrontier.pose.position))
+    if (explore_override)
     {
       updateFrontier();
+      return;
+    }
+    if (frontierTargetReached || fastUpdateFrontier()) updateFrontier();
+
+    else if(CostSecondLower(actualPose.pose, bestFrontier.pose.position, NewFrontier.pose.position) && !calculatedNew)
+    {
+      updateFrontier();
+      calculatedNew = true;
       ROS_INFO ("Calculated New");
     }
   }
 }
 
 
-//Five states:
+bool Decision::checkIfFrontierWorth(geometry_msgs::PoseStamped inic)
+{
+  bool isworth = false;
+  if (takeRisk(riskymode) && isFrontier_worth(exploring_iteration, inic))
+  {
+    exploring_iteration++;
+    frontierTargetReached = false;
+    isworth = true;
+    ROS_INFO("GOING TO INTERESTING FRONTIER!");
+  }
+  return isworth;
+}
+//Two main states:
 
-// searching_exit   -> Initially it would just look for the exit (moving greedy)
-// rescuing         -> If we found a person and we are not carrying anyone start rescuing
-  // The states (directions)
-    //Wait   -> take decision to where to go depending on different factors
-    //Person -> moving to the closer person
-    //Exit   -> carrying a person to the exit
-// exploring        -> In case we want to run risky_mode go to the nearest frontier in case is worth it
-// searching_person -> In case we already rescued anyone on the list search persons again and if one is found return to rescue state
-// finished         -> If all the persons have been rescued then finish
+//EXPLORING
+  //3 different posibilities:
+    //Searching exit
+    //Searching persons
+    //Risky Mode *future implementation*
+
+//RESCUING
+  //2 different directions:
+    //Person
+    //Exit
+
+//WATIING
+ //3 diferent states:
+  //Waiting direction_Person
+  //Waiting direction_Exit
+  //Calculating next target!
 
 bool Decision::process()
 {
+
   //Wait to start exploring
   if (!first_frontier_received) return false;
+
   switch(_state)
   {
-    case _searching_exit:
-      if (database_e.size() == 0)
-      {
-        if(!isMoving) ROS_INFO("State 0: GOING GREEDY SEARCHING EXIT");
-        if(database_p.size() > 0 && !carrying_person)
+    case _exploring:
+
+        //We should always carry a Person if not carrying and a new_person is detected! (riskymode need something)
+        if(!carrying_person && New_Person)
         {
-          ROS_INFO("State 1: GOING TO RESCUE NEAREST PERSON");
           _state = _rescuing;
-          _direction = _person;
+          break;
         }
-        else explore();
-      }
-      else if (database_p.size() > 0)
-      {
-        _state = _rescuing;
-        isMoving = false;
-      }
-      else
-      {
-        ROS_INFO("State 2: GOING GREEDY SEARCHING PERSON");
-        _state = _searching_person;
-      }
+
+        switch(_exploration_mode)
+        {
+          case _searching_exit:
+            if (exit_found)
+            {
+              if (New_Person) _state = _rescuing;
+              else _exploration_mode = _searching_person;
+            }
+            else explore();
+          break;
+
+          case _searching_person:
+            explore();
+          break;
+
+          //in this case we will check again (in waiting) after the interesting frontier is reached!
+          case _exploring_frontier:
+            frontierTargetReached = true;
+            explore();
+            _state = _waiting;
+          break;
+        }
     break;
 
+    //We only enter to set the goal!
     case _rescuing:
-      if(!isMoving)
-      {
+        ROS_INFO("State: Rescuing");
+        rescuedTargetReached = false;
+        //If we want to explore again we should send the last frontier even if is the SAME!
+        explore_override = true;
+        _state = _waiting;
         switch (_direction)
         {
-          case _wait:
-            carrying_person = false;
-            if(persons_rescued != number_of_persons)
-            {
-              //Recalculate the costs and reorder the database_p
-              findNearestPerson();
-              if(database_p.at(0).get_rescued() == false)
-              {
-                //Already found the exit
-                if (takeRisk(riskymode) && isFrontier_worth(exploring_iteration))
-                {
-                  _state = _exploring;
-                  _exploration_mode = _starting;
-                }
-                else _direction = _person;
-              }
-              else
-              {
-                ROS_INFO("State 2: GOING GREEDY SEARCHING PERSON");
-                _state = _searching_person;
-              }
-            }
-            else _state = _finished;
-          break;
-
-
           case _person:
             ROS_INFO("Direction: Person");
-            setGoalPose(database_p.at(0));
-            callMoveAction();
-            isMoving = true;
-            _direction = _exit;
-          break;
+            callMoveAction( setPose(database_p.at(0)) );
 
+            //if we are going to a person send it to the end of the list so if we find during the way another one we can recalculate!
+            database_p.at(0).set_rescued();
+            database_p.at(0).updateData(rescued_distance);
+
+            //update the new person to rescue!
+            updatePersonsbyDistance();
+          break;
 
           case _exit:
             ROS_INFO("Direction: Exit");
+            callMoveAction( setPose(database_e[0]) );
+          break;
+        }
+    break;
+
+    case _waiting:
+
+      if (rescuedTargetReached)
+      {
+        switch (_direction)
+        {
+          case _person:
             carrying_person = true;
-            if (!isMoving)
-            {
-              if (database_e.size() == 0) _state = _searching_exit;
-              else
-              {
-                setGoalPose(database_e[0]);
-                callMoveAction();
-                //update the rescued bool of the person
-                database_p.at(0).set_rescued();
-                database_p.at(0).updateData(rescued_distance);
-                isMoving = true;
-                persons_rescued++;
-                _direction = _wait;
-              }
-            }
+            ROS_INFO("CARRYING PERSON");
+            _direction = _exit;
+            //do we know the exit?
+            if (exit_found) _state = _rescuing;
+            else _state = _exploring;
+          break;
+
+          case _exit:
+            carrying_person = false;
+            persons_rescued++;
+            ROS_INFO("LEFT AT EXIT. PERSON: %d", persons_rescued);
+            _direction = _person;
+            _state = _decided_state;
           break;
         }
       }
-    break;
 
-
-    case _exploring:
-
-      switch (_exploration_mode)
+      //if we are moving use this time to calculate the next route
+      //Only if we already now the exit and we can calculate distances!
+      else if (exit_found)
       {
-        case _starting:
-          if(!isMoving)
+        if(persons_rescued != number_of_persons)
+        {
+          if (!database_p[0].get_rescued())
           {
-            ROS_INFO("EXPLORING");
-            isMoving = true;
-            exploring_iteration++;
-            _exploration_mode = _moving;
-            ROS_INFO("Direction: Fontier");
-          }
-        break;
-
-        case _moving:
-          //check if new persons found during the way!
-          if (persons_found < database_p.size())
-          {
-            findNearestPerson();
-            if (!isFrontier_worth(exploring_iteration))
+          //Calculate decision if New_Person = true or we are riskymode and the last frontier reached!
+            if (New_Person || (riskymode && frontierTargetReached))
             {
-              _state = _rescuing;;
-              _direction = _person;
-              //OVERRIDE THE MOVE_BASE ACTION!
-              isMoving = false;
+              //New_Person processed!
+              New_Person = false;
+              //case we are exploring_frontier!
+              if ( exploring_iteration > 0 )
+              {
+                getActualPose();
+                findNearestPerson( actualPose );
+                if (checkIfFrontierWorth(actualPose))
+                {
+                  _decided_state = _exploring;
+                  _exploration_mode = _exploring_frontier;
+                }
+              }
+              else
+              {
+                findNearestPerson( setPose(database_e[0]) );
+                if (checkIfFrontierWorth( setPose(database_e[0]) ))
+                {
+                  _decided_state = _exploring;
+                  _exploration_mode = _exploring_frontier;
+                }
+                else _decided_state = _rescuing;
+              }
             }
           }
-          if (!isMoving) _exploration_mode = _stopped;
-          else explore();
-        break;
-
-        case _stopped:
-        _state = _rescuing;
-        _direction = _wait;
-        break;
+          else
+          {
+            ROS_INFO("GOING GREEDY: SEARCHING PERSON");
+            _state = _exploring;
+            _exploration_mode = _searching_person;
+          }
+        }
+        else
+        {
+          ROS_INFO("congratulations! you saved the world ;P");
+          return true;
+        }
       }
-    break;
-
-    case _searching_person:
-      if (database_p.size() > persons_rescued)
-      {
-        ROS_INFO("State 1: GOING TO RESCUE NEAREST PERSON");
-        _state = _rescuing;
-      }
-      else explore();
-    break;
-
-    case _finished:
-      ROS_INFO("congratulations! you saved the world ;P");
-      return true;
-    break;
+  break;
   }
-  return false;
 }

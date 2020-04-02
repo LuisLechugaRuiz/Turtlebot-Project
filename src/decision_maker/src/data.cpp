@@ -23,6 +23,7 @@ void data::updateData(poi_database::ROI ROI_)
   index  = ROI_.index;
 }
 
+
 bool data::data_index_equal_to(int index_)
 {
   return (index == index_);
@@ -58,6 +59,12 @@ void person::updateData(double New_Distance)
 void person::updateData(bool rescued_)
 {
   rescued = rescued_;
+}
+
+
+void person::updateData(geometry_msgs::Pose New_Pose)
+{
+  center = New_Pose.position;
 }
 
 double person::get_distance()

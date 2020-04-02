@@ -35,6 +35,8 @@ class person : public data
 
     void updateData(bool rescued_);
 
+    void updateData(geometry_msgs::Pose New_Pose);
+
     void set_rescued();
 
     bool get_rescued();
