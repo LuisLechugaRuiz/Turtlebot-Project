@@ -19,6 +19,8 @@ Decision::Decision():
   nh.param("riskymode", riskymode, false);
   nh.param("dist_x_update_frontier", dist_x_update_frontier, 1.0);
   nh.param("dist_y_update_frontier", dist_y_update_frontier, 1.0);
+  nh.param("fastupdate_x_dist", fastupdate_x_dist, 1.0);
+  nh.param("fastupdate_y_dist", fastupdate_y_dist, 1.0);
 
   total_time = total_time_min * 60 + total_time_sec;
   time_inic = ros::Time::now();
@@ -242,6 +244,21 @@ void Decision::updateFrontier()
   ROS_INFO("New Frontier");
 }
 
+bool Decision::fastUpdateFrontier()
+{
+  bool update = false;
+  if( ((actualPose.pose.position.x - bestFrontier.pose.position.x) < dist_x_update_frontier)
+  || ((actualPose.pose.position.x -bestFrontier.pose.position.y) < dist_y_update_frontier) )
+  {
+    if ( ((NewFrontier.pose.position.x - bestFrontier.pose.position.x) < fastupdate_x_dist)
+    || ((NewFrontier.pose.position.y - bestFrontier.pose.position.y) < fastupdate_y_dist) )
+    {
+      update = true;
+    }
+  }
+  return update;
+}
+
 void Decision::explore()
 {
   //IF PATH DIES NEED TO SEND IT AGAIN!
@@ -254,8 +271,7 @@ void Decision::explore()
   else
   {
     getActualPose();
-    if (!isMoving || (actualPose.pose.position.x - bestFrontier.pose.position.x) < dist_x_update_frontier
-                  || (actualPose.pose.position.x -bestFrontier.pose.position.y) < dist_y_update_frontier)   updateFrontier();
+    if (!isMoving || fastUpdateFrontier()) updateFrontier();
     else if(CostSecondLower(actualPose.pose, bestFrontier.pose.position, NewFrontier.pose.position))
     {
       updateFrontier();

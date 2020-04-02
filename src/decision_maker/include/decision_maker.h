@@ -42,6 +42,8 @@ class Decision : public Math
 
     bool isFrontier_worth(int iteration);
 
+    bool fastUpdateFrontier();
+
     bool takeRisk(bool riskymode);
 
     void getActualPose();
@@ -100,6 +102,8 @@ class Decision : public Math
     double frontier_distance = 10000.00;
     double dist_x_update_frontier;
     double dist_y_update_frontier;
+    double fastupdate_x_dist;
+    double fastupdate_y_dist;
 
     //SET AS A PARAMETER!.
     double tolerance = 0.2;

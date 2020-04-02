@@ -36,7 +36,8 @@ float Math::getCost2Vectors(float angle, float dx, float dy, float modulus, floa
   //get the actual angle
   float cos_angle = ( dx * std::cos(angle) + dy * std::sin(angle) ) / modulus;
   //when the angle is bigger the cost is bigger also!
-  float cost_angle = 1 - abs(cos_angle);
+  int quadrant = (int)(abs(cos_angle) / 1.57);
+  float cost_angle = (1 - abs(cos_angle)) * quadrant;
   //Cost Distance normalizated
   float cost_distance = modulus / totaldist;
   return (cost_angle + cost_distance);
