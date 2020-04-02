@@ -14,5 +14,8 @@
   dist_x_update_frontier: 0.5
   dist_y_update_frontier: 0.5
 
+  fastupdate_x_dist: 4
+  fastupdate_y_dist: 4
+
   #It works better but need to edit the costmap to avoid exiting the maze to explore
-  riskymode: true
+  riskymode: false
