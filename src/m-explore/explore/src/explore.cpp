@@ -54,6 +54,11 @@ Explore::Explore()
   : private_nh_("~")
   , tf_listener_(ros::Duration(10.0))
   , costmap_client_(private_nh_, relative_nh_, &tf_listener_)
+<<<<<<< HEAD
+=======
+  , move_base_client_("move_base")
+  , greedyAction("explore_greedy")
+>>>>>>> f43505f56f9ee8097039ef2d6bb6aeb1735e30e0
   , prev_distance_(0)
   , last_markers_count_(0)
 {
