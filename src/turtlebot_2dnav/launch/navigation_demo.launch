@@ -15,6 +15,7 @@
  <remap from="cmd_vel" to="/cmd_vel_mux/input/navi"/>
 </node>
 
+
 <node pkg="explore_lite" type="explore" respawn="false" name="explore" output="screen">
   <param name="robot_base_frame" value="base_footprint"/>
   <param name="costmap_topic" value="move_base/global_costmap/costmap"/>
@@ -26,8 +27,7 @@
   <param name="orientation_scale" value="0.0"/>
   <param name="gain_scale" value="1.0"/>
   <param name="transform_tolerance" value="0.3"/>
-  <param name="min_frontier_size" value="0.75"/>
+  <param name="min_frontier_size" value="2"/>
 </node>
-
 
 </launch>

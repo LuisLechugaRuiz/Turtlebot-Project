@@ -1,6 +1,0 @@
-bool greedy
-bool return_frontier
----
-geometry_msgs/PoseStamped frontier
-int64 number_of_frontiers
----

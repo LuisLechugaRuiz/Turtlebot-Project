@@ -1,5 +1,6 @@
 DWAPlannerROS:
 
+  allow_unknown: true
 # Robot Configuration Parameters - Kobuki
   max_vel_x: 0.5  # 0.55
   min_vel_x: 0.0
@@ -29,7 +30,7 @@ DWAPlannerROS:
   # latch_xy_goal_tolerance: false
 
 # Forward Simulation Parameters
-  sim_time: 2.3       # 1.7
+  sim_time: 2.5       # 1.7
   vx_samples: 15       # 3
   vy_samples: 1       # diff drive robot, there is only one sample
   vtheta_samples: 25  # 20
