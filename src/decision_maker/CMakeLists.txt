@@ -51,7 +51,8 @@ find_package(Boost REQUIRED COMPONENTS system)
  SET(SRCS
         src/decision_maker_main.cpp
         src/decision_maker.cpp
-        src/data.cpp)
+        src/data.cpp
+        src/math_operations.cpp)
 
 catkin_package(
   CATKIN_DEPENDS geometry_msgs roscpp std_msgs message_runtime poi_database

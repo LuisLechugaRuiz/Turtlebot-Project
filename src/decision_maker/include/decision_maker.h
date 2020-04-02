@@ -5,18 +5,18 @@
 #include <actionlib/client/simple_action_client.h>
 #include <tf/transform_listener.h>
 #include <move_base_msgs/MoveBaseAction.h>
-#include <turtlebot_2dnav/greedyAction.h>
-#include <turtlebot_2dnav/returnCost.h>
+#include <turtlebot_2dnav/frontier.h>
 #include <nav_msgs/GetPlan.h>
 #include <nav_msgs/Path.h>
 #include <data.h>
+#include <math_operations.h>
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
-typedef actionlib::SimpleActionClient<turtlebot_2dnav::greedyAction> ExploreGreedyClient;
 
-static bool sortbydistances(const person &a, const person &b);
+static bool sortbydistance(const person &a, const person &b);
 
-class Decision{
+class Decision : public Math
+{
   public:
 
     Decision();
@@ -34,7 +34,6 @@ class Decision{
     tf::TransformListener listener;
 
     MoveBaseClient acMove;
-    ExploreGreedyClient acGreedy;
 
 
     void findNearestPerson();
@@ -43,30 +42,28 @@ class Decision{
 
     bool isFrontier_worth(int iteration);
 
-    double calculateEuclideanDistance(geometry_msgs::Point point1, geometry_msgs::Point point2);
-
     bool takeRisk(bool riskymode);
 
     void getActualPose();
 
-    double getDistance(nav_msgs::Path path);
-
     double getDistanceProb(data Frontier);
 
-    void getGreedyresult(const actionlib::SimpleClientGoalState& state,
-                         const turtlebot_2dnav::greedyResultConstPtr& result);
 
     nav_msgs::Path getPlan();
 
+    void explore();
+
     void setGoalPose(data target_goal);
 
-    void setGreedyAction(bool greedyState, bool greedyReturn);
-
     void callMoveAction();
+
+    void Frontier_callBack(turtlebot_2dnav::frontier frontier);
 
     void ROI_callBack(poi_database::ROI);
 
     void moving_done_Callback(const actionlib::SimpleClientGoalState &state);
+
+    void updateFrontier();
 
   private:
 
@@ -82,6 +79,8 @@ class Decision{
 
     ros::Time time_inic;
     ros::Time time_now;
+
+    ros::Subscriber frontiers_sub;
 
     int total_time_min, total_time_sec, total_time;
 
@@ -99,12 +98,15 @@ class Decision{
     double initial_distance = 10000.00;
     double rescued_distance = 100000.00;
     double frontier_distance = 10000.00;
+    double dist_x_update_frontier;
+    double dist_y_update_frontier;
 
     //SET AS A PARAMETER!.
     double tolerance = 0.2;
 
     std::string type;
 
+    bool first_frontier_received = false;
     bool riskymode;
     bool isMoving = false;
     bool isgoing_to_person = false;
@@ -112,10 +114,10 @@ class Decision{
 
     geometry_msgs::PoseStamped actualPose;
     geometry_msgs::PoseStamped goalPose;
+    geometry_msgs::PoseStamped NewFrontier;
     geometry_msgs::PoseStamped bestFrontier;
 
     move_base_msgs::MoveBaseGoal goal;
-    turtlebot_2dnav::greedyGoal greedy;
     nav_msgs::GetPlan plan_request;
 
     std::vector<data> database_r;
