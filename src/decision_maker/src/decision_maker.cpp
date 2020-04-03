@@ -69,19 +69,19 @@ void Decision::ROI_callBack(turtlebot_2dnav::ROI New_ROI)
     if(type == "P"){
       for(data data_p_ : database_p)
       {
-        if(data_p_.data_index_equal_to(New_ROI.index)) data_p_.updateDataROI(New_ROI);
+        if(data_p_.data_index_equal_to(New_ROI.index)) data_p_.updateData(New_ROI);
       }
     }
     if(type == "R"){
       for(data data_r_ : database_r)
       {
-        if(data_r_.data_index_equal_to(New_ROI.index)) data_r_.updateDataROI(New_ROI);
+        if(data_r_.data_index_equal_to(New_ROI.index)) data_r_.updateData(New_ROI);
       }
     }
     if(type == "E"){
       for(data data_e_ : database_e)
       {
-        if(data_e_.data_index_equal_to(New_ROI.index)) data_e_.updateDataROI(New_ROI);
+        if(data_e_.data_index_equal_to(New_ROI.index)) data_e_.updateData(New_ROI);
       }
     }
   }
@@ -411,7 +411,12 @@ bool Decision::process()
 {
 
   //Wait to start exploring
-  if (!first_frontier_received) return false;
+  if (!first_frontier_received)
+  {
+    ROS_INFO("Waiting frontiers to explore!");
+    return false;
+  }
+
 
   switch(_state)
   {
@@ -421,20 +426,18 @@ bool Decision::process()
         if(!carrying_person && New_Person)
         {
           //Process the New_Person and decide where to go!
-          _state = _waiting;
+          _state = _rescuing;
           break;
         }
 
-        if (carrying_person)
-        {
-          updateMarker();
-        }
+        if (carrying_person) updateMarker();
 
         switch(_exploration_mode)
         {
           case _searching_exit:
             if (exit_found)
             {
+              exitPosition = setPose( database_e[0] );
               if (New_Person) _state = _rescuing;
               else _exploration_mode = _searching_person;
             }
@@ -465,22 +468,20 @@ bool Decision::process()
         {
           case _person:
             ROS_INFO("Direction: Person");
-            callMoveAction( setPose(database_p[0]) );
+            bestPerson = setPose(database_p[0]);
+            callMoveAction( bestPerson );
           break;
 
           case _exit:
             ROS_INFO("Direction: Exit");
-            callMoveAction( setPose(database_e[0]) );
+            callMoveAction( exitPosition );
           break;
         }
     break;
 
     case _waiting:
 
-      if (carrying_person)
-      {
-        updateMarker();
-      }
+      if (carrying_person) updateMarker();
 
       switch (_waiting_decisions)
       {
@@ -491,8 +492,8 @@ bool Decision::process()
             //Calculate decision if New_Person = true or we are riskymode and the last frontier reached!
             if (New_Person)
             {
-              findNearestPerson( setPose(database_e[0]) );
-              if (checkIfFrontierWorth( setPose(database_e[0]) ))
+              findNearestPerson( exitPosition );
+              if (checkIfFrontierWorth( exitPosition ))
               {
                 _decided_state = _exploring;
                 _exploration_mode = _exploring_frontier;

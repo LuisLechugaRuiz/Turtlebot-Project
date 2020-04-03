@@ -1,9 +1,9 @@
 #include <data.h>
 
-data::data(geometry_msgs::PoseStamped New_Pose)
+data::data(geometry_msgs::PoseStamped New_Pose_)
 {
-  center.x = New_Pose.pose.position.x;
-  center.y = New_Pose.pose.position.y;
+  center.x = New_Pose_.pose.position.x;
+  center.y = New_Pose_.pose.position.y;
   //Make size_y bigger than size_x so we go frontly to the frontier
   size_x = 0.2;
   size_y = 1.0;
@@ -11,16 +11,17 @@ data::data(geometry_msgs::PoseStamped New_Pose)
 
 data::data(turtlebot_2dnav::ROI ROI_)
 {
-  updateDataROI(ROI_);
+  updateData(ROI_);
 }
 
-void data::updateDataROI(turtlebot_2dnav::ROI ROI_)
+void data::updateData(turtlebot_2dnav::ROI updatedROI)
 {
-  center = ROI_.center;
-  type   = ROI_.type;
-  size_x = ROI_.size_x;
-  size_y = ROI_.size_y;
-  index  = ROI_.index;
+  center.x = updatedROI.center.x;
+  center.y = updatedROI.center.y;
+  type   = updatedROI.type;
+  size_x = updatedROI.size_x;
+  size_y = updatedROI.size_y;
+  index  = updatedROI.index;
 }
 
 
@@ -49,7 +50,7 @@ int data::get_index()
   return index;
 }
 
-person::person(turtlebot_2dnav::ROI ROI_, double initial_distance_) : data::data(ROI_)
+person::person(turtlebot_2dnav::ROI ROI, double initial_distance_) : data::data(ROI)
 {
   updateData(initial_distance_);
   updateData(false);

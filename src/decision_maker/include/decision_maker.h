@@ -5,6 +5,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include <tf/transform_listener.h>
 #include <move_base_msgs/MoveBaseAction.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <turtlebot_2dnav/frontier.h>
 #include <turtlebot_2dnav/CarryingPerson.h>
 #include <nav_msgs/GetPlan.h>
@@ -145,6 +146,8 @@ class Decision : public Math
     geometry_msgs::PoseStamped NewFrontier;
     geometry_msgs::PoseStamped bestFrontier;
     geometry_msgs::PoseStamped actualPose;
+    geometry_msgs::PoseStamped bestPerson;
+    geometry_msgs::PoseStamped exitPosition;
 
     turtlebot_2dnav::CarryingPerson carrying_;
     turtlebot_2dnav::ROI carrying_ROI;

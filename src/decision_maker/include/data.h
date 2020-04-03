@@ -6,9 +6,9 @@ class data
   public:
     data(turtlebot_2dnav::ROI ROI_);
 
-    data(geometry_msgs::PoseStamped New_Pose);
+    data(geometry_msgs::PoseStamped New_Pose_);
 
-    void updateDataROI(turtlebot_2dnav::ROI ROI_);
+    virtual void updateData(turtlebot_2dnav::ROI updatedROI);
 
     bool data_index_equal_to(int index_);
 
@@ -31,7 +31,7 @@ class data
 class person : public data
 {
   public:
-    person(turtlebot_2dnav::ROI ROI_, double initial_distance_);
+    person(turtlebot_2dnav::ROI ROI, double initial_distance_);
 
     void updateData(double New_Distance);
 
@@ -46,6 +46,7 @@ class person : public data
     double get_distance();
 
     double distance;
+
   private:
 
     bool rescued;

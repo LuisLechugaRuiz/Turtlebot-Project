@@ -30,4 +30,5 @@
   <param name="min_frontier_size" value="0.75"/>
 </node>
 
+
 </launch>
