@@ -5,7 +5,8 @@
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 #include <visualization_msgs/Marker.h>
-#include <poi_database/ROI.h>
+#include <turtlebot_2dnav/ROI.h>
+#include <turtlebot_2dnav/CarryingPerson.h>
 
 class DatabaseNode
 {
@@ -17,6 +18,8 @@ class DatabaseNode
     ros::Publisher ROI_pub;
     ros::Publisher markers_pub;
 
+    ros::ServiceServer carrying_ROI_server;
+
     //Listener
     ros::Subscriber Twist_sub;
     tf::TransformListener listener;
@@ -27,6 +30,8 @@ class DatabaseNode
     //points in the mapframe
     geometry_msgs::Point pointleft;
     geometry_msgs::Point pointright;
+
+    geometry_msgs::PoseStamped actualPose;
 
     std::array<float, 4> NewLimits;
 
@@ -45,6 +50,7 @@ class DatabaseNode
     bool New_Point_notify = false;
     bool New_ROI_notify = false;
     bool ROI_expanded = false;
+    bool carrying_person = false;
 
     //Params:
 
@@ -133,6 +139,9 @@ class DatabaseNode
   protected:
 
     void camera_transformCallback(ros_img_processor::camera_POI_msg msg);
+
+    bool carrying_person_service(turtlebot_2dnav::CarryingPerson::Request &req, turtlebot_2dnav::CarryingPerson::Response &res);
+
 
   public:
 
