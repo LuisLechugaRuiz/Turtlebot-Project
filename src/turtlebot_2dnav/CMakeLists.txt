@@ -21,15 +21,16 @@ find_package(catkin REQUIRED COMPONENTS
 
 
 ## Generate services in the 'srv' folder
-## add_service_files(
-##   FILES
-##   returnCost.srv
-## )
+ add_service_files(
+   FILES
+   CarryingPerson.srv
+ )
 
  ## Generate messages in the 'msg' folder
    add_message_files(
    FILES
    frontier.msg
+   ROI.msg
  )
 
 ## Generate added messages and services with any dependencies listed here

@@ -3,11 +3,6 @@ global_costmap:
    rolling_window: false
    update_frequency: 5.0
    publish_frequency: 3.0
-   width: 100
-   height: 100
-
-   origin_x: 0.0
-   origin_y: 0.0
    plugins:
     - {name: static,              type: "costmap_2d::StaticLayer"}
     #Can disable sensor layer if gmapping is fast enough to update scans

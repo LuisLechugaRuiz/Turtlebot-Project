@@ -24,5 +24,5 @@ obstacles_laser:
 
 inflation:
     enabled:              true
-    cost_scaling_factor:  1  # exponential rate at which the obstacle cost drops off (default: 10)
+    cost_scaling_factor:  2  # exponential rate at which the obstacle cost drops off (default: 10)
     inflation_radius:     0.5
