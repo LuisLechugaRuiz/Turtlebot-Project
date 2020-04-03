@@ -420,7 +420,8 @@ bool Decision::process()
         //We should always carry a Person if not carrying and a new_person is detected! (riskymode need something)
         if(!carrying_person && New_Person)
         {
-          _state = _rescuing;
+          //Process the New_Person and decide where to go!
+          _state = _waiting_decisions;
           break;
         }
 
