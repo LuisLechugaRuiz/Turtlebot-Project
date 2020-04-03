@@ -37,6 +37,10 @@ SET(SRCS
       src/ros_img_processor_node.cpp
       src/ros_img_processor_main.cpp)
 
+#SET(SRCS1
+      #src/astra_img_processor_node.cpp
+      #src/astra_img_processor_main.cpp)
+
 ## The catkin_package macro generates cmake config files for your package
 catkin_package(
       CATKIN_DEPENDS
@@ -53,22 +57,27 @@ catkin_package(
 ## Specify additional locations of header files
 include_directories(${OpenCV_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
-## Declare a cpp executable for pipol_tracker_node
+## Declare a cpp executable 
 add_executable(ros_img_processor ${SRCS})
-#add_dependencies(pipol_tracker_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
-target_link_libraries(ros_img_processor ${OpenCV_LIBS} ${catkin_LIBRARIES})
+add_executable(astra_img_processor src/astra_img_processor_node.cpp src/astra_img_processor_main.cpp)
 
+#add_dependencies
 add_dependencies(ros_img_processor ros_img_processor_gencpp)
+add_dependencies(astra_img_processor astra_img_processor_gencpp)
 
-
-
+#Target link
+target_link_libraries(ros_img_processor ${OpenCV_LIBS} ${catkin_LIBRARIES})
+target_link_libraries(astra_img_processor ${OpenCV_LIBS} ${catkin_LIBRARIES})
 
 #install binaries
 install(TARGETS ros_img_processor
-    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+install(TARGETS astra_img_processor
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 #Share launch and configs
 foreach(dir launch config)
     install(DIRECTORY ${dir}/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/${dir})
+
 endforeach(dir)
