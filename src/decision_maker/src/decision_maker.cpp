@@ -421,7 +421,7 @@ bool Decision::process()
         if(!carrying_person && New_Person)
         {
           //Process the New_Person and decide where to go!
-          _state = _waiting_decisions;
+          _state = _waiting;
           break;
         }
 
