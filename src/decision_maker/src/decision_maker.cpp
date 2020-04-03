@@ -27,8 +27,10 @@ Decision::Decision():
   NewFrontier.pose.position.x = 0;
   NewFrontier.pose.position.y = 0;
   plan_client = n.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
+  carrying_person_client = n.serviceClient<turtlebot_2dnav::CarryingPerson>("database/CarryingPerson");
   ROI_sub = n.subscribe("database/ROI", 1, &Decision::ROI_callBack, this);
   frontiers_sub = n.subscribe("explore/frontier", 100, &Decision::Frontier_callBack, this);
+  marker_carrying_person_pub = nh.advertise<visualization_msgs::Marker>("visualization_markers_carrying_person", 10);
 
   //starting bestfrontier and Newfrontier in different places.
   bestFrontier.pose.position.x = 1000;
@@ -37,53 +39,53 @@ Decision::Decision():
   NewFrontier.pose.position.y = 0;
 }
 
-void Decision::ROI_callBack(poi_database::ROI New_ROI)
+void Decision::ROI_callBack(turtlebot_2dnav::ROI New_ROI)
 {
-    type = New_ROI.type;
-    //Maybe make a template for person/data ?
-    if(New_ROI.isnew)
+  type = New_ROI.type;
+  //Maybe make a template for person/data ?
+  if(New_ROI.isnew)
+  {
+    if(type == "P")
     {
-      if(type == "P")
+      person Person(New_ROI, initial_distance);
+      database_p.push_back(Person);
+      New_Person = true;
+    }
+    if(type == "R")
+    {
+      data New_data(New_ROI);
+      database_r.push_back(New_data);
+    }
+    if(type == "E")
+    {
+      data New_data(New_ROI);
+      database_e.push_back(New_data);
+      if (!exit_found) exit_found = true;
+      else ROS_INFO ("2 exits found!?");
+    }
+  }
+  else
+  {
+    if(type == "P"){
+      for(data data_p_ : database_p)
       {
-        person Person(New_ROI, initial_distance);
-        database_p.push_back(Person);
-        New_Person = true;
-      }
-      if(type == "R")
-      {
-        data New_data(New_ROI);
-        database_r.push_back(New_data);
-      }
-      if(type == "E")
-      {
-        data New_data(New_ROI);
-        database_e.push_back(New_data);
-        if (!exit_found) exit_found = true;
-        else ROS_INFO ("2 exits found!?");
+        if(data_p_.data_index_equal_to(New_ROI.index)) data_p_.updateDataROI(New_ROI);
       }
     }
-    else
-    {
-      if(type == "P"){
-        for(data data_p_ : database_p)
-        {
-          if(data_p_.data_index_equal_to(New_ROI.index)) data_p_.updateData(New_ROI);
-        }
+    if(type == "R"){
+      for(data data_r_ : database_r)
+      {
+        if(data_r_.data_index_equal_to(New_ROI.index)) data_r_.updateDataROI(New_ROI);
       }
-      if(type == "R"){
-        for(data data_r_ : database_r)
-        {
-          if(data_r_.data_index_equal_to(New_ROI.index)) data_r_.updateData(New_ROI);
-        }
-      }
-      if(type == "E"){
-        for(data data_e_ : database_e)
-        {
-          if(data_e_.data_index_equal_to(New_ROI.index)) data_e_.updateData(New_ROI);
-        }
+    }
+    if(type == "E"){
+      for(data data_e_ : database_e)
+      {
+        if(data_e_.data_index_equal_to(New_ROI.index)) data_e_.updateDataROI(New_ROI);
       }
     }
   }
+}
 
 
 void Decision::Frontier_callBack(turtlebot_2dnav::frontier frontier)
@@ -128,23 +130,23 @@ void Decision::getActualPose()
 
 geometry_msgs::PoseStamped Decision::setPose(data target_goal)
 {
-  geometry_msgs::PoseStamped goal;
-  goal.header.stamp = ros::Time::now();
-  goal.header.frame_id = "map";
+  geometry_msgs::PoseStamped goal_pose;
+  goal_pose.header.stamp = ros::Time::now();
+  goal_pose.header.frame_id = "map";
   if(target_goal.is_vertical())
   {
-    goal.pose.position.x = target_goal.get_center_x();
-    goal.pose.position.y = target_goal.get_center_y() - 1;
-    goal.pose.orientation.z = 0.707;
-    goal.pose.orientation.w = 0.707;
+    goal_pose.pose.position.x = target_goal.get_center_x();
+    goal_pose.pose.position.y = target_goal.get_center_y() - 1;
+    goal_pose.pose.orientation.z = 0.707;
+    goal_pose.pose.orientation.w = 0.707;
   }
   else
   {
-    goal.pose.position.x = target_goal.get_center_x() - 1;
-    goal.pose.position.y = target_goal.get_center_y();
-    goal.pose.orientation.w = 1;
+    goal_pose.pose.position.x = target_goal.get_center_x() - 1;
+    goal_pose.pose.position.y = target_goal.get_center_y();
+    goal_pose.pose.orientation.w = 1;
   }
-  return goal;
+  return goal_pose;
 }
 
 
@@ -297,7 +299,7 @@ void Decision::explore()
     {
       updateFrontier();
       calculatedNew = true;
-      ROS_INFO ("Calculated New");
+      //ROS_INFO ("Calculated New");
     }
   }
 }
@@ -314,6 +316,77 @@ bool Decision::checkIfFrontierWorth(geometry_msgs::PoseStamped inic)
     ROS_INFO("GOING TO INTERESTING FRONTIER!");
   }
   return isworth;
+}
+
+
+
+void Decision::inicMarkerCarryingPerson()
+{
+
+  marker_carrying_person.color.r = 0.0;
+  marker_carrying_person.color.g = 0.0;
+  marker_carrying_person.color.b = 1.0;
+  marker_carrying_person.color.a = 1.0;
+  marker_carrying_person.scale.x = 0.2;
+  marker_carrying_person.scale.y = 0.2;
+  marker_carrying_person.scale.z = 0.2;
+  marker_carrying_person.pose.orientation.w = 1;
+  marker_carrying_person.type = visualization_msgs::Marker::SPHERE_LIST;
+
+  geometry_msgs::PoseStamped person_map;
+  person_map = getBehindPose();
+  geometry_msgs::Point point_map_person;
+  point_map_person.x = person_map.pose.position.x;
+  point_map_person.y = person_map.pose.position.y;
+  point_map_person.z = 0.15;
+
+  marker_carrying_person.points.push_back(point_map_person);
+
+}
+
+void Decision::updateMarker()
+{
+
+  geometry_msgs::PoseStamped person_map;
+  person_map = getBehindPose();
+  geometry_msgs::Point point_map_person;
+  point_map_person.x = person_map.pose.position.x;
+  point_map_person.y = person_map.pose.position.y;
+  point_map_person.z = 0.15;
+  marker_carrying_person.points[persons_rescued] = point_map_person;
+
+  marker_carrying_person.header.frame_id = "map";
+  marker_carrying_person.header.stamp = ros::Time::now();
+  marker_carrying_person_pub.publish(marker_carrying_person);
+}
+
+geometry_msgs::PoseStamped Decision::getBehindPose()
+{
+  geometry_msgs::PoseStamped carrying_person;
+  geometry_msgs::PoseStamped person_point_map;
+
+  carrying_person.header.stamp = ros::Time(0);
+  carrying_person.header.frame_id = "/base_link";
+  carrying_person.pose.position.x = -0.5;
+  carrying_person.pose.position.y = 0;
+  carrying_person.pose.position.z = 0;
+  carrying_person.pose.orientation.x = 0;
+  carrying_person.pose.orientation.y = 0;
+  carrying_person.pose.orientation.z = 0;
+  carrying_person.pose.orientation.w = 1;
+
+  tf::StampedTransform transform;
+  try{
+    listener.lookupTransform("/map","/base_link", ros::Time(0), transform);
+  }
+  catch (tf::TransformException &ex) {
+    ROS_ERROR("%s",ex.what());
+  }
+
+  geometry_msgs::TransformStamped stampedTransform;
+  tf::transformStampedTFToMsg(transform, stampedTransform);
+  tf2::doTransform(carrying_person, person_point_map, stampedTransform);
+  return person_point_map;
 }
 //Two main states:
 
@@ -351,6 +424,11 @@ bool Decision::process()
           break;
         }
 
+        if (carrying_person)
+        {
+          updateMarker();
+        }
+
         switch(_exploration_mode)
         {
           case _searching_exit:
@@ -386,14 +464,7 @@ bool Decision::process()
         {
           case _person:
             ROS_INFO("Direction: Person");
-            callMoveAction( setPose(database_p.at(0)) );
-
-            //if we are going to a person send it to the end of the list so if we find during the way another one we can recalculate!
-            database_p.at(0).set_rescued();
-            database_p.at(0).updateData(rescued_distance);
-
-            //update the new person to rescue!
-            updatePersonsbyDistance();
+            callMoveAction( setPose(database_p[0]) );
           break;
 
           case _exit:
@@ -405,78 +476,102 @@ bool Decision::process()
 
     case _waiting:
 
-      if (rescuedTargetReached)
+      if (carrying_person)
       {
-        switch (_direction)
-        {
-          case _person:
+        updateMarker();
+      }
+
+      switch (_waiting_decisions)
+      {
+        case _continous_decisions:
+
+          if (exit_found)
+          {
+            //Calculate decision if New_Person = true or we are riskymode and the last frontier reached!
+            if (New_Person)
+            {
+              findNearestPerson( setPose(database_e[0]) );
+              if (checkIfFrontierWorth( setPose(database_e[0]) ))
+              {
+                _decided_state = _exploring;
+                _exploration_mode = _exploring_frontier;
+              }
+              else _decided_state = _rescuing;
+              //New_Person processed!
+              New_Person = false;
+            }
+
+            if(riskymode && frontierTargetReached)
+            //case we are exploring_frontier!
+            {
+              getActualPose();
+              findNearestPerson( actualPose );
+              if (checkIfFrontierWorth(actualPose))
+              {
+                _state = _exploring;
+                _exploration_mode = _exploring_frontier;
+              }
+            }
+          }
+
+          if (rescuedTargetReached) _waiting_decisions = _static_decisions;
+        break;
+
+        case _static_decisions:
+          if(persons_rescued != number_of_persons)
+          {
+            if(database_p[0].get_rescued())
+            {
+              _decided_state = _exploring;
+              _exploration_mode = _searching_person;
+            }
+          }
+          else
+          {
+            ROS_INFO("congratulations! you saved the world ;P");
+            return true;
+          }
+          _waiting_decisions = _send_decision;
+        break;
+
+        case _send_decision:
+          _waiting_decisions = _continous_decisions;
+          switch (_direction)
+          {
+
+            case _person:
             carrying_person = true;
+
             ROS_INFO("CARRYING PERSON");
+
+            carrying_ROI.index = database_p[0].get_index();
+            carrying_.request.person = carrying_ROI;
+            carrying_person_client.call(carrying_);
+
+            inicMarkerCarryingPerson();
+
             _direction = _exit;
+            //if we are going to a person send it to the end of the list so if we find during the way another one we can recalculate!
+            database_p[0].set_rescued();
+            database_p[0].updateData(rescued_distance);
+            //update the new person to rescue!
+            updatePersonsbyDistance();
             //do we know the exit?
             if (exit_found) _state = _rescuing;
             else _state = _exploring;
           break;
 
           case _exit:
+
             carrying_person = false;
             persons_rescued++;
             ROS_INFO("LEFT AT EXIT. PERSON: %d", persons_rescued);
             _direction = _person;
             _state = _decided_state;
           break;
-        }
-      }
-
-      //if we are moving use this time to calculate the next route
-      //Only if we already now the exit and we can calculate distances!
-      else if (exit_found)
-      {
-        if(persons_rescued != number_of_persons)
-        {
-          if (!database_p[0].get_rescued())
-          {
-          //Calculate decision if New_Person = true or we are riskymode and the last frontier reached!
-            if (New_Person || (riskymode && frontierTargetReached))
-            {
-              //New_Person processed!
-              New_Person = false;
-              //case we are exploring_frontier!
-              if ( exploring_iteration > 0 )
-              {
-                getActualPose();
-                findNearestPerson( actualPose );
-                if (checkIfFrontierWorth(actualPose))
-                {
-                  _decided_state = _exploring;
-                  _exploration_mode = _exploring_frontier;
-                }
-              }
-              else
-              {
-                findNearestPerson( setPose(database_e[0]) );
-                if (checkIfFrontierWorth( setPose(database_e[0]) ))
-                {
-                  _decided_state = _exploring;
-                  _exploration_mode = _exploring_frontier;
-                }
-                else _decided_state = _rescuing;
-              }
-            }
           }
-          else
-          {
-            ROS_INFO("GOING GREEDY: SEARCHING PERSON");
-            _state = _exploring;
-            _exploration_mode = _searching_person;
-          }
-        }
-        else
-        {
-          ROS_INFO("congratulations! you saved the world ;P");
-          return true;
-        }
+        break;
       }
-  break;
+    break;
   }
 }

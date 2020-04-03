@@ -1,14 +1,14 @@
-#include <poi_database/ROI.h>
+#include <turtlebot_2dnav/ROI.h>
 #include <geometry_msgs/PoseStamped.h>
 
 class data
 {
   public:
-    data(poi_database::ROI ROI_);
+    data(turtlebot_2dnav::ROI ROI_);
 
     data(geometry_msgs::PoseStamped New_Pose);
 
-    void updateData(poi_database::ROI ROI_);
+    void updateDataROI(turtlebot_2dnav::ROI ROI_);
 
     bool data_index_equal_to(int index_);
 
@@ -17,6 +17,8 @@ class data
     float get_center_y ();
 
     bool is_vertical();
+
+    int get_index();
 
   protected:
     geometry_msgs::Point center;
@@ -29,7 +31,7 @@ class data
 class person : public data
 {
   public:
-    person(poi_database::ROI ROI_, double initial_distance_);
+    person(turtlebot_2dnav::ROI ROI_, double initial_distance_);
 
     void updateData(double New_Distance);
 

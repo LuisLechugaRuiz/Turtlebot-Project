@@ -6,10 +6,13 @@
 #include <tf/transform_listener.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <turtlebot_2dnav/frontier.h>
+#include <turtlebot_2dnav/CarryingPerson.h>
 #include <nav_msgs/GetPlan.h>
 #include <nav_msgs/Path.h>
 #include <data.h>
 #include <math_operations.h>
+#include <visualization_msgs/Marker.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
@@ -30,11 +33,18 @@ class Decision : public Math
 
     ros::Subscriber ROI_sub;
     ros::ServiceClient plan_client;
+    ros::ServiceClient carrying_person_client;
+    ros::Publisher marker_carrying_person_pub;
 
     tf::TransformListener listener;
 
     MoveBaseClient acMove;
 
+    void inicMarkerCarryingPerson();
+
+    void updateMarker();
+
+    void clearMarker();
 
     void findNearestPerson(geometry_msgs::PoseStamped inic_pose);
 
@@ -52,6 +62,7 @@ class Decision : public Math
 
     double getDistanceProb(data Frontier, geometry_msgs::PoseStamped inic_pose);
 
+    geometry_msgs::PoseStamped getBehindPose();
 
     nav_msgs::Path getPlan(geometry_msgs::PoseStamped inic, geometry_msgs::PoseStamped goal);
 
@@ -63,7 +74,7 @@ class Decision : public Math
 
     void Frontier_callBack(turtlebot_2dnav::frontier frontier);
 
-    void ROI_callBack(poi_database::ROI);
+    void ROI_callBack(turtlebot_2dnav::ROI);
 
     void moving_done_Callback(const actionlib::SimpleClientGoalState &state);
 
@@ -85,6 +96,9 @@ class Decision : public Math
 
     enum _exploration_modes {_searching_exit, _searching_person, _exploring_frontier};
     _exploration_modes _exploration_mode = _searching_exit;
+
+    enum _type_decisions {_continous_decisions, _static_decisions, _send_decision};
+    _type_decisions _waiting_decisions = _continous_decisions;
 
     ros::Time time_inic;
     ros::Time time_now;
@@ -132,6 +146,9 @@ class Decision : public Math
     geometry_msgs::PoseStamped bestFrontier;
     geometry_msgs::PoseStamped actualPose;
 
+    turtlebot_2dnav::CarryingPerson carrying_;
+    turtlebot_2dnav::ROI carrying_ROI;
+
     move_base_msgs::MoveBaseGoal goal;
     nav_msgs::GetPlan plan_request;
 
@@ -140,6 +157,8 @@ class Decision : public Math
     std::vector<person> database_p;
 
     std::vector<data>* data_ptr;
+
+    visualization_msgs::Marker marker_carrying_person;
 
 };
 
