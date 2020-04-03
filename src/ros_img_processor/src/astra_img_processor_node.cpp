@@ -28,7 +28,7 @@
 AstraImgProcessorNode::AstraImgProcessorNode () : nh_(ros::this_node::getName()), img_tp_(nh_) //¿?
 {
 	//loop rate [hz]
-	rate_=10;
+	rate_ = 10;
 	
 	//set publishers
 	image_pub_ = img_tp_.advertise("image_out",100); 
