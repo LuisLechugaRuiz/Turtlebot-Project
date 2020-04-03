@@ -1,7 +1,5 @@
 #include "astra_img_processor_node.h"
 
-#include "ros_img_processor_node.h"
-
 //OpenCV
 #include "opencv2/opencv.hpp"
 #include "opencv2/core.hpp"
