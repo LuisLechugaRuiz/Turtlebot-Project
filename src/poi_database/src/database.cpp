@@ -4,7 +4,7 @@
 #include <tf/transform_listener.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <visualization_msgs/Marker.h>
-#include <poi_database/ROI.h>
+#include <turtlebot_2dnav/ROI.h>
 
 
 DatabaseNode::DatabaseNode():
@@ -12,7 +12,8 @@ DatabaseNode::DatabaseNode():
 {
   ROI_sub = n.subscribe("ros_img_processor/camera_POI", 1, &DatabaseNode::camera_transformCallback, this);
   markers_pub = nh.advertise<visualization_msgs::Marker>("visualization_markers",10);
-  ROI_pub = nh.advertise<poi_database::ROI>("ROI", 1);
+  ROI_pub = nh.advertise<turtlebot_2dnav::ROI>("ROI", 1);
+  carrying_ROI_server = nh.advertiseService("CarryingPerson", &DatabaseNode::carrying_person_service, this);
 }
 
 void DatabaseNode::process()
@@ -184,7 +185,7 @@ void DatabaseNode::PublishMarkers()
     publish_point.z = 0.15;
     markers.points.push_back(publish_point);
 
-    poi_database::ROI ROI_publish;
+    turtlebot_2dnav::ROI ROI_publish;
     ROI_publish.Header.stamp = ros::Time::now();
     ROI_publish.Header.frame_id = "Map";
     ROI_publish.type = type;
@@ -205,7 +206,7 @@ void DatabaseNode::PublishMarkers()
     markers.points.at(global_ROI.marker_index).y = global_ROI.center_y;
     ROI_expanded = false;
 
-    poi_database::ROI ROI_publish;
+    turtlebot_2dnav::ROI ROI_publish;
     ROI_publish.Header.stamp = ros::Time::now();
     ROI_publish.Header.frame_id = "Map";
     ROI_publish.type = type;
@@ -333,6 +334,19 @@ void DatabaseNode::Bound::update_size_conditions()
   size_x_cond = size_x_cond_vertical || (size_x_cond_horizontal && size_y_cond_horizontal);
   size_y_cond = size_y_cond_horizontal || (size_x_cond_vertical && size_y_cond_vertical);
 }
+
+bool DatabaseNode::carrying_person_service(turtlebot_2dnav::CarryingPerson::Request &req, turtlebot_2dnav::CarryingPerson::Response &res)
+{
+  carrying_person = true;
+  int index = req.person.index;
+  markers.colors[index].r = 1.0;
+  markers.colors[index].g = 1.0;
+  markers.colors[index].b = 1.0;
+  res.received = true;
+}
+
+
+
 
 //We will consider that is ROI if one of the 4 conditions for the side is true but the ROI can still be expanded
 // so the marker needs to be relocated.

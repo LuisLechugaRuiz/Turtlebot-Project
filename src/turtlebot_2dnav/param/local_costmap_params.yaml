@@ -1,9 +1,10 @@
 local_costmap:
    global_frame: odom
-
+   update_frequency: 8.0
+   publish_frequency: 4.0
    rolling_window: true
-   width: 4.0
-   height: 4.0
+   width: 5.0
+   height: 5.0
 
    plugins:
     - {name: obstacles_laser,           type: "costmap_2d::ObstacleLayer"}

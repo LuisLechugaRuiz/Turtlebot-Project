@@ -13,7 +13,9 @@ raytrace_range: 6.0
 #layer definitions
 static:
     map_topic: /map
-    subscribe_to_updates: true
+    track_unknown_space: true
+    unknown_cost_value: 255
+    subscribe_to_updates: false
 
 obstacles_laser:
     observation_sources: laser
@@ -21,4 +23,6 @@ obstacles_laser:
     track_unknown_space:  true    #true needed for disabling global path planning through unknown space
 
 inflation:
-    inflation_radius: 0.3
+    enabled:              true
+    cost_scaling_factor:  2  # exponential rate at which the obstacle cost drops off (default: 10)
+    inflation_radius:     0.5

@@ -9,12 +9,13 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   roscpp
   std_msgs
-  poi_database
   explore_lite
   move_base_msgs
   actionlib
   actionlib_msgs
   turtlebot_2dnav
+  tf
+  tf2_geometry_msgs
 )
 
 find_package(Boost REQUIRED COMPONENTS system)
@@ -55,8 +56,8 @@ find_package(Boost REQUIRED COMPONENTS system)
         src/math_operations.cpp)
 
 catkin_package(
-  CATKIN_DEPENDS geometry_msgs roscpp std_msgs message_runtime poi_database
-                 move_base_msgs actionlib actionlib_msgs explore_lite turtlebot_2dnav
+  CATKIN_DEPENDS geometry_msgs roscpp std_msgs message_runtime tf2_geometry_msgs
+                 move_base_msgs actionlib actionlib_msgs explore_lite turtlebot_2dnav tf
 )
 
 include_directories(

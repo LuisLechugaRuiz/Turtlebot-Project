@@ -9,12 +9,12 @@ data::data(geometry_msgs::PoseStamped New_Pose)
   size_y = 1.0;
 }
 
-data::data(poi_database::ROI ROI_)
+data::data(turtlebot_2dnav::ROI ROI_)
 {
-  updateData(ROI_);
+  updateDataROI(ROI_);
 }
 
-void data::updateData(poi_database::ROI ROI_)
+void data::updateDataROI(turtlebot_2dnav::ROI ROI_)
 {
   center = ROI_.center;
   type   = ROI_.type;
@@ -22,6 +22,7 @@ void data::updateData(poi_database::ROI ROI_)
   size_y = ROI_.size_y;
   index  = ROI_.index;
 }
+
 
 bool data::data_index_equal_to(int index_)
 {
@@ -43,7 +44,12 @@ float data::get_center_y()
   return center.y;
 }
 
-person::person(poi_database::ROI ROI_, double initial_distance_) : data::data(ROI_)
+int data::get_index()
+{
+  return index;
+}
+
+person::person(turtlebot_2dnav::ROI ROI_, double initial_distance_) : data::data(ROI_)
 {
   updateData(initial_distance_);
   updateData(false);
@@ -58,6 +64,12 @@ void person::updateData(double New_Distance)
 void person::updateData(bool rescued_)
 {
   rescued = rescued_;
+}
+
+
+void person::updateData(geometry_msgs::Pose New_Pose)
+{
+  center = New_Pose.position;
 }
 
 double person::get_distance()

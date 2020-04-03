@@ -355,6 +355,14 @@ Visualization Manager:
         frontiers: true
       Queue Size: 100
       Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /decision_maker/visualization_markers_carrying_person
+      Name: Marker
+      Namespaces:
+        "": true
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -383,16 +391,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 25.46021270751953
+      Distance: 46.234683990478516
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.9436836838722229
-        Y: 0.10153850167989731
-        Z: -1.854750156402588
+        X: -2.1590816974639893
+        Y: -1.6375361680984497
+        Z: -3.8280649185180664
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false

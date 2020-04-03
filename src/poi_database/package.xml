@@ -65,6 +65,8 @@
   <exec_depend>ros_img_processor</exec_depend>
   <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend>
+  <depend>turtlebot_2dnav</depend>
+  <depend>tf</depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

@@ -6,10 +6,13 @@
 #include <tf/transform_listener.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <turtlebot_2dnav/frontier.h>
+#include <turtlebot_2dnav/CarryingPerson.h>
 #include <nav_msgs/GetPlan.h>
 #include <nav_msgs/Path.h>
 #include <data.h>
 #include <math_operations.h>
+#include <visualization_msgs/Marker.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
@@ -30,52 +33,72 @@ class Decision : public Math
 
     ros::Subscriber ROI_sub;
     ros::ServiceClient plan_client;
+    ros::ServiceClient carrying_person_client;
+    ros::Publisher marker_carrying_person_pub;
 
     tf::TransformListener listener;
 
     MoveBaseClient acMove;
 
+    void inicMarkerCarryingPerson();
 
-    void findNearestPerson();
+    void updateMarker();
+
+    void clearMarker();
+
+    void findNearestPerson(geometry_msgs::PoseStamped inic_pose);
 
     void comparePersonFrontier();
 
-    bool isFrontier_worth(int iteration);
+    bool checkIfFrontierWorth(geometry_msgs::PoseStamped inic);
+
+    bool isFrontier_worth(int iteration, geometry_msgs::PoseStamped inic_pose);
+
+    bool fastUpdateFrontier();
 
     bool takeRisk(bool riskymode);
 
     void getActualPose();
 
-    double getDistanceProb(data Frontier);
+    double getDistanceProb(data Frontier, geometry_msgs::PoseStamped inic_pose);
 
+    geometry_msgs::PoseStamped getBehindPose();
 
-    nav_msgs::Path getPlan();
+    nav_msgs::Path getPlan(geometry_msgs::PoseStamped inic, geometry_msgs::PoseStamped goal);
 
     void explore();
 
-    void setGoalPose(data target_goal);
+    geometry_msgs::PoseStamped setPose(data target_goal);
 
-    void callMoveAction();
+    void callMoveAction(geometry_msgs::PoseStamped inic_pose);
 
     void Frontier_callBack(turtlebot_2dnav::frontier frontier);
 
-    void ROI_callBack(poi_database::ROI);
+    void ROI_callBack(turtlebot_2dnav::ROI);
 
     void moving_done_Callback(const actionlib::SimpleClientGoalState &state);
 
     void updateFrontier();
 
+    void updatePersonsbyDistance();
+
   private:
 
     //STATES
-    enum _states {_searching_exit, _rescuing, _exploring, _searching_person, _finished};
-    _states _state = _searching_exit;
+    enum _states {_rescuing, _exploring, _waiting};
+    _states _state = _exploring;
+    //This copy will let us to save a temporal state until the target is reached and then change the _state
+    _states _decided_state = _exploring;
 
-    enum _directions {_wait, _person, _exit};
-    _directions _direction = _wait;
+    enum _directions {_person, _exit};
+    //Until a person is found dont go to the exit!
+    _directions _direction = _person;
 
-    enum _exploration_modes {_starting, _moving, _stopped};
-    _exploration_modes _exploration_mode = _starting;
+    enum _exploration_modes {_searching_exit, _searching_person, _exploring_frontier};
+    _exploration_modes _exploration_mode = _searching_exit;
+
+    enum _type_decisions {_continous_decisions, _static_decisions, _send_decision};
+    _type_decisions _waiting_decisions = _continous_decisions;
 
     ros::Time time_inic;
     ros::Time time_now;
@@ -100,6 +123,8 @@ class Decision : public Math
     double frontier_distance = 10000.00;
     double dist_x_update_frontier;
     double dist_y_update_frontier;
+    double fastupdate_x_dist;
+    double fastupdate_y_dist;
 
     //SET AS A PARAMETER!.
     double tolerance = 0.2;
@@ -107,15 +132,22 @@ class Decision : public Math
     std::string type;
 
     bool first_frontier_received = false;
+    bool explore_override = false;
     bool riskymode;
-    bool isMoving = false;
-    bool isgoing_to_person = false;
+    bool rescuedTargetReached = false;
+    bool calculatedNew = false;
+    //Start like we already reached the first frontier!
+    bool frontierTargetReached = true;
+    bool exit_found = false;
     bool carrying_person = false;
+    bool New_Person;
 
-    geometry_msgs::PoseStamped actualPose;
-    geometry_msgs::PoseStamped goalPose;
     geometry_msgs::PoseStamped NewFrontier;
     geometry_msgs::PoseStamped bestFrontier;
+    geometry_msgs::PoseStamped actualPose;
+
+    turtlebot_2dnav::CarryingPerson carrying_;
+    turtlebot_2dnav::ROI carrying_ROI;
 
     move_base_msgs::MoveBaseGoal goal;
     nav_msgs::GetPlan plan_request;
@@ -125,6 +157,8 @@ class Decision : public Math
     std::vector<person> database_p;
 
     std::vector<data>* data_ptr;
+
+    visualization_msgs::Marker marker_carrying_person;
 
 };
 

@@ -6,19 +6,16 @@ project(poi_database)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
+  turtlebot_2dnav
   roscpp
   tf2_geometry_msgs
   std_msgs
   geometry_msgs
   message_generation
   ros_img_processor
+  tf
 )
 
-
-add_message_files(
-  FILES
-  ROI.msg
-)
 
 ## Generate added messages and services with any dependencies listed here
  generate_messages(
@@ -35,7 +32,7 @@ add_message_files(
 
 
 catkin_package(
-   CATKIN_DEPENDS geometry_msgs roscpp std_msgs tf2_geometry_msgs message_runtime ros_img_processor
+   CATKIN_DEPENDS geometry_msgs roscpp std_msgs tf2_geometry_msgs message_runtime ros_img_processor turtlebot_2dnav tf
 )
 
 include_directories(
