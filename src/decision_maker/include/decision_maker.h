@@ -141,7 +141,7 @@ class Decision : public Math
     bool frontierTargetReached = true;
     bool exit_found = false;
     bool carrying_person = false;
-    bool New_Person;
+    bool New_Person = false;
 
     geometry_msgs::PoseStamped NewFrontier;
     geometry_msgs::PoseStamped bestFrontier;

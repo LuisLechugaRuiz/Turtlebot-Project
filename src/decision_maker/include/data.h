@@ -4,6 +4,7 @@
 class data
 {
   public:
+
     data(turtlebot_2dnav::ROI ROI_);
 
     data(geometry_msgs::PoseStamped New_Pose_);
@@ -26,6 +27,7 @@ class data
     float size_y;
     std::string type;
     int index;
+    
 };
 
 class person : public data

@@ -37,6 +37,7 @@ Decision::Decision():
   bestFrontier.pose.position.y = 1000;
   NewFrontier.pose.position.x = 0;
   NewFrontier.pose.position.y = 0;
+
 }
 
 void Decision::ROI_callBack(turtlebot_2dnav::ROI New_ROI)
@@ -217,7 +218,6 @@ void Decision::findNearestPerson(geometry_msgs::PoseStamped inic_pose)
   }
   std::sort(database_p.begin(), database_p.end(), sortbydistance);
   double distance = database_p[0].distance;
-  ROS_INFO("distance: %f", distance);
 }
 
 
@@ -411,11 +411,7 @@ bool Decision::process()
 {
 
   //Wait to start exploring
-  if (!first_frontier_received)
-  {
-    ROS_INFO("Waiting frontiers to explore!");
-    return false;
-  }
+  if (!first_frontier_received) return false;
 
 
   switch(_state)
