@@ -3,20 +3,12 @@ robot_radius: 0.20  # distance a circular robot should be clear of the obstacle 
 robot_base_frame: base_footprint
 transform_tolerance: 0.5
 
-resolution: 0.05
-
-obstacle_range: 5.5
-raytrace_range: 6
-
-plugins:
-  - {name: static,              type: "costmap_2d::StaticLayer"}
-  #Can disable sensor layer if gmapping is fast enough to update scans
-  - {name: obstacles_laser,     type: "costmap_2d::ObstacleLayer"}
-  - {name: inflation,           type: "costmap_2d::InflationLayer"}
+obstacle_range: 3
+raytrace_range: 4.5
 
 #layer definitions
 static:
-    map_topic: /map
+    map_topic: map
     track_unknown_space: true
     unknown_cost_value: 255
     subscribe_to_updates: false
