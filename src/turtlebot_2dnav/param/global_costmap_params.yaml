@@ -4,8 +4,3 @@ global_costmap:
    update_frequency: 5.0
    publish_frequency: 3.0
    track_unknown_space:  true
-   plugins:
-    - {name: static,              type: "costmap_2d::StaticLayer"}
-    #Can disable sensor layer if gmapping is fast enough to update scans
-    - {name: obstacles_laser,     type: "costmap_2d::ObstacleLayer"}
-    - {name: inflation,           type: "costmap_2d::InflationLayer"}
