@@ -3,6 +3,9 @@ global_costmap:
    rolling_window: false
    update_frequency: 5.0
    publish_frequency: 3.0
+
+   width: 40
+   height: 40
    track_unknown_space:  true
 
    plugins:

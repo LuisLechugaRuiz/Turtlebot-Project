@@ -3,23 +3,20 @@ robot_radius: 0.20  # distance a circular robot should be clear of the obstacle 
 robot_base_frame: base_footprint
 transform_tolerance: 0.5
 
-obstacle_range: 3
-raytrace_range: 4.5
-
 #layer definitions
 static:
     map_topic: map
     track_unknown_space: true
-    unknown_cost_value: 255
+    #unknown_cost_value: 255
     subscribe_to_updates: false
 
 obstacles_laser:
-    observation_sources: laser
-    laser: {data_type: LaserScan, clearing: true, marking: true, topic: /scan, inf_is_valid: true}
-    track_unknown_space: true
-    #    #true needed for disabling global path planning through unknown space
+       observation_sources: laser
+       laser: {data_type: LaserScan, clearing: true, marking: true, topic: /scan, inf_is_valid: true}
+       track_unknown_space: true
+       #    #true needed for disabling global path planning through unknown space
 
 inflation:
     enabled:              true
-    cost_scaling_factor:  4  # exponential rate at which the obstacle cost drops off (default: 10)
+    cost_scaling_factor:  5  # exponential rate at which the obstacle cost drops off (default: 10)
     inflation_radius:     0.55

@@ -53,8 +53,8 @@
               </horizontal>
             </scan>
             <range>
-              <min>0.2</min>
-              <max>15.0</max>
+              <min>0.15</min>
+              <max>6.0</max>
               <resolution>0.01</resolution>
             </range>
             <noise>
