@@ -17,10 +17,6 @@ Decision::Decision():
   nh.param("initial_distance", initial_distance, 10000.00);
   nh.param("rescued_distance", rescued_distance, 100000.00);
   nh.param("riskymode", riskymode, false);
-  nh.param("dist_x_update_frontier", dist_x_update_frontier, 1.0);
-  nh.param("dist_y_update_frontier", dist_y_update_frontier, 1.0);
-  nh.param("fastupdate_x_dist", fastupdate_x_dist, 1.0);
-  nh.param("fastupdate_y_dist", fastupdate_y_dist, 1.0);
 
   total_time = total_time_min * 60 + total_time_sec;
   time_inic = ros::Time::now();
@@ -232,7 +228,7 @@ bool Decision::takeRisk(bool riskymode)
   bool risky;
   time_now = ros::Time::now();
   //Already found the exit
-  if (database_e.size() > 0 && riskymode && ((time_now.sec - time_now.sec) < total_time/4))
+  if (database_e.size() > 0 && riskymode && ((time_now.sec - time_inic.sec) < total_time/4))
   {
     ROS_INFO("Min: %d", (time_now.sec - time_inic.sec) / 60);
     ROS_INFO("segundos: %d", (time_now.sec - time_inic.sec) % 60);
@@ -256,25 +252,6 @@ void Decision::updateFrontier()
   callMoveAction(  setPose(Frontier) );
   frontierTargetReached = false;
   explore_override = false;
-  calculatedNew = false;
-  //ROS_INFO("New Frontier");
-  //ROS_INFO("Pos x: %f", bestFrontier.pose.position.x);
-  //ROS_INFO("Pos y: %f", bestFrontier.pose.position.y);
-}
-
-bool Decision::fastUpdateFrontier()
-{
-  bool update = false;
-  if( ((actualPose.pose.position.x - bestFrontier.pose.position.x) < dist_x_update_frontier)
-  || ((actualPose.pose.position.x -bestFrontier.pose.position.y) < dist_y_update_frontier) )
-  {
-    if ( ((NewFrontier.pose.position.x - bestFrontier.pose.position.x) < fastupdate_x_dist)
-    || ((NewFrontier.pose.position.y - bestFrontier.pose.position.y) < fastupdate_y_dist) )
-    {
-      update = true;
-    }
-  }
-  return update;
 }
 
 void Decision::explore()
@@ -288,19 +265,7 @@ void Decision::explore()
   else
   {
     getActualPose();
-    if (explore_override)
-    {
-      updateFrontier();
-      return;
-    }
-    if (frontierTargetReached || fastUpdateFrontier()) updateFrontier();
-
-    else if(CostSecondLower(actualPose.pose, bestFrontier.pose.position, NewFrontier.pose.position) && !calculatedNew)
-    {
-      updateFrontier();
-      calculatedNew = true;
-      //ROS_INFO ("Calculated New");
-    }
+    updateFrontier();
   }
 }
 
@@ -419,9 +384,11 @@ bool Decision::process()
     case _exploring:
 
         //We should always carry a Person if not carrying and a new_person is detected! (riskymode need something)
-        if(!carrying_person && New_Person)
+        if(!carrying_person && New_Person && (exploring_iteration == 0) )
         {
           //Process the New_Person and decide where to go!
+          getActualPose();
+          findNearestPerson( actualPose );
           _state = _rescuing;
           break;
         }
@@ -457,6 +424,7 @@ bool Decision::process()
     case _rescuing:
         ROS_INFO("State: Rescuing");
         rescuedTargetReached = false;
+        frontierTargetReached = false;
         //If we want to explore again we should send the last frontier even if is the SAME!
         explore_override = true;
         _state = _waiting;
@@ -498,21 +466,29 @@ bool Decision::process()
               //New_Person processed!
               New_Person = false;
             }
+          }
 
-            if(riskymode && frontierTargetReached)
-            //case we are exploring_frontier!
+          //should be planned AFTER the exit is reached!!!
+          if(exploring_iteration > 0 && frontierTargetReached)
+          //case we are exploring_frontier!
+          {
+            ROS_INFO("INSIDE2");
+            getActualPose();
+            findNearestPerson( actualPose );
+            if (checkIfFrontierWorth(actualPose))
             {
-              getActualPose();
-              findNearestPerson( actualPose );
-              if (checkIfFrontierWorth(actualPose))
-              {
-                _state = _exploring;
-                _exploration_mode = _exploring_frontier;
-              }
+              _state = _exploring;
+              _exploration_mode = _exploring_frontier;
+            }
+            else
+            {
+              _state = _rescuing;
+              _direction = _person;
             }
           }
 
           if (rescuedTargetReached) _waiting_decisions = _static_decisions;
+
         break;
 
         case _static_decisions:
@@ -524,19 +500,17 @@ bool Decision::process()
               _exploration_mode = _searching_person;
             }
           }
-          else
-          {
-            ROS_INFO("congratulations! you saved the world ;P");
-            return true;
-          }
+
           _waiting_decisions = _send_decision;
         break;
 
         case _send_decision:
           _waiting_decisions = _continous_decisions;
+          rescuedTargetReached = false;
+          frontierTargetReached = false;
+
           switch (_direction)
           {
-
             case _person:
             carrying_person = true;
 
@@ -560,12 +534,30 @@ bool Decision::process()
           break;
 
           case _exit:
-
             carrying_person = false;
             persons_rescued++;
-            ROS_INFO("LEFT AT EXIT. PERSON: %d", persons_rescued);
-            _direction = _person;
-            _state = _decided_state;
+            ROS_INFO("LEFT AT EXIT. PERSON: %d", (persons_rescued+1));
+            if(persons_rescued != number_of_persons)
+            {
+              _direction = _person;
+              if(riskymode)
+              {
+                getActualPose();
+                findNearestPerson( actualPose );
+                if (checkIfFrontierWorth(actualPose))
+                {
+                  _state = _exploring;
+                  _exploration_mode = _exploring_frontier;
+                }
+                else _state = _decided_state;
+              }
+              else _state = _decided_state;
+            }
+            else
+            {
+              ROS_INFO("congratulations! you saved the world ;P");
+              return true;
+            }
           break;
           }
         break;

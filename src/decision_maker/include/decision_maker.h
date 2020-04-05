@@ -55,8 +55,6 @@ class Decision : public Math
 
     bool isFrontier_worth(int iteration, geometry_msgs::PoseStamped inic_pose);
 
-    bool fastUpdateFrontier();
-
     bool takeRisk(bool riskymode);
 
     void getActualPose();
@@ -122,10 +120,6 @@ class Decision : public Math
     double initial_distance = 10000.00;
     double rescued_distance = 100000.00;
     double frontier_distance = 10000.00;
-    double dist_x_update_frontier;
-    double dist_y_update_frontier;
-    double fastupdate_x_dist;
-    double fastupdate_y_dist;
 
     //SET AS A PARAMETER!.
     double tolerance = 0.2;
@@ -136,7 +130,6 @@ class Decision : public Math
     bool explore_override = false;
     bool riskymode;
     bool rescuedTargetReached = false;
-    bool calculatedNew = false;
     //Start like we already reached the first frontier!
     bool frontierTargetReached = true;
     bool exit_found = false;
