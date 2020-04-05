@@ -108,7 +108,7 @@ private:
 
   // parameters
   double planner_frequency_;
-  double potential_scale_, orientation_scale_, gain_scale_;
+  double gain_distance_, gain_size_, gain_angle_;
   ros::Duration progress_timeout_;
   bool visualize_;
 };

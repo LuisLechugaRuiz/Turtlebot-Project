@@ -14,23 +14,24 @@ using costmap_2d::LETHAL_OBSTACLE;
 using costmap_2d::NO_INFORMATION;
 using costmap_2d::FREE_SPACE;
 
-FrontierSearch::FrontierSearch(costmap_2d::Costmap2D* costmap,
-                               double potential_scale, double gain_scale,
+FrontierSearch::FrontierSearch(costmap_2d::Costmap2D* costmap, double gain_distance_,
+                               double gain_angle_, double gain_size_,
                                double min_frontier_size)
   : costmap_(costmap)
-  , potential_scale_(potential_scale)
-  , gain_scale_(gain_scale)
+  , gain_distance_(gain_distance_)
+  , gain_angle_(gain_angle_)
+  , gain_size_(gain_size_)
   , min_frontier_size_(min_frontier_size)
 {
 }
 
-std::vector<Frontier> FrontierSearch::searchFrom(geometry_msgs::Point position)
+std::vector<Frontier> FrontierSearch::searchFrom(geometry_msgs::Pose pose)
 {
   std::vector<Frontier> frontier_list;
 
   // Sanity check that robot is inside costmap bounds before searching
   unsigned int mx, my;
-  if (!costmap_->worldToMap(position.x, position.y, mx, my)) {
+  if (!costmap_->worldToMap(pose.position.x, pose.position.y, mx, my)) {
     ROS_ERROR("Robot out of costmap bounds, cannot search for frontiers");
     return frontier_list;
   }
@@ -85,7 +86,7 @@ std::vector<Frontier> FrontierSearch::searchFrom(geometry_msgs::Point position)
 
   // set costs of frontiers
   for (auto& frontier : frontier_list) {
-    frontier.cost = frontierCost(frontier);
+    frontier.cost = frontierCost(frontier, pose);
   }
   std::sort(
       frontier_list.begin(), frontier_list.end(),
@@ -188,10 +189,31 @@ bool FrontierSearch::isNewFrontierCell(unsigned int idx,
   return false;
 }
 
-double FrontierSearch::frontierCost(const Frontier& frontier)
+double FrontierSearch::frontierAngleCost(const Frontier& frontier, geometry_msgs::Pose robotPose)
 {
-  return (potential_scale_ * frontier.min_distance *
-          costmap_->getResolution()) -
-         (gain_scale_ * frontier.size * costmap_->getResolution());
+  //get the actual angle
+  double dx = frontier.centroid.x - robotPose.position.x;
+  double dy = frontier.centroid.y - robotPose.position.y;
+  double angle = std::asin(robotPose.orientation.z) * 2;
+  //ROS_INFO("angle: %f", angle);
+  double modulus = sqrt(pow(dx,2) + pow(dy,2));
+  //ROS_INFO("modulus: %f", modulus);
+  double cos_angle = ( dx * std::cos(angle) + dy * std::sin(angle) ) / modulus;
+  //when the angle is bigger the cost is bigger also!
+  //ROS_INFO("cos angle %f", cos_angle);
+  double angle_dif = std::acos(cos_angle);
+  double angle_cost;
+  if ( (angle_dif > 0 && angle_dif < 1.57) || (angle_dif < 0 && angle_dif > 4.71238 ) ) angle_cost = 1 - cos_angle;
+  if (angle_dif > 1.57 && angle < 4.71238) angle_cost = 1 + abs(cos_angle);
+  //ROS_INFO("angle cost %f", angle_cost);
+  return angle_cost;
+}
+
+double FrontierSearch::frontierCost(const Frontier& frontier, geometry_msgs::Pose robotPose)
+{
+  float distance_cost = gain_distance_ * frontier.min_distance;
+  float size_cost = gain_size_ * frontier.size * costmap_->getResolution();
+  float angle_cost = gain_angle_ * frontierAngleCost(frontier, robotPose);
+  return ( distance_cost + angle_cost - size_cost  );
 }
 }

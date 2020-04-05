@@ -63,14 +63,14 @@ Explore::Explore()
   private_nh_.param("progress_timeout", timeout, 1000.0);
   progress_timeout_ = ros::Duration(timeout);
   private_nh_.param("visualize", visualize_, false);
-  private_nh_.param("potential_scale", potential_scale_, 1e-3);
-  private_nh_.param("orientation_scale", orientation_scale_, 0.0);
-  private_nh_.param("gain_scale", gain_scale_, 1.0);
+  private_nh_.param("gain_distance", gain_distance_, 1.0);
+  private_nh_.param("gain_angle", gain_angle_, 1.0);
+  private_nh_.param("gain_size", gain_size_, 1.0);
   private_nh_.param("min_frontier_size", min_frontier_size, 0.5);
 
   search_ = frontier_exploration::FrontierSearch(costmap_client_.getCostmap(),
-                                                 potential_scale_, gain_scale_,
-                                                 min_frontier_size);
+                                                 gain_distance_, gain_angle_,
+                                                 gain_size_, min_frontier_size);
 
   if (visualize_) {
     marker_array_publisher_ =
@@ -176,14 +176,9 @@ void Explore::makePlan()
   // find frontiers
   auto pose = costmap_client_.getRobotPose();
   // get frontiers sorted according to cost
-  auto frontiers = search_.searchFrom(pose.position);
+  auto frontiers = search_.searchFrom(pose);
   //ROS_DEBUG("found %lu frontiers", frontiers.size());
   if (frontiers.size() == 0) return;
-
-  //if (frontiers.empty()) {
-  //  stop();
-  //  return;
-  //}
 
   // publish frontiers as visualization markers
   if (visualize_) {
@@ -205,23 +200,13 @@ void Explore::makePlan()
   prev_distance_ = frontier->min_distance;
   }
 
-  ROS_INFO("target_position x: %f", target_position.x);
-  ROS_INFO("target_position y: %f", target_position.y);
-  // we don't need to do anything if we still pursuing the same goal
-  //if (same_goal) {
-  //  return;
-  //}
-  // send goal to move_base if we have something new to pursue
   geometry_msgs::PoseStamped goal;
   frontier_msg.goal.pose.position = target_position;
   frontier_msg.goal.pose.orientation.w = 1.;
   frontier_msg.goal.header.frame_id = costmap_client_.getGlobalFrameID();
   frontier_msg.goal.header.stamp = ros::Time::now();
   frontier_msg.frontiers_count = frontiers.size();
-  int size = frontiers.size();
-  ROS_INFO("frontiers number: %d", size);
   frontier_publisher.publish(frontier_msg);
-  ROS_INFO("PUBLISHED");
 }
 
 
