@@ -1,8 +1,8 @@
 global_costmap:
    global_frame: map
    rolling_window: false
-   update_frequency: 5.0
-   publish_frequency: 3.0
+   update_frequency: 4.0
+   publish_frequency: 1.0
 
    width: 40
    height: 40
