@@ -24,6 +24,7 @@ find_package(catkin REQUIRED COMPONENTS
  add_service_files(
    FILES
    CarryingPerson.srv
+   askNewFrontier.srv
  )
 
  ## Generate messages in the 'msg' folder

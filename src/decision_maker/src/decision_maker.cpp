@@ -9,6 +9,7 @@ Decision::Decision():
   nh.param("number_of_persons", number_of_persons, 6);
   nh.param("total_time_min", total_time_min, 25);
   nh.param("total_time_sec", total_time_sec, 30);
+  nh.param("move_timeout", move_timeout, 2);
   nh.param("points_exit", points_exit, 5);
   nh.param("points_person", points_person, 3);
   nh.param("points_danger", points_person, 2);
@@ -17,6 +18,7 @@ Decision::Decision():
   nh.param("initial_distance", initial_distance, 10000.00);
   nh.param("rescued_distance", rescued_distance, 100000.00);
   nh.param("riskymode", riskymode, false);
+
 
   total_time = total_time_min * 60 + total_time_sec;
   time_inic = ros::Time::now();
@@ -27,6 +29,7 @@ Decision::Decision():
   ROI_sub = n.subscribe("database/ROI", 1, &Decision::ROI_callBack, this);
   frontiers_sub = n.subscribe("explore/frontier", 100, &Decision::Frontier_callBack, this);
   marker_carrying_person_pub = nh.advertise<visualization_msgs::Marker>("visualization_markers_carrying_person", 10);
+  ask_new_frontier_client = n.serviceClient<turtlebot_2dnav::askNewFrontier>("explore/NewFrontier");
 
   //starting bestfrontier and Newfrontier in different places.
   bestFrontier.pose.position.x = 1000;
@@ -47,11 +50,13 @@ void Decision::ROI_callBack(turtlebot_2dnav::ROI New_ROI)
       person Person(New_ROI, initial_distance);
       database_p.push_back(Person);
       New_Person = true;
+      points += points_person;
     }
     if(type == "R")
     {
       data New_data(New_ROI);
       database_r.push_back(New_data);
+      points += points_danger;
     }
     if(type == "E")
     {
@@ -59,6 +64,7 @@ void Decision::ROI_callBack(turtlebot_2dnav::ROI New_ROI)
       database_e.push_back(New_data);
       if (!exit_found) exit_found = true;
       else ROS_INFO ("2 exits found!?");
+      points += points_exit;
     }
   }
   else
@@ -103,8 +109,12 @@ void Decision::moving_done_Callback(const actionlib::SimpleClientGoalState& stat
 {
     if (state == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
-      if(_state == _exploring) frontierTargetReached = true;
-      if(_state == _waiting) rescuedTargetReached = true;
+      if(_direction == _frontier) frontierTargetReached = true;
+      else rescuedTargetReached = true;
+    }
+    if (state == actionlib::SimpleClientGoalState::ABORTED)
+    {
+      ROS_INFO("ABORTED!");
     }
 }
 
@@ -256,10 +266,16 @@ void Decision::updateFrontier()
 
 void Decision::explore()
 {
-
-  // IF PATH DIES NEED TO SEND IT AGAIN!
-
-  if (number_of_frontiers == 0) ROS_INFO("No frontiers!");
+  checkIfStuck();
+  frontierTargetReached = false;
+  //try to clean blacklist..
+  if (number_of_frontiers == 0)
+  {
+    askNew_.request.addBlacklist = false;
+    askNew_.request.clearBlacklist = true;
+    ask_new_frontier_client.call(askNew_);
+    ROS_INFO("No frontiers!");
+  }
   //if is the same frontier and has not been overrided dont publish nothing just wait!
   else if (sameFrontier(bestFrontier.pose.position, NewFrontier.pose.position) && !explore_override);
   else
@@ -269,14 +285,51 @@ void Decision::explore()
   }
 }
 
+bool Decision::checkIfStuck()
+{
+  getActualPose();
+  // time out if we are not making any progress
+  if ( ((actualPose.pose.position.x - 0.05) < prev_pose.position.x && prev_pose.position.x < (actualPose.pose.position.x + 0.05)) &&
+     ((actualPose.pose.position.y - 0.05) < prev_pose.position.y && prev_pose.position.y < (actualPose.pose.position.y + 0.05)) &&
+     ((actualPose.pose.orientation.z - 0.02) < prev_pose.orientation.z && prev_pose.orientation.z < (actualPose.pose.orientation.z + 0.02)) )
+  {
+    if ( stuck && ( (actualPose.header.stamp.sec - stuck_time) > move_timeout ))
+    {
+      recovery();
+      //reset stuck
+      stuck = false;
+    }
+    if (!stuck)
+    {
+      stuck = true;
+      //explore_override = true;
+      stuck_time = actualPose.header.stamp.sec;
+      prev_pose = actualPose.pose;
+    }
+  }
+  else
+  {
+    stuck = false;
+    prev_pose = actualPose.pose;
+  }
+  return stuck;
+}
+
+void Decision::recovery()
+{
+  askNew_.request.addBlacklist = true;
+  askNew_.request.clearBlacklist = false;
+  if(_state == _exploring || _direction == _frontier) ask_new_frontier_client.call(askNew_);
+  else if(_state == _waiting);
+  ROS_INFO("Aborting");
+}
+
 
 bool Decision::checkIfFrontierWorth(geometry_msgs::PoseStamped inic)
 {
   bool isworth = false;
   if (takeRisk(riskymode) && isFrontier_worth(exploring_iteration, inic))
   {
-    exploring_iteration++;
-    frontierTargetReached = false;
     isworth = true;
     ROS_INFO("GOING TO INTERESTING FRONTIER!");
   }
@@ -307,6 +360,23 @@ void Decision::inicMarkerCarryingPerson()
 
   marker_carrying_person.points.push_back(point_map_person);
 
+}
+
+bool Decision::riskyDecision()
+{
+  bool returnrisky = false;
+  if (_direction == _frontier)
+  {
+    getActualPose();
+    findNearestPerson( actualPose );
+    if (checkIfFrontierWorth( actualPose )) returnrisky = true;
+  }
+  else
+  {
+    findNearestPerson( exitPosition );
+    if (checkIfFrontierWorth( exitPosition )) returnrisky = true;
+  }
+  return returnrisky;
 }
 
 void Decision::updateMarker()
@@ -384,7 +454,7 @@ bool Decision::process()
     case _exploring:
 
         //We should always carry a Person if not carrying and a new_person is detected! (riskymode need something)
-        if(!carrying_person && New_Person && (exploring_iteration == 0) )
+        if(!carrying_person && New_Person && _exploration_mode != _exploring_frontier)
         {
           //Process the New_Person and decide where to go!
           getActualPose();
@@ -413,7 +483,6 @@ bool Decision::process()
 
           //in this case we will check again (in waiting) after the interesting frontier is reached!
           case _exploring_frontier:
-            frontierTargetReached = true;
             explore();
             _state = _waiting;
           break;
@@ -457,54 +526,16 @@ bool Decision::process()
             if (New_Person)
             {
               findNearestPerson( exitPosition );
-              if (checkIfFrontierWorth( exitPosition ))
-              {
-                _decided_state = _exploring;
-                _exploration_mode = _exploring_frontier;
-              }
-              else _decided_state = _rescuing;
               //New_Person processed!
               New_Person = false;
             }
           }
-
-          //should be planned AFTER the exit is reached!!!
-          if(exploring_iteration > 0 && frontierTargetReached)
-          //case we are exploring_frontier!
-          {
-            ROS_INFO("INSIDE2");
-            getActualPose();
-            findNearestPerson( actualPose );
-            if (checkIfFrontierWorth(actualPose))
-            {
-              _state = _exploring;
-              _exploration_mode = _exploring_frontier;
-            }
-            else
-            {
-              _state = _rescuing;
-              _direction = _person;
-            }
-          }
-
-          if (rescuedTargetReached) _waiting_decisions = _static_decisions;
+          if (_direction == _frontier ) ROS_INFO("waiting frontier");
+          if (rescuedTargetReached || frontierTargetReached) _waiting_decisions = _static_decisions;
 
         break;
 
         case _static_decisions:
-          if(persons_rescued != number_of_persons)
-          {
-            if(database_p[0].get_rescued())
-            {
-              _decided_state = _exploring;
-              _exploration_mode = _searching_person;
-            }
-          }
-
-          _waiting_decisions = _send_decision;
-        break;
-
-        case _send_decision:
           _waiting_decisions = _continous_decisions;
           rescuedTargetReached = false;
           frontierTargetReached = false;
@@ -512,53 +543,83 @@ bool Decision::process()
           switch (_direction)
           {
             case _person:
-            carrying_person = true;
+              carrying_person = true;
 
-            ROS_INFO("CARRYING PERSON");
+              ROS_INFO("CARRYING PERSON");
 
-            carrying_ROI.index = database_p[0].get_index();
-            carrying_.request.person = carrying_ROI;
-            carrying_person_client.call(carrying_);
+              carrying_ROI.index = database_p[0].get_index();
+              carrying_.request.person = carrying_ROI;
+              carrying_person_client.call(carrying_);
 
-            inicMarkerCarryingPerson();
+              inicMarkerCarryingPerson();
 
-            _direction = _exit;
-            //if we are going to a person send it to the end of the list so if we find during the way another one we can recalculate!
-            database_p[0].set_rescued();
-            database_p[0].updateData(rescued_distance);
-            //update the new person to rescue!
-            updatePersonsbyDistance();
-            //do we know the exit?
-            if (exit_found) _state = _rescuing;
-            else _state = _exploring;
-          break;
+              _direction = _exit;
+              //if we are going to a person send it to the end of the list so if we find during the way another one we can recalculate!
+              database_p[0].set_rescued();
+              database_p[0].updateData(rescued_distance);
+              //update the new person to rescue!
+              updatePersonsbyDistance();
+              //do we know the exit?
+              if (exit_found) _state = _rescuing;
+              else _state = _exploring;
+            break;
 
-          case _exit:
-            carrying_person = false;
-            persons_rescued++;
-            ROS_INFO("LEFT AT EXIT. PERSON: %d", (persons_rescued+1));
-            if(persons_rescued != number_of_persons)
-            {
-              _direction = _person;
-              if(riskymode)
+            case _exit:
+              carrying_person = false;
+              persons_rescued++;
+              ROS_INFO("LEFT AT EXIT. PERSON: %d", persons_rescued);
+
+              time_now = ros::Time::now();
+              if ( ((time_now.sec - time_inic.sec) / 60 < total_time_min/2) &&
+                   ((time_now.sec - time_inic.sec) % 60 < total_time_sec/2) )
+                   points += points_person_rescued_half_time;
+              else points += points_person_rescued_full_time;
+
+              if(persons_rescued != number_of_persons)
               {
-                getActualPose();
-                findNearestPerson( actualPose );
-                if (checkIfFrontierWorth(actualPose))
+                //case all persons rescued
+                if(database_p[0].get_rescued())
+                {
+                  _state = _exploring;
+                  _exploration_mode = _searching_person;
+                  _direction = _person;
+                }
+                //case risky mode!
+                else if(riskyDecision())
                 {
                   _state = _exploring;
                   _exploration_mode = _exploring_frontier;
+                  _direction = _frontier;
                 }
-                else _state = _decided_state;
+                //case not risky and persons to rescue!
+                else
+                {
+                  _state = _rescuing;
+                  _direction = _person;
+                }
               }
-              else _state = _decided_state;
-            }
-            else
-            {
-              ROS_INFO("congratulations! you saved the world ;P");
-              return true;
-            }
-          break;
+              else
+              {
+                ROS_INFO("congratulations! you saved the world ;P");
+                ROS_INFO("Points: %d", points);
+                return true;
+              }
+            break;
+
+            case _frontier:
+              ROS_INFO("INSIDE frontier direction");
+              if (riskyDecision())
+              {
+                _state = _exploring;
+                _exploration_mode = _exploring_frontier;
+                exploring_iteration++;
+              }
+              else
+              {
+                _state = _rescuing;
+                _direction = _person;
+              }
+            break;
           }
         break;
       }

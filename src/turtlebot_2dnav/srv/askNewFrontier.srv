@@ -1,0 +1,4 @@
+bool addBlacklist
+bool clearBlacklist
+---
+bool done

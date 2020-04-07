@@ -8,6 +8,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <turtlebot_2dnav/frontier.h>
 #include <turtlebot_2dnav/CarryingPerson.h>
+#include <turtlebot_2dnav/askNewFrontier.h>
 #include <nav_msgs/GetPlan.h>
 #include <nav_msgs/Path.h>
 #include <data.h>
@@ -35,6 +36,7 @@ class Decision : public Math
     ros::Subscriber ROI_sub;
     ros::ServiceClient plan_client;
     ros::ServiceClient carrying_person_client;
+    ros::ServiceClient ask_new_frontier_client;
     ros::Publisher marker_carrying_person_pub;
 
     tf::TransformListener listener;
@@ -53,9 +55,13 @@ class Decision : public Math
 
     bool checkIfFrontierWorth(geometry_msgs::PoseStamped inic);
 
+    bool checkIfStuck();
+
     bool isFrontier_worth(int iteration, geometry_msgs::PoseStamped inic_pose);
 
     bool takeRisk(bool riskymode);
+
+    bool riskyDecision();
 
     void getActualPose();
 
@@ -81,6 +87,8 @@ class Decision : public Math
 
     void updatePersonsbyDistance();
 
+    void recovery();
+
   private:
 
     //STATES
@@ -89,14 +97,14 @@ class Decision : public Math
     //This copy will let us to save a temporal state until the target is reached and then change the _state
     _states _decided_state = _exploring;
 
-    enum _directions {_person, _exit};
+    enum _directions {_person, _exit, _frontier};
     //Until a person is found dont go to the exit!
     _directions _direction = _person;
 
     enum _exploration_modes {_searching_exit, _searching_person, _exploring_frontier};
     _exploration_modes _exploration_mode = _searching_exit;
 
-    enum _type_decisions {_continous_decisions, _static_decisions, _send_decision};
+    enum _type_decisions {_continous_decisions, _static_decisions};
     _type_decisions _waiting_decisions = _continous_decisions;
 
     ros::Time time_inic;
@@ -135,15 +143,18 @@ class Decision : public Math
     bool exit_found = false;
     bool carrying_person = false;
     bool New_Person = false;
+    bool stuck = false;
 
     geometry_msgs::PoseStamped NewFrontier;
     geometry_msgs::PoseStamped bestFrontier;
     geometry_msgs::PoseStamped actualPose;
     geometry_msgs::PoseStamped bestPerson;
     geometry_msgs::PoseStamped exitPosition;
+    geometry_msgs::Pose prev_pose;
 
     turtlebot_2dnav::CarryingPerson carrying_;
     turtlebot_2dnav::ROI carrying_ROI;
+    turtlebot_2dnav::askNewFrontier askNew_;
 
     move_base_msgs::MoveBaseGoal goal;
     nav_msgs::GetPlan plan_request;
@@ -155,6 +166,11 @@ class Decision : public Math
     std::vector<data>* data_ptr;
 
     visualization_msgs::Marker marker_carrying_person;
+
+    unsigned int stuck_time = 0;
+    int move_timeout = 2;
+
+    int points;
 
 };
 

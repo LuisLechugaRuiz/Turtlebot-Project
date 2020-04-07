@@ -67,6 +67,7 @@ Explore::Explore()
   private_nh_.param("gain_angle", gain_angle_, 1.0);
   private_nh_.param("gain_size", gain_size_, 1.0);
   private_nh_.param("min_frontier_size", min_frontier_size, 0.5);
+  new_frontier_server = private_nh_.advertiseService("NewFrontier", &Explore::blacklist_frontier, this);
 
   search_ = frontier_exploration::FrontierSearch(costmap_client_.getCostmap(),
                                                  gain_distance_, gain_angle_,
@@ -83,6 +84,7 @@ Explore::Explore()
   exploring_timer_ =
       relative_nh_.createTimer(ros::Duration(1. / planner_frequency_),
                                [this](const ros::TimerEvent&) { makePlan(); });
+
 
 }
 
@@ -142,7 +144,11 @@ void Explore::visualizeFrontiers(
     m.scale.y = 0.1;
     m.scale.z = 0.1;
     m.points = frontier.points;
-    m.color = blue;
+    if (goalOnBlacklist(frontier.centroid)) {
+      m.color = red;
+    } else {
+      m.color = blue;
+    }
     markers.push_back(m);
     ++id;
     m.type = visualization_msgs::Marker::SPHERE;
@@ -185,11 +191,13 @@ void Explore::makePlan()
     visualizeFrontiers(frontiers);
   }
 
-  geometry_msgs::Point target_position;
-  auto frontier = frontiers.begin();
+  auto frontier =
+        std::find_if_not(frontiers.begin(), frontiers.end(),
+                         [this](const frontier_exploration::Frontier& f) {
+                           return goalOnBlacklist(f.centroid);
+                         });
 
   target_position = frontier->centroid;
-
 
   // time out if we are not making any progress
   bool same_goal = prev_goal_ == target_position;
@@ -209,6 +217,33 @@ void Explore::makePlan()
   frontier_publisher.publish(frontier_msg);
 }
 
+
+bool Explore::goalOnBlacklist(const geometry_msgs::Point& goal)
+{
+  constexpr static size_t tolerace = 5;
+  costmap_2d::Costmap2D* costmap2d = costmap_client_.getCostmap();
+
+  // check if a goal is on the blacklist for goals that we're pursuing
+  for (auto& frontier_goal : frontier_blacklist_) {
+    double x_diff = fabs(goal.x - frontier_goal.x);
+    double y_diff = fabs(goal.y - frontier_goal.y);
+
+    if (x_diff < tolerace * costmap2d->getResolution() &&
+        y_diff < tolerace * costmap2d->getResolution())
+      return true;
+  }
+  return false;
+}
+
+
+bool Explore::blacklist_frontier(turtlebot_2dnav::askNewFrontier::Request &req,
+                                 turtlebot_2dnav::askNewFrontier::Response &res)
+{
+  if(req.addBlacklist == true) frontier_blacklist_.push_back(target_position);
+  if(req.clearBlacklist == true) frontier_blacklist_.clear();
+  res.done = true;
+  ROS_INFO("blacklist!");
+}
 
 void Explore::start()
 {

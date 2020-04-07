@@ -27,7 +27,7 @@ class data
     float size_y;
     std::string type;
     int index;
-    
+
 };
 
 class person : public data

@@ -56,7 +56,7 @@ double Math::getDistance(nav_msgs::Path path)
   {
     path_distance += calculateEuclideanDistance(path.poses[i].pose.position, path.poses[i+1].pose.position);
   }
-  ROS_INFO("distance: %f", path_distance);
+  //ROS_INFO("distance: %f", path_distance);
   return path_distance;
 }
 

@@ -53,6 +53,8 @@
 #include <explore/costmap_client.h>
 #include <explore/frontier_search.h>
 
+#include <turtlebot_2dnav/askNewFrontier.h>
+
 namespace explore
 {
 /**
@@ -84,12 +86,16 @@ private:
   void visualizeFrontiers(
       const std::vector<frontier_exploration::Frontier>& frontiers);
 
+  bool goalOnBlacklist(const geometry_msgs::Point& goal);
 
+  bool blacklist_frontier(turtlebot_2dnav::askNewFrontier::Request &req,
+                          turtlebot_2dnav::askNewFrontier::Response &res);
 
   ros::NodeHandle private_nh_;
   ros::NodeHandle relative_nh_;
   ros::Publisher frontier_publisher;
   ros::Publisher marker_array_publisher_;
+  ros::ServiceServer new_frontier_server;
   tf::TransformListener tf_listener_;
 
   Costmap2DClient costmap_client_;
@@ -102,6 +108,7 @@ private:
 
   std::vector<geometry_msgs::Point> frontier_blacklist_;
   geometry_msgs::Point prev_goal_;
+  geometry_msgs::Point target_position;
   double prev_distance_;
   ros::Time last_progress_;
   size_t last_markers_count_;
