@@ -1,0 +1,6 @@
+geometry_msgs/Point leftPoint
+geometry_msgs/Point rightPoint
+bool isvertical
+bool exit
+---
+bool received

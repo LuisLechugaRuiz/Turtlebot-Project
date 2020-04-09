@@ -23,13 +23,17 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate services in the 'srv' folder
  add_service_files(
    FILES
+   fakeLaser.srv
    CarryingPerson.srv
    askNewFrontier.srv
+   restrictCostmap.srv
  )
 
  ## Generate messages in the 'msg' folder
    add_message_files(
    FILES
+   bounds_point_size.msg
+   fake_bound.msg
    frontier.msg
    ROI.msg
  )
