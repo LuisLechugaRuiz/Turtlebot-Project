@@ -1,0 +1,7 @@
+<launch>
+
+<node pkg="costmap_restrictor" type="costmap_restrictor" respawn="false" name="costmap_restrictor" output="screen">
+    <param name="costmap_topic" value="move_base/global_costmap/costmap"/>
+</node>
+
+</launch>
