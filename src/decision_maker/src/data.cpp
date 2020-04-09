@@ -50,6 +50,17 @@ int data::get_index()
   return index;
 }
 
+
+float data::get_size_x()
+{
+  return size_x;
+}
+
+float data::get_size_y()
+{
+  return size_y;
+}
+
 person::person(turtlebot_2dnav::ROI ROI, double initial_distance_) : data::data(ROI)
 {
   updateData(initial_distance_);

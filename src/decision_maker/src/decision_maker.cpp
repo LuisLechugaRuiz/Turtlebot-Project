@@ -12,7 +12,7 @@ Decision::Decision():
   nh.param("move_timeout", move_timeout, 2);
   nh.param("points_exit", points_exit, 5);
   nh.param("points_person", points_person, 3);
-  nh.param("points_danger", points_person, 2);
+  nh.param("points_danger", points_danger, 2);
   nh.param("points_person_rescued_half_time", points_person_rescued_half_time, 5);
   nh.param("points_person_rescued_full_time", points_person_rescued_full_time, 3);
   nh.param("initial_distance", initial_distance, 10000.00);
@@ -24,12 +24,15 @@ Decision::Decision():
   time_inic = ros::Time::now();
   NewFrontier.pose.position.x = 0;
   NewFrontier.pose.position.y = 0;
+
   plan_client = n.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
   carrying_person_client = n.serviceClient<turtlebot_2dnav::CarryingPerson>("database/CarryingPerson");
   ROI_sub = n.subscribe("database/ROI", 1, &Decision::ROI_callBack, this);
   frontiers_sub = n.subscribe("explore/frontier", 100, &Decision::Frontier_callBack, this);
   marker_carrying_person_pub = nh.advertise<visualization_msgs::Marker>("visualization_markers_carrying_person", 10);
   ask_new_frontier_client = n.serviceClient<turtlebot_2dnav::askNewFrontier>("explore/NewFrontier");
+  costmap_restrictor_client = n.serviceClient<turtlebot_2dnav::restrictCostmap>("costmap_restrictor/restrict");
+  fake_laser_client = n.serviceClient<turtlebot_2dnav::fakeLaser>("fake_laser/active");
 
   //starting bestfrontier and Newfrontier in different places.
   bestFrontier.pose.position.x = 1000;
@@ -37,6 +40,7 @@ Decision::Decision():
   NewFrontier.pose.position.x = 0;
   NewFrontier.pose.position.y = 0;
 
+  fakeLaserActive(false);
 }
 
 void Decision::ROI_callBack(turtlebot_2dnav::ROI New_ROI)
@@ -56,6 +60,7 @@ void Decision::ROI_callBack(turtlebot_2dnav::ROI New_ROI)
     {
       data New_data(New_ROI);
       database_r.push_back(New_data);
+      restrictCostmap(New_data, false);
       points += points_danger;
     }
     if(type == "E")
@@ -64,6 +69,7 @@ void Decision::ROI_callBack(turtlebot_2dnav::ROI New_ROI)
       database_e.push_back(New_data);
       if (!exit_found) exit_found = true;
       else ROS_INFO ("2 exits found!?");
+      restrictCostmap(New_data, true);
       points += points_exit;
     }
   }
@@ -116,6 +122,34 @@ void Decision::moving_done_Callback(const actionlib::SimpleClientGoalState& stat
     {
       ROS_INFO("ABORTED!");
     }
+}
+
+void Decision::fakeLaserActive(bool on)
+{
+  fakeLaser_.request.active = on;
+  fake_laser_client.call(fakeLaser_);
+}
+
+
+void Decision::restrictCostmap(data New_data, bool exitbool)
+{
+  restrict_.request.exit = exitbool;
+  restrict_.request.isvertical = New_data.is_vertical();
+  if(New_data.is_vertical())
+  {
+    restrict_.request.leftPoint.x = New_data.get_center_x() - New_data.get_size_x()/2;
+    restrict_.request.leftPoint.y = New_data.get_center_y();
+    restrict_.request.rightPoint.x = New_data.get_center_x() + New_data.get_size_x()/2;
+    restrict_.request.rightPoint.y = New_data.get_center_y();
+  }
+  else
+  {
+    restrict_.request.leftPoint.x = New_data.get_center_x();
+    restrict_.request.leftPoint.y = New_data.get_center_y() + New_data.get_size_y()/2;
+    restrict_.request.rightPoint.x = New_data.get_center_x();
+    restrict_.request.rightPoint.y = New_data.get_center_y() - New_data.get_size_y()/2;
+  }
+  costmap_restrictor_client.call(restrict_);
 }
 
 
@@ -274,6 +308,7 @@ void Decision::explore()
     askNew_.request.addBlacklist = false;
     askNew_.request.clearBlacklist = true;
     ask_new_frontier_client.call(askNew_);
+    explore_override = true;
     ROS_INFO("No frontiers!");
   }
   //if is the same frontier and has not been overrided dont publish nothing just wait!
@@ -471,6 +506,9 @@ bool Decision::process()
             if (exit_found)
             {
               exitPosition = setPose( database_e[0] );
+              //start 0.25 * persons/2 so in the rviz all the persons markers are separated near to the exit
+              if ( database_e[0].is_vertical() ) exitPosition.pose.position.x -= (number_of_persons/2) * 0.25;
+              else exitPosition.pose.position.y -= (number_of_persons/2)* 0.25;
               if (New_Person) _state = _rescuing;
               else _exploration_mode = _searching_person;
             }
@@ -543,9 +581,10 @@ bool Decision::process()
           switch (_direction)
           {
             case _person:
-              carrying_person = true;
 
+              carrying_person = true;
               ROS_INFO("CARRYING PERSON");
+              fakeLaserActive(true);
 
               carrying_ROI.index = database_p[0].get_index();
               carrying_.request.person = carrying_ROI;
@@ -568,13 +607,17 @@ bool Decision::process()
               carrying_person = false;
               persons_rescued++;
               ROS_INFO("LEFT AT EXIT. PERSON: %d", persons_rescued);
+              fakeLaserActive(false);
+
+              //using persons_rescued/6 so if the number of persons is > 6 the 7 recued will be positioned in the position of person 1 to avoid walls.
+              if ( database_e[0].is_vertical() ) exitPosition.pose.position.x += ((int)(persons_rescued/6) + 1) * 0.25;
+              else exitPosition.pose.position.y += ((int)(persons_rescued/6) + 1) * 0.25;
 
               time_now = ros::Time::now();
               if ( ((time_now.sec - time_inic.sec) / 60 < total_time_min/2) &&
                    ((time_now.sec - time_inic.sec) % 60 < total_time_sec/2) )
                    points += points_person_rescued_half_time;
               else points += points_person_rescued_full_time;
-
               if(persons_rescued != number_of_persons)
               {
                 //case all persons rescued

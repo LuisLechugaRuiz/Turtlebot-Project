@@ -9,6 +9,8 @@
 #include <turtlebot_2dnav/frontier.h>
 #include <turtlebot_2dnav/CarryingPerson.h>
 #include <turtlebot_2dnav/askNewFrontier.h>
+#include <turtlebot_2dnav/restrictCostmap.h>
+#include <turtlebot_2dnav/fakeLaser.h>
 #include <nav_msgs/GetPlan.h>
 #include <nav_msgs/Path.h>
 #include <data.h>
@@ -37,6 +39,8 @@ class Decision : public Math
     ros::ServiceClient plan_client;
     ros::ServiceClient carrying_person_client;
     ros::ServiceClient ask_new_frontier_client;
+    ros::ServiceClient costmap_restrictor_client;
+    ros::ServiceClient fake_laser_client;
     ros::Publisher marker_carrying_person_pub;
 
     tf::TransformListener listener;
@@ -86,6 +90,10 @@ class Decision : public Math
     void updateFrontier();
 
     void updatePersonsbyDistance();
+
+    void restrictCostmap(data New_data, bool exitbool);
+
+    void fakeLaserActive(bool on);
 
     void recovery();
 
@@ -155,6 +163,8 @@ class Decision : public Math
     turtlebot_2dnav::CarryingPerson carrying_;
     turtlebot_2dnav::ROI carrying_ROI;
     turtlebot_2dnav::askNewFrontier askNew_;
+    turtlebot_2dnav::restrictCostmap restrict_;
+    turtlebot_2dnav::fakeLaser fakeLaser_;
 
     move_base_msgs::MoveBaseGoal goal;
     nav_msgs::GetPlan plan_request;
@@ -170,7 +180,7 @@ class Decision : public Math
     unsigned int stuck_time = 0;
     int move_timeout = 2;
 
-    int points;
+    int points = 0;
 
 };
 

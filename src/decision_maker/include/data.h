@@ -21,6 +21,10 @@ class data
 
     int get_index();
 
+    float get_size_x();
+
+    float get_size_y();
+
   protected:
     geometry_msgs::Point center;
     float size_x;

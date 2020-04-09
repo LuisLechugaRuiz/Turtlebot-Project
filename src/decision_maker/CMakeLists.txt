@@ -69,7 +69,6 @@ add_executable(decision ${SRCS})
 
 
 add_dependencies(decision poi_database_gencpp)
-add_dependencies(decision explore_gencpp)
 
 target_link_libraries(decision
    ${catkin_LIBRARIES}
