@@ -213,7 +213,7 @@ void Explore::makePlan()
   frontier_msg.goal.pose.orientation.w = 1.;
   frontier_msg.goal.header.frame_id = costmap_client_.getGlobalFrameID();
   frontier_msg.goal.header.stamp = ros::Time::now();
-  frontier_msg.frontiers_count = frontiers.size();
+  frontier_msg.frontiers_count = frontiers.size() - frontier_blacklist_.size();
   frontier_publisher.publish(frontier_msg);
 }
 
