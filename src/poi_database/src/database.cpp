@@ -246,7 +246,7 @@ bool DatabaseNode::Bound::inRange(float new_max_x, float new_max_y, float new_mi
   float tol_y = 0.08;
 
   float tol_x;
-  if(size_x_cond) tol_x = 0.2;
+  if(size_x_cond) tol_x = 0.4;
   else tol_x = 0.4;
 
   bool cond1;
