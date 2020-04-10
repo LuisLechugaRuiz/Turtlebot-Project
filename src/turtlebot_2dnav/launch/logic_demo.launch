@@ -8,8 +8,6 @@
 
 <node pkg="poi_database" type="database" respawn="false" name="database" output="screen"/>
 
-<include file="$(find costmap_restrictor)/launch/costmap_restrictor.launch"/>
-
 <node pkg="fake_laser" type="fake_laser" respawn="false" name="fake_laser" output="screen"/>
 
 <node name="rviz" pkg="rviz" type="rviz" args="-d $(find turtlebot_2dnav)/launch/configuration.rviz" />

@@ -5,7 +5,7 @@
 <node pkg="gmapping" type="slam_gmapping" respawn="false" name="slam_gmapping" output="screen">
   <param name = "delta" value="0.095"/>
   <param name = "map_update_interval" value = "4"/>
-  <param name = "maxRange" value = "6"/>
+  <param name = "maxRange" value = "6.5"/>
   <param name = "maxUrange" value = "5.5"/>
 </node>
 

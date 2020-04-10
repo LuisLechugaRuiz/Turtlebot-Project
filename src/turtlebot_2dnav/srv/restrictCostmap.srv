@@ -1,5 +1,5 @@
-geometry_msgs/Point leftPoint
-geometry_msgs/Point rightPoint
+geometry_msgs/Point Point
+int32 size
 bool isvertical
 bool exit
 ---

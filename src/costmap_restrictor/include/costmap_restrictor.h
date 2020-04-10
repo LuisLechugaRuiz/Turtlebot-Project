@@ -10,8 +10,6 @@ class CostmapRes
   public:
     CostmapRes();
     void ProcessCostmap();
-    std::string layer_search_string_ = "obstacles_laser";
-    costmap_2d::LayeredCostmap* getLayeredCostmap();
 
   private:
     ros::NodeHandle nh;
@@ -52,6 +50,7 @@ class CostmapRes
                                   geometry_msgs::Point costmap_coords, int max_count,
                                   bool perpendicular, bool positiveDirection);
 
+    bool checkifCorner(geometry_msgs::Point costmap_coords, const nav_msgs::OccupancyGrid::ConstPtr& msg, bool positiveDirection, int n_points);
 
     Bound restringed_zone;
     std::vector<Bound> queue;
@@ -69,6 +68,7 @@ class CostmapRes
     double origin_y;
     unsigned char* costmap_data;
 
+    bool unknown_limit = false;
 
     //add all of this as a parameter?
     int max_count_findPerpendicularObstacle = 0.5 / resolution;
@@ -79,7 +79,7 @@ class CostmapRes
     unsigned char NO_OBSTACLE = 0; // NO obstacle
     unsigned char INSCRIBED_OBSTACLE = 99;   // INSCRIBED obstacle
     unsigned char LETHAL_OBSTACLE = 100;  // LETHAL obstacle
-    unsigned char UNKNOWN = static_cast<unsigned char>(-1);  // UNKNOWN
+    unsigned char UNKNOWN = -1;  // UNKNOWN
 
 
 };
