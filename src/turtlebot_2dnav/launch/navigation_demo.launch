@@ -5,8 +5,8 @@
 <node pkg="gmapping" type="slam_gmapping" respawn="false" name="slam_gmapping" output="screen">
   <param name = "delta" value="0.095"/>
   <param name = "map_update_interval" value = "4"/>
-  <param name = "maxRange" value = "6.5"/>
-  <param name = "maxUrange" value = "5.5"/>
+  <param name = "maxRange" value = "6.0"/>
+  <param name = "maxUrange" value = "5.9"/>
 </node>
 
 <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">

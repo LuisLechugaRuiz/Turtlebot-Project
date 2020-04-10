@@ -69,6 +69,7 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
       //IF IS A CORNER DONT NEED TO RECALCULATE LIMITS!
       if (left_corner)
       {
+        ROS_INFO("IS LEFT CORNER!");
         queue[0].recalculateleft = false;
         if(queue[0].vertical) queue[0].point_left_min = queue[0].point_left_max;
         else queue[0].point_left_max = queue[0].point_left_min;
@@ -92,7 +93,8 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
       //IF IS A CORNER DONT NEED TO RECALCULATE LIMITS!
       if (right_corner)
       {
-        queue[0].recalculateright = true;
+        ROS_INFO("IS RIGHT CORNER!");
+        queue[0].recalculateright = false;
         if(queue[0].vertical) queue[0].point_right_max = queue[0].point_right_min;
         else queue[0].point_right_min = queue[0].point_right_max;
       }
@@ -138,7 +140,7 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
       if ( count < max_count_findParalelObstacle && !unknown_limit)
       {
         queue[0].recalculateright = false;
-        ROS_INFO("NO NEED TO RECALCULATE RIGHT END");
+        ROS_INFO("NO NEED TO RECALCULATE RIGHT");
       }
     }
 
@@ -244,6 +246,9 @@ int CostmapRes::findInCostmap(bool obstacle, const nav_msgs::OccupancyGrid::Cons
       {
         ROS_INFO("UNKNOWN END");
         unknown_limit = true;
+        geometry_msgs::Point unkP = CostmapToMap( indexToCostmap(index_) );
+        ROS_INFO("Point x: %f", unkP.x);
+        ROS_INFO("Point y: %f", unkP.y);
       }
       //UPDATE THE LIMIT OF THE OBSTACLE FOUND
       if (positiveDirection)
