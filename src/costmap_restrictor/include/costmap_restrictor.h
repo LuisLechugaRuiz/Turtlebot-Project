@@ -1,4 +1,3 @@
-#include <costmap_2d/costmap_2d.h>
 #include <geometry_msgs/Pose.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <turtlebot_2dnav/restrictCostmap.h>
@@ -6,11 +5,13 @@
 #include <ros/ros.h>
 
 
-
 class CostmapRes
 {
   public:
     CostmapRes();
+    void ProcessCostmap();
+    std::string layer_search_string_ = "obstacles_laser";
+    costmap_2d::LayeredCostmap* getLayeredCostmap();
 
   private:
     ros::NodeHandle nh;
@@ -19,6 +20,8 @@ class CostmapRes
     ros::ServiceServer restrict_server;
     ros::Publisher bound_pub;
 
+    //tf2_ros::TransformListener tfListener;
+    //costmap_2d::Costmap2DROS* costmap2d_global;
 
     struct Bound
     {
@@ -26,11 +29,14 @@ class CostmapRes
       geometry_msgs::Point point_right_min;
       geometry_msgs::Point point_left_max;
       geometry_msgs::Point point_right_max;
+      geometry_msgs::Point center_point;
+      int size;
       bool vertical;
-      bool recalculateleft;
-      bool recalculateright;
-      int count = 0;
+
       int index = -1;
+      bool matched = false;
+      bool recalculateleft = true;
+      bool recalculateright = true;
     };
 
 
@@ -42,19 +48,15 @@ class CostmapRes
     geometry_msgs::Point CostmapToMap(geometry_msgs::Point point);
     geometry_msgs::Point MapToCostmap(geometry_msgs::Point point);
     void ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg);
+    int findInCostmap(bool obstacle, const nav_msgs::OccupancyGrid::ConstPtr& msg,
+                                  geometry_msgs::Point costmap_coords, int max_count,
+                                  bool perpendicular, bool positiveDirection);
 
 
     Bound restringed_zone;
     std::vector<Bound> queue;
     turtlebot_2dnav::fake_bound bound_;
 
-    geometry_msgs::Point pleft;
-    geometry_msgs::Point pright;
-
-    unsigned int index_left;
-    unsigned int index_right;
-    int acum_left;
-    int acum_right;
     unsigned char value;
 
     int index = 0;
@@ -62,15 +64,22 @@ class CostmapRes
     bool NewRestriction;
     unsigned int size_in_cells_x;
     unsigned int size_in_cells_y;
-    double resolution;
+    double resolution = 0.095;
     double origin_x;
     double origin_y;
     unsigned char* costmap_data;
+
+
+    //add all of this as a parameter?
+    int max_count_findPerpendicularObstacle = 0.5 / resolution;
+    int max_count_findParalelObstacle = 5 / resolution;
+    int max_count_findLimits;
 
     // special values:
     unsigned char NO_OBSTACLE = 0; // NO obstacle
     unsigned char INSCRIBED_OBSTACLE = 99;   // INSCRIBED obstacle
     unsigned char LETHAL_OBSTACLE = 100;  // LETHAL obstacle
     unsigned char UNKNOWN = static_cast<unsigned char>(-1);  // UNKNOWN
+
 
 };
