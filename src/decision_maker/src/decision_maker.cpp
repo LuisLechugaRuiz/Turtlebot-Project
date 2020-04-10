@@ -135,20 +135,11 @@ void Decision::restrictCostmap(data New_data, bool exitbool)
 {
   restrict_.request.exit = exitbool;
   restrict_.request.isvertical = New_data.is_vertical();
-  if(New_data.is_vertical())
-  {
-    restrict_.request.leftPoint.x = New_data.get_center_x() - New_data.get_size_x()/2;
-    restrict_.request.leftPoint.y = New_data.get_center_y();
-    restrict_.request.rightPoint.x = New_data.get_center_x() + New_data.get_size_x()/2;
-    restrict_.request.rightPoint.y = New_data.get_center_y();
-  }
-  else
-  {
-    restrict_.request.leftPoint.x = New_data.get_center_x();
-    restrict_.request.leftPoint.y = New_data.get_center_y() + New_data.get_size_y()/2;
-    restrict_.request.rightPoint.x = New_data.get_center_x();
-    restrict_.request.rightPoint.y = New_data.get_center_y() - New_data.get_size_y()/2;
-  }
+  restrict_.request.Point.x = New_data.get_center_x();
+  restrict_.request.Point.y = New_data.get_center_y();
+  if ( New_data.is_vertical() ) restrict_.request.size = New_data.get_size_x();
+  else restrict_.request.size = New_data.get_size_y();
+
   costmap_restrictor_client.call(restrict_);
 }
 
