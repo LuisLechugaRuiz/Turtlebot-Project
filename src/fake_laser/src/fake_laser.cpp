@@ -42,8 +42,8 @@ void fake_laser::boundsCallback(turtlebot_2dnav::fake_bound bound)
 int fake_laser::insertPoints(geometry_msgs::Point pmin, geometry_msgs::Point pmax, int points_index, bool vertical, bool exitbool)
 {
   float size;
-  if(vertical) size = abs(pmax.x - pmin.x);
-  else size = abs(pmax.y - pmin.y);
+  if(vertical) size = abs(pmax.x - pmin.x - resolution);
+  else size = abs(pmax.y - pmin.y - resolution);
   int index = size / (resolution/2);
 
   geometry_msgs::Point point = pmin;

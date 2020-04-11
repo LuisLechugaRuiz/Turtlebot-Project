@@ -69,11 +69,15 @@ class CostmapRes
     unsigned char* costmap_data;
 
     bool unknown_limit = false;
+    bool left_limit;
+    bool right_limit;
+    bool center_found;
 
     //add all of this as a parameter?
     int max_count_findPerpendicularObstacle = 0.5 / resolution;
     int max_count_findParalelObstacle = 5 / resolution;
     int max_count_findLimits;
+    int min_count_findLimits = 0.4 / resolution;
 
     // special values:
     unsigned char NO_OBSTACLE = 0; // NO obstacle

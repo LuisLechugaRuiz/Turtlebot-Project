@@ -9,7 +9,7 @@ int main(int argc,char **argv)
   //Wait till all the communications are stablished
   ros::Duration(1).sleep();
 
-  ros::Rate loopRate(20);
+  ros::Rate loopRate(10);
 
   while( ros::ok() )
   {
