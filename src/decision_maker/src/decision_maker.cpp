@@ -33,7 +33,8 @@ Decision::Decision():
   ask_new_frontier_client = n.serviceClient<turtlebot_2dnav::askNewFrontier>("explore/NewFrontier");
   costmap_restrictor_client = n.serviceClient<turtlebot_2dnav::restrictCostmap>("costmap_restrictor/restrict");
   fake_laser_client = n.serviceClient<turtlebot_2dnav::fakeLaser>("fake_laser/active");
-
+  clear_costmap_client = n.serviceClient<costmap_2d::clearCostmap>("move_base/global_costmap/fake_obstacles/clear_costmap");
+  recalculate_bound_client = n.serviceClient<turtlebot_2dnav::recalculateBound>("costmap_restrictor/recalculate");
   //starting bestfrontier and Newfrontier in different places.
   bestFrontier.pose.position.x = 1000;
   bestFrontier.pose.position.y = 1000;
@@ -41,6 +42,8 @@ Decision::Decision():
   NewFrontier.pose.position.y = 0;
 
   fakeLaserActive(false);
+  recalculate_.request.recalculate = true;
+  recalculate_bound_client.call(recalculate_);
 }
 
 void Decision::ROI_callBack(turtlebot_2dnav::ROI New_ROI)
@@ -577,6 +580,9 @@ bool Decision::process()
               ROS_INFO("CARRYING PERSON");
               fakeLaserActive(true);
 
+              recalculate_.request.recalculate = false;
+              recalculate_bound_client.call(recalculate_);
+
               carrying_ROI.index = database_p[0].get_index();
               carrying_.request.person = carrying_ROI;
               carrying_person_client.call(carrying_);
@@ -598,7 +604,15 @@ bool Decision::process()
               carrying_person = false;
               persons_rescued++;
               ROS_INFO("LEFT AT EXIT. PERSON: %d", persons_rescued);
+
               fakeLaserActive(false);
+
+              clearCostmap_.request.clear = true;
+              clear_costmap_client.call(clearCostmap_);
+
+              //let the costmap_restrictor to recalculate if needed as we are not carrying a person anymore!
+              recalculate_.request.recalculate= true;
+              recalculate_bound_client.call(recalculate_);
 
               //using persons_rescued/6 so if the number of persons is > 6 the 7 recued will be positioned in the position of person 1 to avoid walls.
               if ( database_e[0].is_vertical() ) exitPosition.pose.position.x += ((int)(persons_rescued/6) + 1) * 0.25;

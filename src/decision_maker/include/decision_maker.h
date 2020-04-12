@@ -11,12 +11,14 @@
 #include <turtlebot_2dnav/askNewFrontier.h>
 #include <turtlebot_2dnav/restrictCostmap.h>
 #include <turtlebot_2dnav/fakeLaser.h>
+#include <turtlebot_2dnav/recalculateBound.h>
 #include <nav_msgs/GetPlan.h>
 #include <nav_msgs/Path.h>
 #include <data.h>
 #include <math_operations.h>
 #include <visualization_msgs/Marker.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <costmap_2d/clearCostmap.h>
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
@@ -41,6 +43,8 @@ class Decision : public Math
     ros::ServiceClient ask_new_frontier_client;
     ros::ServiceClient costmap_restrictor_client;
     ros::ServiceClient fake_laser_client;
+    ros::ServiceClient clear_costmap_client;
+    ros::ServiceClient recalculate_bound_client;
     ros::Publisher marker_carrying_person_pub;
 
     tf::TransformListener listener;
@@ -165,6 +169,8 @@ class Decision : public Math
     turtlebot_2dnav::askNewFrontier askNew_;
     turtlebot_2dnav::restrictCostmap restrict_;
     turtlebot_2dnav::fakeLaser fakeLaser_;
+    turtlebot_2dnav::recalculateBound recalculate_;
+    costmap_2d::clearCostmap clearCostmap_;
 
     move_base_msgs::MoveBaseGoal goal;
     nav_msgs::GetPlan plan_request;
