@@ -51,6 +51,9 @@ class CostmapRes
                                   bool perpendicular, bool positiveDirection);
 
     bool checkifCorner(geometry_msgs::Point costmap_coords, const nav_msgs::OccupancyGrid::ConstPtr& msg, bool positiveDirection, int n_points);
+    bool needUpdate(geometry_msgs::Point l_min, geometry_msgs::Point l_max, geometry_msgs::Point r_min, geometry_msgs::Point r_max);
+    bool isEqual(geometry_msgs::Point p1, geometry_msgs::Point p2);
+    bool matchBound(const nav_msgs::OccupancyGrid::ConstPtr& msg);
 
     Bound restringed_zone;
     std::vector<Bound> queue;
@@ -69,16 +72,15 @@ class CostmapRes
     unsigned char* costmap_data;
 
     bool unknown_limit = false;
-    bool left_limit;
-    bool right_limit;
     bool center_found;
 
     //add all of this as a parameter?
     int max_count_findPerpendicularObstacle = 0.5 / resolution;
     int max_count_findParalelObstacle = 5 / resolution;
     int max_count_findLimits;
-    int min_count_findLimits = 0.4 / resolution;
-
+    int min_count_size = 0.8 / resolution;
+    int left_limit_count = 0;
+    int right_limit_count = 0;
     // special values:
     unsigned char NO_OBSTACLE = 0; // NO obstacle
     unsigned char INSCRIBED_OBSTACLE = 99;   // INSCRIBED obstacle

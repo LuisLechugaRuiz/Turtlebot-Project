@@ -23,10 +23,11 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
 
   if(queue.size() > 0)
   {
-    bool last_left_state = queue[0].recalculateleft;
-    bool last_right_state = queue[0].recalculateright;
-    //get costmap coords of center
-    geometry_msgs::Point costmap_coords = MapToCostmap(queue[0].center_point);
+    //save a copy of last bounds limit to check if any update
+    geometry_msgs::Point l_min = queue[0].point_left_min;
+    geometry_msgs::Point l_max = queue[0].point_left_max;
+    geometry_msgs::Point r_min = queue[0].point_right_min;
+    geometry_msgs::Point r_max = queue[0].point_right_max;
 
     //findInCostmap parameters:
         // - obstacle/limit
@@ -36,89 +37,23 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
         // - perpendicular / paralel
         // - left / right
 
-    int count = 0;
     //FIND THE OBSTACLE IN COSTMAP!
     if(!queue[0].matched)
     {
-      count = findInCostmap(true, msg, costmap_coords, max_count_findPerpendicularObstacle, true, true);
-      if( count == max_count_findPerpendicularObstacle) count = findInCostmap(true, msg, costmap_coords, max_count_findPerpendicularObstacle, true, false);
-      //reset the costmap coords of the center!
-      if( count < max_count_findPerpendicularObstacle)
-      {
-        costmap_coords = MapToCostmap(queue[0].center_point);
-        center_found = true;
-        ROS_INFO("CENTER FOUND");
-      }
-      else ROS_INFO("CENTER NOT FOUND");
-      //FIND LIMITS OF THE SELECTED OBSTACLE
 
-      //left limit
-      count = findInCostmap(false, msg, costmap_coords, max_count_findLimits, false, true);
-      if(count >= min_count_findLimits) left_limit = true;
-
-      //check if corner?
-      bool left_corner;
-      if(queue[0].vertical)
-      {
-        left_corner = checkifCorner( MapToCostmap(queue[0].point_left_max), msg, true, 4);
-        //try the other direction
-        if (!left_corner) left_corner = checkifCorner( MapToCostmap(queue[0].point_left_max), msg, false, 4);
-      }
-      else
-      {
-        left_corner = checkifCorner( MapToCostmap(queue[0].point_left_min), msg, true, 4);
-        if (!left_corner) left_corner = checkifCorner( MapToCostmap(queue[0].point_left_min), msg, false, 4);
-      }
-      //IF IS A CORNER DONT NEED TO RECALCULATE LIMITS!
-      if (left_corner)
-      {
-        ROS_INFO("IS LEFT CORNER!");
-        queue[0].recalculateleft = false;
-        if(queue[0].vertical) queue[0].point_left_min = queue[0].point_left_max;
-        else queue[0].point_left_max = queue[0].point_left_min;
-      }
-
-      //right limit
-      count = findInCostmap(false, msg, costmap_coords, max_count_findLimits, false, false);
-      if(count >= min_count_findLimits) right_limit = true;
-
-      //Check if corner?
-      bool right_corner;
-      if(queue[0].vertical)
-      {
-        right_corner = checkifCorner( MapToCostmap(queue[0].point_right_min), msg, true, 4);
-        //try the other direction
-        if (!right_corner) left_corner = checkifCorner( MapToCostmap(queue[0].point_right_min), msg, false, 4);
-      }
-      else
-      {
-        right_corner = checkifCorner( MapToCostmap(queue[0].point_right_max), msg, true, 4);
-        if (!right_corner) right_corner = checkifCorner( MapToCostmap(queue[0].point_right_max), msg, false, 4);
-      }
-      //IF IS A CORNER DONT NEED TO RECALCULATE LIMITS!
-      if (right_corner)
-      {
-        ROS_INFO("IS RIGHT CORNER!");
-        queue[0].recalculateright = false;
-        if(queue[0].vertical) queue[0].point_right_max = queue[0].point_right_min;
-        else queue[0].point_right_min = queue[0].point_right_max;
-      }
-
-      if (center_found && left_limit && right_limit)
-      {
-        queue[0].matched = true;
-        ROS_INFO("BOUND MATCHED");
-        //restart bools for next check!
-        center_found = false;
-        left_limit = false;
-        right_limit = false;
-      }
+      queue[0].matched = matchBound(msg);
+      //restart values for next check!
+      center_found = false;
+      left_limit_count = 0;
+      right_limit_count = 0;
     }
 
     // TO FIND THE OBSTACLES IN THE MAP WE NEED THE BOUND MATCHED OTHERWISE IT WILL FAIL 100%.
     // maybe a service to recalculate ?!
     if (queue[0].matched)
     {
+      int count = 0;
+      geometry_msgs::Point costmap_coords;
       //FIND THE CLOSER OBSTACLE IN LEFT DIRECTION
       if(queue[0].recalculateleft)
       {
@@ -182,7 +117,7 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
       }
 
       //IF ANY UPDATE ON ONE SIDES (and not first time) PUBLISH
-      else if( (last_left_state && !queue[0].recalculateleft) || (last_right_state && !queue[0].recalculateright) )
+      else if( needUpdate(l_min, l_max, r_min, r_max) )
       {
         ROS_INFO("PUBLISHING UPDATE!");
         bound_.resize = true;
@@ -250,6 +185,7 @@ int CostmapRes::findInCostmap(bool obstacle, const nav_msgs::OccupancyGrid::Cons
     {
       //ROS_INFO("IN");
       //ROS_INFO("value: %c",value);
+      //Can happen that the cost is inflation also
       while (value != LETHAL_OBSTACLE && value != -1 && count < max_count)
       {
         count++;
@@ -261,6 +197,7 @@ int CostmapRes::findInCostmap(bool obstacle, const nav_msgs::OccupancyGrid::Cons
       }
       if (value == -1)
       {
+        ROS_INFO("UNKNOWN VALUE: %c", value);
         ROS_INFO("UNKNOWN END");
         unknown_limit = true;
         geometry_msgs::Point unkP = CostmapToMap( indexToCostmap(index_) );
@@ -310,6 +247,89 @@ int CostmapRes::findInCostmap(bool obstacle, const nav_msgs::OccupancyGrid::Cons
   return count;
 }
 
+//Need to test corners!
+bool CostmapRes::matchBound(const nav_msgs::OccupancyGrid::ConstPtr& msg)
+{
+  int count = 0;
+  bool matched = false;
+  geometry_msgs::Point costmap_coords = MapToCostmap(queue[0].center_point);
+
+  //try in the perpendicular positive direction
+  count = findInCostmap(true, msg, costmap_coords, max_count_findPerpendicularObstacle, true, true);
+  if( count == max_count_findPerpendicularObstacle) count = findInCostmap(true, msg, costmap_coords, max_count_findPerpendicularObstacle, true, false);
+  //if center found reset the costmap_coords and calculate limits
+  if( count < max_count_findPerpendicularObstacle)
+  {
+    costmap_coords = MapToCostmap(queue[0].center_point);
+    center_found = true;
+    ROS_INFO("CENTER FOUND");
+    //FIND LIMITS OF THE SELECTED OBSTACLE
+    //left limit
+    count = findInCostmap(false, msg, costmap_coords, max_count_findLimits, false, true);
+    left_limit_count = count;
+
+    //check if corner?
+    bool left_corner;
+    if(queue[0].vertical)
+    {
+      left_corner = checkifCorner( MapToCostmap(queue[0].point_left_max), msg, true, 4);
+      //try the other direction
+      if (!left_corner) left_corner = checkifCorner( MapToCostmap(queue[0].point_left_max), msg, false, 4);
+    }
+    else
+    {
+      left_corner = checkifCorner( MapToCostmap(queue[0].point_left_min), msg, true, 4);
+      if (!left_corner) left_corner = checkifCorner( MapToCostmap(queue[0].point_left_min), msg, false, 4);
+    }
+    //IF IS A CORNER DONT NEED TO RECALCULATE LIMITS!
+    if (left_corner)
+    {
+      ROS_INFO("IS LEFT CORNER!");
+      queue[0].recalculateleft = false;
+      if(queue[0].vertical) queue[0].point_left_min = queue[0].point_left_max;
+      else queue[0].point_left_max = queue[0].point_left_min;
+    }
+
+    //right limit
+    count = findInCostmap(false, msg, costmap_coords, max_count_findLimits, false, false);
+    right_limit_count = count;
+
+    //Check if corner?
+    bool right_corner;
+    if(queue[0].vertical)
+    {
+      right_corner = checkifCorner( MapToCostmap(queue[0].point_right_min), msg, true, 4);
+      //try the other direction
+      if (!right_corner) left_corner = checkifCorner( MapToCostmap(queue[0].point_right_min), msg, false, 4);
+    }
+    else
+    {
+      right_corner = checkifCorner( MapToCostmap(queue[0].point_right_max), msg, true, 4);
+      if (!right_corner) right_corner = checkifCorner( MapToCostmap(queue[0].point_right_max), msg, false, 4);
+    }
+    //IF IS A CORNER DONT NEED TO RECALCULATE LIMITS!
+    if (right_corner)
+    {
+      ROS_INFO("IS RIGHT CORNER!");
+      queue[0].recalculateright = false;
+      if(queue[0].vertical) queue[0].point_right_max = queue[0].point_right_min;
+      else queue[0].point_right_min = queue[0].point_right_max;
+    }
+  }
+  else ROS_INFO("CENTER NOT FOUND");
+
+
+
+  if( center_found && ((left_limit_count + right_limit_count) > min_count_size) )
+  {
+    matched = true;
+    ROS_INFO("BOUND MATCHED");
+  }
+
+  return matched;
+}
+
+
 bool CostmapRes::checkifCorner(geometry_msgs::Point costmap_coords, const nav_msgs::OccupancyGrid::ConstPtr& msg, bool positiveDirection, int n_points)
 {
   //SAME AS IN FIND IN COSTMAP BUT NOT MODIFYING POINTS ONLY CHECKING
@@ -333,6 +353,18 @@ bool CostmapRes::checkifCorner(geometry_msgs::Point costmap_coords, const nav_ms
   return corner;
 }
 
+
+bool CostmapRes::needUpdate(geometry_msgs::Point l_min, geometry_msgs::Point l_max, geometry_msgs::Point r_min, geometry_msgs::Point r_max)
+{
+  bool equalleft = ( (isEqual(l_min, queue[0].point_left_min)) && (isEqual(l_max, queue[0].point_left_max)) );
+  bool equalright = ( (isEqual(r_min, queue[0].point_right_min)) && (isEqual(r_max, queue[0].point_right_max)) );
+  return ( !(equalleft && equalright) );
+}
+
+bool CostmapRes::isEqual(geometry_msgs::Point p1, geometry_msgs::Point p2)
+{
+  return ( (p1.x == p2.x) && (p1.y == p2.y) );
+}
 
 geometry_msgs::Point CostmapRes::MapToCostmap(geometry_msgs::Point point)
 {
