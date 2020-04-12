@@ -1,7 +1,7 @@
   number_of_persons: 6
   total_time_min: 25
   total_time_sec: 30
-  move_timeout: 2
+  move_timeout: 3
 
   points_exit: 5
   points_person: 3

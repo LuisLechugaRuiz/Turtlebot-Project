@@ -12,14 +12,13 @@ static:
 
 obstacles_laser:
     observation_sources: laser
-    laser: {data_type: LaserScan, clearing: true, marking: true, topic: /scan, inf_is_valid: true}
-    max_obstacle_height: 5
+    laser: {data_type: LaserScan, clearing: true, marking: true, topic: /scan, inf_is_valid: true, min_obstacle_height: -5, max_obstacle_height: 5}
     track_unknown_space: true
        #    #true needed for disabling global path planning through unknown space
 
 fake_obstacles:
     observation_sources: fake_laser
-    fake_laser: {sensor_frame: map, data_type: PointCloud2, clearing: true, marking: true, topic: /fake_laser/cloud, min_obstacle_height: -5, obstacle_range: 25, raytrace_range: 25}
+    fake_laser: {sensor_frame: map, data_type: PointCloud2, clearing: true, marking: true, topic: /fake_laser/cloud, min_obstacle_height: -5, obstacle_range: 25}
     track_unknown_space: true
 
 inflation:

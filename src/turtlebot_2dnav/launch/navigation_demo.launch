@@ -7,7 +7,13 @@
   <param name = "map_update_interval" value = "4"/>
   <param name = "maxRange" value = "6.0"/>
   <param name = "maxUrange" value = "5.9"/>
+  <remap from="scan" to="scan_filtered"/>
 </node>
+
+<node pkg="laser_filters" type="scan_to_scan_filter_chain" name="laser_filter">
+  <rosparam command="load" file="$(find turtlebot_2dnav)/param/laser_filter.yaml"  />
+</node>
+
 
 <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
  <rosparam file="$(find turtlebot_2dnav)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />

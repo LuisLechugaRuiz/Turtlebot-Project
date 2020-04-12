@@ -1,7 +1,7 @@
 global_costmap:
    global_frame: map
    rolling_window: false
-   update_frequency: 4.0
+   update_frequency: 5.0
    publish_frequency: 1.0
    transform_tolerance: 0.5
    always_send_full_costmap: true
