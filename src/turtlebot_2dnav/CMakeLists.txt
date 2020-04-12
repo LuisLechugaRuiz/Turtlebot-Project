@@ -27,6 +27,7 @@ find_package(catkin REQUIRED COMPONENTS
    CarryingPerson.srv
    askNewFrontier.srv
    restrictCostmap.srv
+   recalculateBound.srv
  )
 
  ## Generate messages in the 'msg' folder
