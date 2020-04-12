@@ -2,7 +2,9 @@
 #include <nav_msgs/OccupancyGrid.h>
 #include <turtlebot_2dnav/restrictCostmap.h>
 #include <turtlebot_2dnav/fake_bound.h>
+#include <turtlebot_2dnav/recalculateBound.h>
 #include <ros/ros.h>
+
 
 
 class CostmapRes
@@ -16,6 +18,7 @@ class CostmapRes
     ros::NodeHandle n;
     ros::Subscriber costmap_sub_;
     ros::ServiceServer restrict_server;
+    ros::ServiceServer recalculate_server;
     ros::Publisher bound_pub;
 
     //tf2_ros::TransformListener tfListener;
@@ -30,7 +33,7 @@ class CostmapRes
       geometry_msgs::Point center_point;
       int size;
       bool vertical;
-
+      int count = 0;
       int index = -1;
       bool matched = false;
       bool recalculateleft = true;
@@ -41,6 +44,9 @@ class CostmapRes
 
     bool RestrictService(turtlebot_2dnav::restrictCostmap::Request &req,
                                 turtlebot_2dnav::restrictCostmap::Response &res);
+    bool RecalculateService (turtlebot_2dnav::recalculateBound::Request &req,
+                         turtlebot_2dnav::recalculateBound::Response &res);
+
     unsigned int getIndex(geometry_msgs::Point point);
     geometry_msgs::Point indexToCostmap(unsigned int index);
     geometry_msgs::Point CostmapToMap(geometry_msgs::Point point);
@@ -55,6 +61,7 @@ class CostmapRes
     bool isEqual(geometry_msgs::Point p1, geometry_msgs::Point p2);
     bool matchBound(const nav_msgs::OccupancyGrid::ConstPtr& msg);
 
+
     Bound restringed_zone;
     std::vector<Bound> queue;
     turtlebot_2dnav::fake_bound bound_;
@@ -64,6 +71,7 @@ class CostmapRes
     int index = 0;
 
     bool NewRestriction;
+    bool canRecalculate;
     unsigned int size_in_cells_x;
     unsigned int size_in_cells_y;
     double resolution = 0.095;

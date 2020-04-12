@@ -7,6 +7,7 @@ CostmapRes::CostmapRes() :
   std::string footprint_topic;
   nh.param("costmap_topic", costmap_topic, std::string("costmap"));
   restrict_server = nh.advertiseService("restrict", &CostmapRes::RestrictService, this);
+  recalculate_server = nh.advertiseService("recalculate", &CostmapRes::RecalculateService, this);
   costmap_sub_ = n.subscribe(costmap_topic, 1000, &CostmapRes::ProcessCostmap, this);
   bound_pub = nh.advertise<turtlebot_2dnav::fake_bound>("fake_bound", 10);
 
@@ -29,6 +30,15 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
     geometry_msgs::Point r_min = queue[0].point_right_min;
     geometry_msgs::Point r_max = queue[0].point_right_max;
 
+    //CHECK IF NEED TO RECALCULATE
+    if (queue[0].count > 10 && canRecalculate)
+    {
+      queue[0].matched = false;
+      queue[0].point_left_max = queue[0].point_left_min;
+      queue[0].point_right_max = queue[0].point_right_min;
+      queue[0].recalculateleft = true;
+      queue[0].recalculateright = true;
+    }
     //findInCostmap parameters:
         // - obstacle/limit
         // - costmap ptr
@@ -124,6 +134,8 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
         bound_pub.publish(bound_);
       }
     }
+
+    queue[0].count++;
     if (queue[0].recalculateleft || queue[0].recalculateright) std::rotate(queue.begin(), queue.begin() + 1, queue.end());
     else queue.erase( queue.begin() );
   }
@@ -351,6 +363,14 @@ bool CostmapRes::checkifCorner(geometry_msgs::Point costmap_coords, const nav_ms
   }
   if (count == n_points) corner = true;
   return corner;
+}
+
+bool CostmapRes::RecalculateService (turtlebot_2dnav::recalculateBound::Request &req,
+                                     turtlebot_2dnav::recalculateBound::Response &res)
+{
+  canRecalculate = req.recalculate;
+  res.received = true;
+  return true;
 }
 
 
