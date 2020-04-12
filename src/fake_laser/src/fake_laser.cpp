@@ -42,8 +42,9 @@ void fake_laser::boundsCallback(turtlebot_2dnav::fake_bound bound)
 int fake_laser::insertPoints(geometry_msgs::Point pmin, geometry_msgs::Point pmax, int points_index, bool vertical, bool exitbool)
 {
   float size;
-  if(vertical) size = abs(pmax.x - pmin.x - resolution);
-  else size = abs(pmax.y - pmin.y - resolution);
+  //0.3 to avoid inflating the cell which the costmap restrictor is studying. (need check)
+  if(vertical) size = abs(pmax.x - pmin.x - 0.3);
+  else size = abs(pmax.y - pmin.y - 0.3);
   int index = size / (resolution/2);
 
   geometry_msgs::Point point = pmin;
