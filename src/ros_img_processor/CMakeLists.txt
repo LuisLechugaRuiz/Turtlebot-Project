@@ -63,7 +63,7 @@ add_executable(astra_img_processor ${SRCS1} )
 
 #add_dependencies
 add_dependencies(ros_img_processor ros_img_processor_gencpp)
-add_dependencies(astra_img_processor astra_img_processor_gencpp)
+add_dependencies(astra_img_processor ros_img_processor_gencpp)
 
 #Target link
 target_link_libraries(ros_img_processor ${OpenCV_LIBS} ${catkin_LIBRARIES})
