@@ -13,41 +13,67 @@ fake_laser::fake_laser() :
 
 void fake_laser::boundsCallback(turtlebot_2dnav::fake_bound bound)
 {
-  //Get the number of points of the last bound
-  int first_index, index_left, index_right;
-
-  if(bound.index == 0) first_index = 0;
-  else first_index = bounds[bound.index - 1];
-
-  //check if need to resize
-  if(bound.resize) deleteBound( first_index, bounds[bound.index], bound.index);
-
-  index_left = insertPoints(bound.pointleftmin, bound.pointleftmax, first_index, bound.isvertical, bound.exit);
-
-  //update first_index for the right points
-  first_index += index_left;
-
-  index_right = insertPoints(bound.pointrightmin, bound.pointrightmax, first_index, bound.isvertical, bound.exit);
-
-  int last_index = first_index + index_right;
-
-  //insert the new numbers of point in the bounds vector
-  bounds.insert( bounds.begin() + bound.index, last_index );
-  p_size.points_size.insert( p_size.points_size.begin() + bound.index, last_index );
-
-  //if resized update the bounds vector
-  if(bound.resize) updateBoundlist(bound.index, last_index);
+  queue.push_back(bound);
 }
 
-int fake_laser::insertPoints(geometry_msgs::Point pmin, geometry_msgs::Point pmax, int points_index, bool vertical, bool exitbool)
+void fake_laser::Processqueue()
+{
+  if(queue.size() > 0)
+  {
+    bool exitbool = false;
+
+    if(queue[0].exit) index_exit = queue[0].index;
+    //check here (in case of new or resize exit)
+    if(queue[0].index == index_exit) exitbool = true;
+
+    //Get the number of points of the last bound
+    int first_index, index_left, index_right;
+
+    if(queue[0].index == 0) first_index = 0;
+    else first_index = bounds[queue[0].index - 1];
+
+    //check if need to resize
+    if(queue[0].resize) deleteBound( first_index, bounds[queue[0].index], queue[0].index, exitbool);
+
+    index_left = insertPoints(queue[0].pointleftmin, queue[0].pointleftmax, first_index, queue[0].isvertical, true, exitbool);
+
+    //update first_index for the right points
+    first_index += index_left;
+
+    index_right = insertPoints(queue[0].pointrightmin, queue[0].pointrightmax, first_index, queue[0].isvertical, false, exitbool);
+
+    int last_index = first_index + index_right;
+
+    //insert the new numbers of point in the bounds vector
+    bounds.insert( bounds.begin() + queue[0].index, last_index );
+    p_size.points_size.insert( p_size.points_size.begin() + queue[0].index, last_index );
+
+    //if resized update the bounds vector
+    if(queue[0].resize) updateBoundlist(queue[0].index, last_index);
+
+    queue.erase( queue.begin() );
+  }
+}
+
+
+int fake_laser::insertPoints(geometry_msgs::Point pmin, geometry_msgs::Point pmax, int points_index, bool vertical, bool left, bool exitbool)
 {
   float size;
+  geometry_msgs::Point point;
   //0.3 to avoid inflating the cell which the costmap restrictor is studying. (need check)
-  if(vertical) size = abs(pmax.x - pmin.x - 0.3);
-  else size = abs(pmax.y - pmin.y - 0.3);
+  if(vertical)
+  {
+    size = abs(pmax.x - pmin.x - 0.3);
+    if(left) point = pmax;
+    else point = pmin;
+  }
+  else
+  {
+    size = abs(pmax.y - pmin.y - 0.3);
+    if(left) point = pmin;
+    else point = pmax;
+  }
   int index = size / (resolution/2);
-
-  geometry_msgs::Point point = pmin;
   for (int i = 0; i < index; i++)
   {
     pcl::PointXYZ newPoint;
@@ -58,18 +84,34 @@ int fake_laser::insertPoints(geometry_msgs::Point pmin, geometry_msgs::Point pma
     if(exitbool) exitCloud.points.push_back( newPoint );
     Cloud.points.insert( Cloud.points.begin() + points_index, newPoint );
     points_index++;
-    if (vertical) point.x += (resolution/2);
-    else point.y += (resolution/2);
+    if (vertical)
+    {
+      if(left) point.x -= (resolution/2);
+      else point.x += (resolution/2);
+    }
+    else
+    {
+      if(left) point.y += (resolution/2);
+      else point.y -= (resolution/2);
+    }
   }
+  //ROS_INFO("inserted");
   return index;
 }
 
 
-void fake_laser::deleteBound(int first_index, int last_index, int bound_index)
+void fake_laser::deleteBound(int first_index, int last_index, int bound_index, bool exitbool)
 {
     int dif_index = last_index - first_index;
     //clear points of cloud
     Cloud.points.erase(Cloud.points.begin() + first_index, Cloud.points.begin() + last_index);
+
+    if (exitbool)
+    {
+      exitCloud.points.erase(exitCloud.points.begin(), exitCloud.points.begin() + dif_index);
+      //ROS_INFO("deleting points: %d", dif_index);
+    }
+
     if (bound_index < bounds.size() - 1)
     {
       for(int j = bound_index + 1; j < bounds.size(); j++)

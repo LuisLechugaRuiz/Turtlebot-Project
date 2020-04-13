@@ -11,6 +11,8 @@ int main(int argc, char **argv)
     {
         ros::spinOnce();
 
+        fakeLaser.Processqueue();
+        
         fakeLaser.PublishCloud();
 
         // pause for loop delay

@@ -11,6 +11,7 @@ class fake_laser
 {
   public:
     fake_laser();
+    void Processqueue();
     void PublishCloud();
 
   private:
@@ -24,17 +25,19 @@ class fake_laser
   tf::TransformBroadcaster broadcaster;
 
   bool ON = true;
+  int index_exit = -1;
 
   double resolution = 0.095;
   std::vector<int> bounds;
   pcl::PointCloud<pcl::PointXYZ> Cloud;
   pcl::PointCloud<pcl::PointXYZ> exitCloud;
 
-  turtlebot_2dnav::fake_bound New_Bound;
+  std::vector<turtlebot_2dnav::fake_bound> queue;
+
   turtlebot_2dnav::bounds_point_size p_size;
   void boundsCallback(turtlebot_2dnav::fake_bound bound);
-  int insertPoints(geometry_msgs::Point pmin, geometry_msgs::Point pmax, int points_index, bool vertical, bool exitbool);
+  int insertPoints(geometry_msgs::Point pmin, geometry_msgs::Point pmax, int points_index, bool vertical, bool left, bool exitbool);
   bool active_service(turtlebot_2dnav::fakeLaser::Request &req, turtlebot_2dnav::fakeLaser::Response &res);
-  void deleteBound(int first_index, int last_index, int bound_index);
+  void deleteBound(int first_index, int last_index, int bound_index, bool exitbool);
   void updateBoundlist( int vector_index, int total_new_points);
 };

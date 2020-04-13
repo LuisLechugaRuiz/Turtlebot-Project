@@ -21,9 +21,6 @@ class CostmapRes
     ros::ServiceServer recalculate_server;
     ros::Publisher bound_pub;
 
-    //tf2_ros::TransformListener tfListener;
-    //costmap_2d::Costmap2DROS* costmap2d_global;
-
     struct Bound
     {
       geometry_msgs::Point point_left_min;
@@ -31,13 +28,22 @@ class CostmapRes
       geometry_msgs::Point point_left_max;
       geometry_msgs::Point point_right_max;
       geometry_msgs::Point center_point;
-      int size;
+
       bool vertical;
       int count = 0;
+      int size_count = 0;
       int index = -1;
+      //in case that the bound give as center a
+      int center_LETHAL = 1;
       bool matched = false;
       bool recalculateleft = true;
       bool recalculateright = true;
+      bool exit = false;
+
+      bool center_found = false;
+
+      //bounds can be restriction or just checks (persons)
+      bool restriction = true;
     };
 
 
@@ -60,18 +66,19 @@ class CostmapRes
     bool needUpdate(geometry_msgs::Point l_min, geometry_msgs::Point l_max, geometry_msgs::Point r_min, geometry_msgs::Point r_max);
     bool isEqual(geometry_msgs::Point p1, geometry_msgs::Point p2);
     bool matchBound(const nav_msgs::OccupancyGrid::ConstPtr& msg);
+    void resetBound(Bound &actual_bound);
 
 
     Bound restringed_zone;
     std::vector<Bound> queue;
+    std::vector<Bound> recalculatequeue;
     turtlebot_2dnav::fake_bound bound_;
 
     unsigned char value;
 
     int index = 0;
 
-    bool NewRestriction;
-    bool canRecalculate;
+    bool canRecalculate = false;
     unsigned int size_in_cells_x;
     unsigned int size_in_cells_y;
     double resolution = 0.095;
@@ -85,10 +92,14 @@ class CostmapRes
     //add all of this as a parameter?
     int max_count_findPerpendicularObstacle = 0.5 / resolution;
     int max_count_findParalelObstacle = 5 / resolution;
-    int max_count_findLimits;
+    int max_count_findLimits = 15;
     int min_count_size = 0.8 / resolution;
-    int left_limit_count = 0;
-    int right_limit_count = 0;
+
+    int max_iteration = 10;
+
+    int waiting = 0;
+    int wait_count = 5;
+
     // special values:
     unsigned char NO_OBSTACLE = 0; // NO obstacle
     unsigned char INSCRIBED_OBSTACLE = 99;   // INSCRIBED obstacle
