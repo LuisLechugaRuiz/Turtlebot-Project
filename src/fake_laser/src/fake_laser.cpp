@@ -63,13 +63,15 @@ int fake_laser::insertPoints(geometry_msgs::Point pmin, geometry_msgs::Point pma
   //0.3 to avoid inflating the cell which the costmap restrictor is studying. (need check)
   if(vertical)
   {
-    size = abs(pmax.x - pmin.x - 0.3);
+    size = pmax.x - pmin.x - 0.3;
+    if (size < 0) size = 0;
     if(left) point = pmax;
     else point = pmin;
   }
   else
   {
-    size = abs(pmax.y - pmin.y - 0.3);
+    size = pmax.y - pmin.y - 0.3;
+    if (size < 0) size = 0;
     if(left) point = pmin;
     else point = pmax;
   }
