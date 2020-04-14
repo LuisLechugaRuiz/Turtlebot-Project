@@ -35,6 +35,7 @@ find_package(catkin REQUIRED COMPONENTS
    FILES
    bounds_point_size.msg
    fake_bound.msg
+   match_bound.msg
    frontier.msg
    ROI.msg
  )
