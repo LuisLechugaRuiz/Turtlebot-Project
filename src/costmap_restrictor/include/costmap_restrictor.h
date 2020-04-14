@@ -2,6 +2,7 @@
 #include <nav_msgs/OccupancyGrid.h>
 #include <turtlebot_2dnav/restrictCostmap.h>
 #include <turtlebot_2dnav/fake_bound.h>
+#include <turtlebot_2dnav/match_bound.h>
 #include <turtlebot_2dnav/recalculateBound.h>
 #include <ros/ros.h>
 
@@ -19,7 +20,8 @@ class CostmapRes
     ros::Subscriber costmap_sub_;
     ros::ServiceServer restrict_server;
     ros::ServiceServer recalculate_server;
-    ros::Publisher bound_pub;
+    ros::Publisher fake_bound_pub;
+    ros::Publisher match_bound_pub;
 
     struct Bound
     {
@@ -32,24 +34,28 @@ class CostmapRes
       bool vertical;
       int count = 0;
       int size_count = 0;
-      int index = -1;
+      int match_count = 0;
+      int database_index = -1;
+      int laser_index = -1;
       //in case that the bound give as center a
       int center_LETHAL = 1;
       bool matched = false;
       bool recalculateleft = true;
       bool recalculateright = true;
       bool exit = false;
+      bool recalculate = false;
 
       bool center_found = false;
 
       //bounds can be restriction or just checks (persons)
-      bool restriction = true;
+      bool restriction = false;
     };
 
 
 
     bool RestrictService(turtlebot_2dnav::restrictCostmap::Request &req,
                                 turtlebot_2dnav::restrictCostmap::Response &res);
+
     bool RecalculateService (turtlebot_2dnav::recalculateBound::Request &req,
                          turtlebot_2dnav::recalculateBound::Response &res);
 
@@ -58,25 +64,33 @@ class CostmapRes
     geometry_msgs::Point CostmapToMap(geometry_msgs::Point point);
     geometry_msgs::Point MapToCostmap(geometry_msgs::Point point);
     void ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg);
-    int findInCostmap(bool obstacle, const nav_msgs::OccupancyGrid::ConstPtr& msg,
-                                  geometry_msgs::Point costmap_coords, int max_count,
-                                  bool perpendicular, bool positiveDirection);
 
-    bool checkifCorner(geometry_msgs::Point costmap_coords, const nav_msgs::OccupancyGrid::ConstPtr& msg, bool positiveDirection, int n_points);
-    bool needUpdate(geometry_msgs::Point l_min, geometry_msgs::Point l_max, geometry_msgs::Point r_min, geometry_msgs::Point r_max);
+    int findInCostmap(Bound &_bound, bool obstacle,
+                      const nav_msgs::OccupancyGrid::ConstPtr& msg,
+                      geometry_msgs::Point costmap_coords, int max_count,
+                      bool perpendicular, bool positiveDirection);
+
+    bool checkifCorner(Bound &_bound, geometry_msgs::Point costmap_coords,
+                      const nav_msgs::OccupancyGrid::ConstPtr& msg,
+                      bool positiveDirection, int n_points);
+
+    bool needUpdate(Bound &_bound,geometry_msgs::Point l_min, geometry_msgs::Point l_max,
+                    geometry_msgs::Point r_min, geometry_msgs::Point r_max);
+
     bool isEqual(geometry_msgs::Point p1, geometry_msgs::Point p2);
-    bool matchBound(const nav_msgs::OccupancyGrid::ConstPtr& msg);
+    bool matchBound(Bound &_bound, const nav_msgs::OccupancyGrid::ConstPtr& msg);
     void resetBound(Bound &actual_bound);
 
 
-    Bound restringed_zone;
+    Bound New_Bound;
+    std::vector<Bound> matchqueue;
     std::vector<Bound> queue;
     std::vector<Bound> recalculatequeue;
     turtlebot_2dnav::fake_bound bound_;
 
     unsigned char value;
 
-    int index = 0;
+    int laser_index = 0;
 
     bool canRecalculate = false;
     unsigned int size_in_cells_x;
@@ -93,7 +107,8 @@ class CostmapRes
     int max_count_findPerpendicularObstacle = 0.5 / resolution;
     int max_count_findParalelObstacle = 5 / resolution;
     int max_count_findLimits = 15;
-    int min_count_size = 0.8 / resolution;
+    int min_count_size = 1.2 / resolution;
+    int max_match_count = 6;
 
     int max_iteration = 10;
 
