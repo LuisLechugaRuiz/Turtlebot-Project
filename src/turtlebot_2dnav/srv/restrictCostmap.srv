@@ -1,6 +1,9 @@
 geometry_msgs/Point Point
 int32 size
+int32 index
+bool restrict
 bool isvertical
 bool exit
 ---
 bool received
+geometry_msgs/Point NewCenter
