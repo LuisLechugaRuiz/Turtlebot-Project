@@ -140,6 +140,8 @@ void Decision::restrictCostmap(data New_data, bool exitbool)
   restrict_.request.isvertical = New_data.is_vertical();
   restrict_.request.Point.x = New_data.get_center_x();
   restrict_.request.Point.y = New_data.get_center_y();
+  restrict_.request.index = New_data.get_index();
+  restrict_.request.restrict = true;
   if ( New_data.is_vertical() ) restrict_.request.size = New_data.get_size_x();
   else restrict_.request.size = New_data.get_size_y();
 
