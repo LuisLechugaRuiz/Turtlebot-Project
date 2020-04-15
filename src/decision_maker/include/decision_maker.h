@@ -9,7 +9,6 @@
 #include <turtlebot_2dnav/frontier.h>
 #include <turtlebot_2dnav/CarryingPerson.h>
 #include <turtlebot_2dnav/askNewFrontier.h>
-#include <turtlebot_2dnav/restrictCostmap.h>
 #include <turtlebot_2dnav/fakeLaser.h>
 #include <turtlebot_2dnav/recalculateBound.h>
 #include <nav_msgs/GetPlan.h>
@@ -41,7 +40,6 @@ class Decision : public Math
     ros::ServiceClient plan_client;
     ros::ServiceClient carrying_person_client;
     ros::ServiceClient ask_new_frontier_client;
-    ros::ServiceClient costmap_restrictor_client;
     ros::ServiceClient fake_laser_client;
     ros::ServiceClient clear_costmap_client;
     ros::ServiceClient recalculate_bound_client;
@@ -167,7 +165,6 @@ class Decision : public Math
     turtlebot_2dnav::CarryingPerson carrying_;
     turtlebot_2dnav::ROI carrying_ROI;
     turtlebot_2dnav::askNewFrontier askNew_;
-    turtlebot_2dnav::restrictCostmap restrict_;
     turtlebot_2dnav::fakeLaser fakeLaser_;
     turtlebot_2dnav::recalculateBound recalculate_;
     costmap_2d::clearCostmap clearCostmap_;

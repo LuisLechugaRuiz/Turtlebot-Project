@@ -31,7 +31,6 @@ Decision::Decision():
   frontiers_sub = n.subscribe("explore/frontier", 100, &Decision::Frontier_callBack, this);
   marker_carrying_person_pub = nh.advertise<visualization_msgs::Marker>("visualization_markers_carrying_person", 10);
   ask_new_frontier_client = n.serviceClient<turtlebot_2dnav::askNewFrontier>("explore/NewFrontier");
-  costmap_restrictor_client = n.serviceClient<turtlebot_2dnav::restrictCostmap>("costmap_restrictor/restrict");
   fake_laser_client = n.serviceClient<turtlebot_2dnav::fakeLaser>("fake_laser/active");
   clear_costmap_client = n.serviceClient<costmap_2d::clearCostmap>("move_base/global_costmap/fake_obstacles/clear_costmap");
   recalculate_bound_client = n.serviceClient<turtlebot_2dnav::recalculateBound>("costmap_restrictor/recalculate");
@@ -63,7 +62,6 @@ void Decision::ROI_callBack(turtlebot_2dnav::ROI New_ROI)
     {
       data New_data(New_ROI);
       database_r.push_back(New_data);
-      restrictCostmap(New_data, false);
       points += points_danger;
     }
     if(type == "E")
@@ -72,7 +70,6 @@ void Decision::ROI_callBack(turtlebot_2dnav::ROI New_ROI)
       database_e.push_back(New_data);
       if (!exit_found) exit_found = true;
       else ROS_INFO ("2 exits found!?");
-      restrictCostmap(New_data, true);
       points += points_exit;
     }
   }
@@ -131,21 +128,6 @@ void Decision::fakeLaserActive(bool on)
 {
   fakeLaser_.request.active = on;
   fake_laser_client.call(fakeLaser_);
-}
-
-
-void Decision::restrictCostmap(data New_data, bool exitbool)
-{
-  restrict_.request.exit = exitbool;
-  restrict_.request.isvertical = New_data.is_vertical();
-  restrict_.request.Point.x = New_data.get_center_x();
-  restrict_.request.Point.y = New_data.get_center_y();
-  restrict_.request.index = New_data.get_index();
-  restrict_.request.restrict = true;
-  if ( New_data.is_vertical() ) restrict_.request.size = New_data.get_size_x();
-  else restrict_.request.size = New_data.get_size_y();
-
-  costmap_restrictor_client.call(restrict_);
 }
 
 
