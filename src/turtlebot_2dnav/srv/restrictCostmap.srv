@@ -1,6 +1,6 @@
 geometry_msgs/Point Point
-int32 size
 int32 index
+int32 color
 bool restrict
 bool isvertical
 bool exit
