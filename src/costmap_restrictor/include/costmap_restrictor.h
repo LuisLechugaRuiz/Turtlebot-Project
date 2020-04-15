@@ -33,6 +33,7 @@ class CostmapRes
 
       bool vertical;
       int count = 0;
+      int color;
       int size_count = 0;
       int match_count = 0;
       int database_index = -1;
@@ -80,7 +81,7 @@ class CostmapRes
     bool isEqual(geometry_msgs::Point p1, geometry_msgs::Point p2);
     bool matchBound(Bound &_bound, const nav_msgs::OccupancyGrid::ConstPtr& msg);
     void resetBound(Bound &actual_bound);
-
+    void recalculate_database_index(int data_index, int data_color);
 
     Bound New_Bound;
     std::vector<Bound> matchqueue;
@@ -104,11 +105,11 @@ class CostmapRes
     bool center_found;
 
     //add all of this as a parameter?
-    int max_count_findPerpendicularObstacle = 0.5 / resolution;
+    int max_count_findPerpendicularObstacle = 0.3 / resolution;
     int max_count_findParalelObstacle = 5 / resolution;
     int max_count_findLimits = 15;
-    int min_count_size = 1.2 / resolution;
-    int max_match_count = 6;
+    int min_count_size = 1.0 / resolution;
+    int max_match_count = 10;
 
     int max_iteration = 10;
 

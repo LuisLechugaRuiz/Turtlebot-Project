@@ -36,7 +36,7 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
 
   if(matchqueue.size() > 0)
   {
-    ROS_INFO("MATCHING!");
+    //ROS_INFO("MATCHING!");
     if( matchBound(matchqueue[0], msg) )
     {
       turtlebot_2dnav::match_bound matched_bound_;
@@ -54,8 +54,10 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
       matched_bound_.pointcenter = matchqueue[0].center_point;
       matched_bound_.index = matchqueue[0].database_index;
       matched_bound_.matched = true;
+      matched_bound_.color = matchqueue[0].color;
       match_bound_pub.publish(matched_bound_);
-
+      recalculate_database_index(matchqueue[0].database_index, matchqueue[0].color);
+      ROS_INFO("BOUND COLOR: %d", matchqueue[0].color);
       //PUBLISH TO DATABASE!
       if(matchqueue[0].restriction) queue.push_back(matchqueue[0]);
       matchqueue.erase( matchqueue.begin() );
@@ -68,6 +70,8 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
         matchqueue[0].center_LETHAL = 2;
       }
       matchqueue[0].match_count++;
+      //send it to the last!
+      std::rotate(matchqueue.begin(), matchqueue.begin() + 1, matchqueue.end());
     }
     else
     {
@@ -76,8 +80,10 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
       not_matched_bound_.pointleft = matchqueue[0].center_point;
       not_matched_bound_.pointright = matchqueue[0].center_point;
       not_matched_bound_.index = matchqueue[0].database_index;
+      not_matched_bound_.color = matchqueue[0].color;
       not_matched_bound_.matched = false;
       match_bound_pub.publish(not_matched_bound_);
+      recalculate_database_index(matchqueue[0].database_index, matchqueue[0].color);
       ROS_INFO ("bound not matched, erasing matchqueue");
       matchqueue.erase( matchqueue.begin() );
     }
@@ -203,6 +209,7 @@ bool CostmapRes::RestrictService(turtlebot_2dnav::restrictCostmap::Request &req,
   New_Bound.center_point = req.Point;
   New_Bound.database_index = req.index;
   New_Bound.restriction = req.restrict;
+  New_Bound.color = req.color;
 
   matchqueue.push_back(New_Bound);
   //check that we sent as exit the correct bound inserting it at the begin
@@ -414,7 +421,7 @@ bool CostmapRes::matchBound(CostmapRes::Bound &_bound, const nav_msgs::Occupancy
     }
     else
     {
-      ROS_INFO("LIMITS NOT MATCHED YET");
+      //ROS_INFO("LIMITS NOT MATCHED YET");
       _bound.size_count = 0;
     }
   }
@@ -451,10 +458,21 @@ bool CostmapRes::checkifCorner(CostmapRes::Bound &_bound, geometry_msgs::Point c
     else costmap_coords.x += acum;
     index_ = getIndex(costmap_coords);
     value = msg->data[index_];
-    ROS_INFO("value corner: %c", value);
+    //ROS_INFO("value corner: %c", value);
   }
   if (count == n_points) corner = true;
   return corner;
+}
+
+
+void CostmapRes::recalculate_database_index(int data_index, int data_color)
+{
+  for (auto data_bound : matchqueue)
+  {
+    //resize because an erase on database candidates!
+    if (data_bound.color == data_color && data_bound.database_index > data_index)
+    data_bound.database_index--;
+  }
 }
 
 bool CostmapRes::RecalculateService (turtlebot_2dnav::recalculateBound::Request &req,
