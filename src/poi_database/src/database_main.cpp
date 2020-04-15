@@ -20,8 +20,6 @@ int main(int argc, char **argv)
             //Transform from camera
             Database_ROI.process();
 
-            Database_ROI.PublishMarkers();
-
             loopRate.sleep();
       }
 
