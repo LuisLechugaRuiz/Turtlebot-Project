@@ -32,8 +32,8 @@ class CostmapRes
       geometry_msgs::Point center_point;
 
       bool vertical;
-      int count = 0;
       int color;
+      int count = 0;
       int size_count = 0;
       int match_count = 0;
       int database_index = -1;
@@ -44,7 +44,6 @@ class CostmapRes
       bool recalculateleft = true;
       bool recalculateright = true;
       bool exit = false;
-      bool recalculate = false;
 
       bool center_found = false;
 
@@ -110,6 +109,7 @@ class CostmapRes
     int max_count_findLimits = 15;
     int min_count_size = 1.0 / resolution;
     int max_match_count = 10;
+    int max_recalculate_count = 10;
 
     int max_iteration = 10;
 

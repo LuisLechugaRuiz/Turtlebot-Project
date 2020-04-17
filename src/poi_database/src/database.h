@@ -109,7 +109,7 @@ class DatabaseNode
     //POI recived
     ros_img_processor::camera_POI_msg POI;
 
-    float min_size = 0.20;
+    float min_size = 0.25;
 
 
 

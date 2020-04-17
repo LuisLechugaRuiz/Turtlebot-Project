@@ -41,9 +41,6 @@ void DatabaseNode::process()
         bool cond_ROI = cit_ROI->bound.inRange(New_Bound.max_x, New_Bound.max_y, New_Bound.min_x, New_Bound.min_y);
         if(cond_ROI)
         {
-            //if(!cit_ROI->bound.size_x_cond || !cit_ROI->bound.size_y_cond) ROI_expanded = cit_ROI->bound.expand_Bound(New_Bound);
-            //if(ROI_expanded) cit_ROI->update_ROI();
-            //global_ROI = *cit_ROI;
             insideROI = true;
             break;
         }
@@ -67,14 +64,14 @@ void DatabaseNode::process()
             {
               if ( (candidates_ptr->at(i).size_x > candidates_ptr->at(i).size_y) && (candidates_ptr->at(i).size_x > min_size) )
               {
-                ROS_INFO("IS VERTICAL");
+                //ROS_INFO("IS VERTICAL");
                 candidates_ptr->at(i).vertical = true;
                 candidates_ptr->at(i).checked = true;
                 match_bound(candidates_ptr->at(i), i);
               }
               else if ( (candidates_ptr->at(i).size_y > candidates_ptr->at(i).size_x) && (candidates_ptr->at(i).size_y > min_size) )
               {
-                ROS_INFO("IS HORIZONTAL");
+                //ROS_INFO("IS HORIZONTAL");
                 candidates_ptr->at(i).vertical = false;
                 candidates_ptr->at(i).checked = true;
                 match_bound(candidates_ptr->at(i), i);
@@ -89,9 +86,13 @@ void DatabaseNode::process()
       if(!insideROI && !isCandidate)
       {
         ROS_INFO("NEW CANDIDATE");
+        ROS_INFO("min x: %f", New_Bound.min_x);
+        ROS_INFO("min y: %f", New_Bound.min_y);
+        ROS_INFO("max x: %f", New_Bound.max_x);
+        ROS_INFO("max y: %f", New_Bound.max_y);
         if (New_Bound.size_x > min_size)
         {
-          ROS_INFO("IS VERTICAL");
+          //ROS_INFO("IS VERTICAL");
           New_Bound.vertical = true;
           New_Bound.checked = true;
           //send the index the candidate is going to take!
@@ -99,7 +100,7 @@ void DatabaseNode::process()
         }
         else if (New_Bound.size_y > min_size)
         {
-          ROS_INFO("IS HORIZONTAL");
+          //ROS_INFO("IS HORIZONTAL");
           New_Bound.vertical = false;
           New_Bound.checked = true;
           match_bound(New_Bound, candidates_ptr->size() );
@@ -290,14 +291,21 @@ bool DatabaseNode::Bound::inRange(float new_max_x, float new_max_y, float new_mi
 
   bool cond1;
   bool cond2;
-  cond1 = min_x - tol_x <= new_max_x && new_max_x <= max_x + tol_x;
-  cond2 = min_x - tol_x <= new_min_x && new_min_x <= max_x + tol_x;
+  //cond1 = min_x - tol_x <= new_max_x && new_max_x <= max_x + tol_x;
+  //cond2 = min_x - tol_x <= new_min_x && new_min_x <= max_x + tol_x;
 
-  bool cond3;
-  bool cond4;
-  cond3 = min_y -tol_y <= new_max_y && new_max_y <= max_y + tol_y;
-  cond4 = min_y -tol_y <= new_min_y && new_min_y <= max_y + tol_y;
-  return ((cond1 || cond2) && (cond3 || cond4));
+  //bool cond3;
+  //bool cond4;
+  //cond3 = min_y -tol_y <= new_max_y && new_max_y <= max_y + tol_y;
+  //cond4 = min_y -tol_y <= new_min_y && new_min_y <= max_y + tol_y;
+  float t_min_x = std::max(min_x, new_min_x);
+  float t_min_y = std::max(min_y, new_min_y);
+  float t_max_x = std::min(max_x, new_max_x);
+  float t_max_y = std::min(max_y, new_max_y);
+  cond1 = ( (t_max_x + tol_x) > t_min_x );
+  cond2 = ( (t_max_y + tol_y) > t_min_y );
+  return (cond1 && cond2);
+  //return ((cond1 || cond2) && (cond3 || cond4));
 }
 
 void DatabaseNode::match_bound(Bound bound_check, int can_index)
@@ -320,7 +328,7 @@ void DatabaseNode::match_bound(Bound bound_check, int can_index)
     check_.request.restrict = true;
   }
   check_bound_client.call(check_);
-  ROS_INFO("COLOR SENT: %d", check_.request.color);
+  //ROS_INFO("COLOR SENT: %d", check_.request.color);
 }
 
 
@@ -329,7 +337,7 @@ void DatabaseNode::match_boundCallback(turtlebot_2dnav::match_bound bound_matche
   //ROS_INFO("BOUND RECEIVED");
   if (bound_matched.matched)
   {
-    ROS_INFO("BOUND MATCHED");
+    //ROS_INFO("BOUND MATCHED");
     //ROS_INFO("COLOR RECEIVED: %d", bound_matched.color);
     Bound New_Bound(bound_matched.pointleft, bound_matched.pointright, bound_matched.color);
     ROI New_ROI(New_Bound);
@@ -356,9 +364,9 @@ void DatabaseNode::match_boundCallback(turtlebot_2dnav::match_bound bound_matche
       PublishMarkers(New_ROI, true);
       PublishROI(New_ROI);
     }
-    else ROS_INFO("MATCHED TWICE");
+    //else ROS_INFO("MATCHED TWICE");
   }
-  else ROS_INFO("BOUNT NOT MATCHED");
+  //else ROS_INFO("BOUNT NOT MATCHED");
   int size = candidates_p.size();
   //ROS_INFO("Candidate index: %d", bound_matched.index);
   //ROS_INFO("candidates P size: %d", size );
@@ -392,30 +400,23 @@ bool DatabaseNode::checkifisNew(std::vector<ROI> &database, ROI New_ROI)
 bool DatabaseNode::Bound::expand_Bound(Bound New_Bound)
 {
   bool expanded = false;
-  if(!size_x_cond)
+  float size_x_last = size_x;
+  float size_y_last = size_y;
+  max_x = std::max(max_x, New_Bound.max_x);
+  min_x = std::min(min_x, New_Bound.min_x);
+  max_y = std::max(max_y, New_Bound.max_y);
+  min_y = std::min(min_y, New_Bound.min_y);
+  size_x = max_x - min_x;
+  size_y = max_y - min_y;
+  if( ((size_y - size_y_last) > 0.05) || ((size_x - size_x_last) > 0.05))
   {
-    max_x = std::max(max_x, New_Bound.max_x);
-    min_x = std::min(min_x, New_Bound.min_x);
-    float size_x_last = size_x;
-    size_x = max_x - min_x;
-    if((size_x - size_x_last) > 0.05)
-    {
-      expanded = true;
-    }
+    expanded = true;
+    ROS_INFO("EXPANDED CANDIDATE");
+    ROS_INFO("min x: %f", min_x);
+    ROS_INFO("min y: %f", min_y);
+    ROS_INFO("max x: %f", max_x);
+    ROS_INFO("max y: %f", max_y);
   }
-  if(!size_y_cond)
-  {
-    max_y = std::max(max_y, New_Bound.max_y);
-    min_y = std::min(min_y, New_Bound.min_y);
-    size_y = max_y - min_y;
-    float size_y_last = size_y;
-    size_y = max_y - min_y;
-    if((size_y - size_y_last) > 0.05)
-    {
-      expanded = true;
-    }
-  }
-  update_size_conditions();
   return expanded;
 }
 

@@ -104,10 +104,11 @@ int fake_laser::insertPoints(geometry_msgs::Point pmin, geometry_msgs::Point pma
 
 void fake_laser::deleteBound(int first_index, int last_index, int bound_index, bool exitbool)
 {
+
     int dif_index = last_index - first_index;
     //clear points of cloud
     Cloud.points.erase(Cloud.points.begin() + first_index, Cloud.points.begin() + last_index);
-
+    ROS_INFO("DELETING POINTS: %d", dif_index);
     if (exitbool)
     {
       exitCloud.points.erase(exitCloud.points.begin(), exitCloud.points.begin() + dif_index);
@@ -129,6 +130,7 @@ void fake_laser::deleteBound(int first_index, int last_index, int bound_index, b
 
 void fake_laser::updateBoundlist( int vector_index, int total_new_points)
 {
+  ROS_INFO("UPDATING POINTS: %d", total_new_points);
   for (int i = vector_index + 1; i < bounds.size(); i++)
   {
     bounds[i] += total_new_points;
@@ -147,9 +149,6 @@ bool fake_laser::active_service(turtlebot_2dnav::fakeLaser::Request &req,
 
 void fake_laser::PublishCloud()
 {
-  //broadcaster.sendTransform(
-  //tf::StampedTransform( tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.0, 0.0, 0.2)),
-  //                      ros::Time(0),"map", "fakelaser"));
   // publish point cloud
   if(ON)
   {

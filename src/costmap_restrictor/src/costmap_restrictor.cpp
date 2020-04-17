@@ -24,15 +24,15 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
   origin_y = msg->info.origin.position.y;
 
   //TO BE DECIDED
-  //if (canRecalculate)
-  //{
-  //  if (recalculatequeue.size() > 0)
-  //  {
-  //    resetBound( recalculatequeue[0] );
-  //    queue.insert( queue.begin(), recalculatequeue[0] );
-  //    recalculatequeue.erase( recalculatequeue.begin() );
-  //  }
-  //}
+  if (canRecalculate)
+  {
+    if (recalculatequeue.size() > 0)
+    {
+      resetBound( recalculatequeue[0] );
+      queue.insert( queue.begin(), recalculatequeue[0] );
+      recalculatequeue.erase( recalculatequeue.begin() );
+    }
+  }
 
   if(matchqueue.size() > 0)
   {
@@ -40,7 +40,7 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
     if( matchBound(matchqueue[0], msg) )
     {
       turtlebot_2dnav::match_bound matched_bound_;
-      ROS_INFO("BOUND MATCHED");
+      //ROS_INFO("BOUND MATCHED");
       if(matchqueue[0].vertical)
       {
         matched_bound_.pointleft = matchqueue[0].point_left_max;
@@ -57,7 +57,7 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
       matched_bound_.color = matchqueue[0].color;
       match_bound_pub.publish(matched_bound_);
       recalculate_database_index(matchqueue[0].database_index, matchqueue[0].color);
-      ROS_INFO("BOUND COLOR: %d", matchqueue[0].color);
+      //ROS_INFO("BOUND COLOR: %d", matchqueue[0].color);
       //PUBLISH TO DATABASE!
       if(matchqueue[0].restriction) queue.push_back(matchqueue[0]);
       matchqueue.erase( matchqueue.begin() );
@@ -66,7 +66,7 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
     {
       if(matchqueue[0].match_count >= max_match_count/2)
       {
-        ROS_INFO("looking for a new center");
+        //ROS_INFO("looking for a new center");
         matchqueue[0].center_LETHAL = 2;
       }
       matchqueue[0].match_count++;
@@ -84,31 +84,13 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
       not_matched_bound_.matched = false;
       match_bound_pub.publish(not_matched_bound_);
       recalculate_database_index(matchqueue[0].database_index, matchqueue[0].color);
-      ROS_INFO ("bound not matched, erasing matchqueue");
+      //ROS_INFO ("bound not matched, erasing matchqueue");
       matchqueue.erase( matchqueue.begin() );
     }
   }
 
   if(queue.size() > 0)
   {
-    //save a copy of last bounds limit to check if any update
-    geometry_msgs::Point l_min = queue[0].point_left_min;
-    geometry_msgs::Point l_max = queue[0].point_left_max;
-    geometry_msgs::Point r_min = queue[0].point_right_min;
-    geometry_msgs::Point r_max = queue[0].point_right_max;
-
-    //CHECK IF NEED TO RECALCULATE
-    //Two cases:
-    //if (queue[0].count > max_iteration)
-    //{restrict
-    //  if (queue[0].matched && !queue[0].exit)
-    //  {
-    //    queue[0].recalculate = true;
-    //    recalculatequeue.push_back( queue[0] );
-    //    queue.erase( queue.begin() );
-    //    return;
-    //  }
-    //}
 
     //findInCostmap parameters:
         // - obstacle/limit
@@ -118,84 +100,101 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
         // - perpendicular / paralel
         // - left / right
 
-    int count = 0;
-    geometry_msgs::Point costmap_coords;
-    //FIND THE CLOSER OBSTACLE IN LEFT DIRECTION
-    if(queue[0].recalculateleft)
+    //CHECK IF NEED TO RECALCULATE
+    //Two cases:
+    if (queue[0].count > max_recalculate_count && !queue[0].exit)
     {
-      if (queue[0].vertical)
-      {
-        if(queue[0].laser_index != -1 || queue[0].recalculate) costmap_coords = MapToCostmap(queue[0].point_left_min);
-        //IF IS A RESIZE START COUNTING FROM THE LIMIT
-        else costmap_coords = MapToCostmap(queue[0].point_left_max);
-      }
-      else
-      {
-        if(queue[0].laser_index != -1 || queue[0].recalculate) costmap_coords = MapToCostmap(queue[0].point_left_max);
-        else costmap_coords = MapToCostmap(queue[0].point_left_min);
-      }
-      count = findInCostmap(queue[0], true, msg, costmap_coords, max_count_findParalelObstacle, false, true);
-      if ( count < max_count_findParalelObstacle && !unknown_limit)
-      {
-        queue[0].recalculateleft = false;
-        ROS_INFO("NO NEED TO RECALCULATE LEFT");
-      }
+        recalculatequeue.push_back( queue[0] );
+        queue.erase( queue.begin() );
+        ROS_INFO("Sending to recalculate queue");
+        return;
     }
 
-    //FIND THE CLOSER OBSTACLE IN RIGHT DIRECTION
-    if(queue[0].recalculateright)
-    {
-      if (queue[0].vertical)
-      {
-        if(queue[0].laser_index != -1 || queue[0].recalculate) costmap_coords = MapToCostmap(queue[0].point_right_max);
-        else costmap_coords = MapToCostmap(queue[0].point_right_min);
-      }
-      else
-      {
-        if(queue[0].laser_index != -1 || queue[0].recalculate) costmap_coords = MapToCostmap(queue[0].point_right_min);
-        else costmap_coords = MapToCostmap(queue[0].point_right_max);
-      }
-      count = findInCostmap(queue[0], true, msg, costmap_coords, max_count_findParalelObstacle, false, false);
-      if ( count < max_count_findParalelObstacle && !unknown_limit)
-      {
-        queue[0].recalculateright = false;
-        ROS_INFO("NO NEED TO RECALCULATE RIGHT");
-      }
-    }
-
-    bound_.index = queue[0].laser_index;
-    bound_.pointleftmin = queue[0].point_left_min;
-    bound_.pointleftmax = queue[0].point_left_max;
-    bound_.pointrightmin = queue[0].point_right_min;
-    bound_.pointrightmax = queue[0].point_right_max;
-    bound_.isvertical = queue[0].vertical;
-    bound_.exit = queue[0].exit;
-
-    //IF FIRST PROCESS
-    if (queue[0].laser_index  == -1)
-    {
-      queue[0].laser_index = laser_index;
-      bound_.index = queue[0].laser_index;
-      bound_.resize = false;
-      fake_bound_pub.publish(bound_);
-      laser_index++;
-    }
-
-    //IF ANY UPDATE ON ONE SIDES (and not first time) PUBLISH
-    else if( needUpdate(queue[0], l_min, l_max, r_min, r_max) )
-    {
-      ROS_INFO("PUBLISHING UPDATE!");
-      bound_.resize = true;
-      fake_bound_pub.publish(bound_);
-    }
-
-    queue[0].recalculate = false;
-    queue[0].count++;
-    if (queue[0].recalculateleft || queue[0].recalculateright) std::rotate(queue.begin(), queue.begin() + 1, queue.end());
     else
     {
-      queue.erase( queue.begin() );
-      ROS_INFO("good bound, deleted from queue");
+      //save a copy of last bounds limit to check if any update
+      geometry_msgs::Point l_min = queue[0].point_left_min;
+      geometry_msgs::Point l_max = queue[0].point_left_max;
+      geometry_msgs::Point r_min = queue[0].point_right_min;
+      geometry_msgs::Point r_max = queue[0].point_right_max;
+
+      int count = 0;
+      geometry_msgs::Point costmap_coords;
+      //FIND THE CLOSER OBSTACLE IN LEFT DIRECTION
+      if(queue[0].recalculateleft)
+      {
+        if (queue[0].vertical)
+        {
+          if(queue[0].laser_index != -1) costmap_coords = MapToCostmap(queue[0].point_left_min);
+          //IF IS A RESIZE START COUNTING FROM THE LIMIT
+          else costmap_coords = MapToCostmap(queue[0].point_left_max);
+        }
+        else
+        {
+          if(queue[0].laser_index != -1) costmap_coords = MapToCostmap(queue[0].point_left_max);
+          else costmap_coords = MapToCostmap(queue[0].point_left_min);
+        }
+        count = findInCostmap(queue[0], true, msg, costmap_coords, max_count_findParalelObstacle, false, true);
+        if ( count < max_count_findParalelObstacle && !unknown_limit)
+        {
+          queue[0].recalculateleft = false;
+          //ROS_INFO("NO NEED TO RECALCULATE LEFT");
+        }
+      }
+
+      //FIND THE CLOSER OBSTACLE IN RIGHT DIRECTION
+      if(queue[0].recalculateright)
+      {
+        if (queue[0].vertical)
+        {
+          if(queue[0].laser_index != -1) costmap_coords = MapToCostmap(queue[0].point_right_max);
+          else costmap_coords = MapToCostmap(queue[0].point_right_min);
+        }
+        else
+        {
+          if(queue[0].laser_index != -1) costmap_coords = MapToCostmap(queue[0].point_right_min);
+          else costmap_coords = MapToCostmap(queue[0].point_right_max);
+        }
+        count = findInCostmap(queue[0], true, msg, costmap_coords, max_count_findParalelObstacle, false, false);
+        if ( count < max_count_findParalelObstacle && !unknown_limit)
+        {
+          queue[0].recalculateright = false;
+          //ROS_INFO("NO NEED TO RECALCULATE RIGHT");
+        }
+      }
+
+      bound_.index = queue[0].laser_index;
+      bound_.pointleftmin = queue[0].point_left_min;
+      bound_.pointleftmax = queue[0].point_left_max;
+      bound_.pointrightmin = queue[0].point_right_min;
+      bound_.pointrightmax = queue[0].point_right_max;
+      bound_.isvertical = queue[0].vertical;
+      bound_.exit = queue[0].exit;
+
+      //IF FIRST PROCESS
+      if (queue[0].laser_index  == -1)
+      {
+        queue[0].laser_index = laser_index;
+        bound_.index = queue[0].laser_index;
+        bound_.resize = false;
+        fake_bound_pub.publish(bound_);
+        laser_index++;
+      }
+
+      //IF ANY UPDATE ON ONE SIDES (and not first time) PUBLISH
+      else if( needUpdate(queue[0], l_min, l_max, r_min, r_max) )
+      {
+        //ROS_INFO("PUBLISHING UPDATE!");
+        bound_.resize = true;
+        fake_bound_pub.publish(bound_);
+      }
+      queue[0].count++;
+      if (queue[0].recalculateleft || queue[0].recalculateright) std::rotate(queue.begin(), queue.begin() + 1, queue.end());
+      else
+      {
+        queue.erase( queue.begin() );
+        //ROS_INFO("good bound, deleted from queue");
+      }
     }
   }
 }
@@ -213,7 +212,6 @@ bool CostmapRes::RestrictService(turtlebot_2dnav::restrictCostmap::Request &req,
 
   matchqueue.push_back(New_Bound);
   //check that we sent as exit the correct bound inserting it at the begin
-  //queue.insert(queue.begin(), restringed_zone);
   res.received = true;
   return res.received;
 }
@@ -269,16 +267,11 @@ int CostmapRes::findInCostmap(CostmapRes::Bound &_bound, bool obstacle,
         else costmap_coords.y += acum;
         index_ = getIndex(costmap_coords);
         value = msg->data[index_];
-        //ROS_INFO("values: %c",value);
       }
       if (value == -1)
       {
-        //ROS_INFO("UNKNOWN VALUE: %c", value);
-        //ROS_INFO("UNKNOWN END");
         unknown_limit = true;
         geometry_msgs::Point unkP = CostmapToMap( indexToCostmap(index_) );
-        //ROS_INFO("Point x: %f", unkP.x);
-        //ROS_INFO("Point y: %f", unkP.y);
       }
       //UPDATE THE LIMIT OF THE OBSTACLE FOUND
       if (positiveDirection)
@@ -305,7 +298,7 @@ int CostmapRes::findInCostmap(CostmapRes::Bound &_bound, bool obstacle,
       index_ = getIndex(costmap_coords);
       value = msg->data[index_];
     }
-    if(count == max_count) ROS_INFO ("UNFINISHED OBJECT");
+    //if(count == max_count) ROS_INFO ("UNFINISHED OBJECT");
 
 
     //UPDATE THE LIMIT OF THE OBSTACLE FOUND
@@ -340,7 +333,7 @@ bool CostmapRes::matchBound(CostmapRes::Bound &_bound, const nav_msgs::Occupancy
     costmap_coords = MapToCostmap(_bound.center_point);
     geometry_msgs::Point Limit;
     _bound.center_found = true;
-    ROS_INFO("CENTER FOUND");
+    //ROS_INFO("CENTER FOUND");
     //FIND LIMITS OF THE SELECTED OBSTACLE
     //left limit
     _bound.size_count += findInCostmap(_bound, false, msg, costmap_coords, max_count_findLimits, false, true);
@@ -364,7 +357,7 @@ bool CostmapRes::matchBound(CostmapRes::Bound &_bound, const nav_msgs::Occupancy
     //IF IS A CORNER DONT NEED TO RECALCULATE LIMITS!
     if (left_corner)
     {
-      ROS_INFO("IS LEFT CORNER!");
+      //ROS_INFO("IS LEFT CORNER!");
       _bound.recalculateleft = false;
       if(_bound.vertical) _bound.point_left_min = _bound.point_left_max;
       else _bound.point_left_max = _bound.point_left_min;
@@ -396,28 +389,28 @@ bool CostmapRes::matchBound(CostmapRes::Bound &_bound, const nav_msgs::Occupancy
     //IF IS A CORNER DONT NEED TO RECALCULATE LIMITS!
     if (right_corner)
     {
-      ROS_INFO("IS RIGHT CORNER!");
+      //ROS_INFO("IS RIGHT CORNER!");
       _bound.recalculateright = false;
       if(_bound.vertical) _bound.point_right_max = _bound.point_right_min;
       else _bound.point_right_min = _bound.point_right_max;
     }
   }
-  else ROS_INFO("CENTER NOT FOUND");
+//  else ROS_INFO("CENTER NOT FOUND");
 
-  ROS_INFO("bound size: %d", _bound.size_count);
+  //ROS_INFO("bound size: %d", _bound.size_count);
   if(_bound.center_found)
   {
     if (_bound.size_count > min_count_size)
     {
       matched = true;
-      ROS_INFO("BOUND MATCHED");
+      //ROS_INFO("BOUND MATCHED");
       //if bound matched recalculate the center based on the limits!
-      ROS_INFO("Last center x: %f", _bound.center_point.x);
-      ROS_INFO("Last center y: %f", _bound.center_point.y);
+      //ROS_INFO("Last center x: %f", _bound.center_point.x);
+      //ROS_INFO("Last center y: %f", _bound.center_point.y);
       if(_bound.vertical) _bound.center_point.x = (_bound.point_right_min.x + _bound.point_left_max.x) / 2;
       else _bound.center_point.y = (_bound.point_left_min.y + _bound.point_right_max.y) / 2;
-      ROS_INFO("New center x: %f", _bound.center_point.x);
-      ROS_INFO("New center y: %f", _bound.center_point.y);
+      //ROS_INFO("New center x: %f", _bound.center_point.x);
+      //ROS_INFO("New center y: %f", _bound.center_point.y);
     }
     else
     {
@@ -431,11 +424,31 @@ bool CostmapRes::matchBound(CostmapRes::Bound &_bound, const nav_msgs::Occupancy
 
 void CostmapRes::resetBound(CostmapRes::Bound &actual_bound)
 {
-  actual_bound.center_found = false;
-  actual_bound.matched = false;
-  actual_bound.size_count = 0;
+  ROS_INFO("RESETING BOUND");
+  actual_bound.count = 0;
   actual_bound.recalculateleft = true;
   actual_bound.recalculateright = true;
+  if(actual_bound.vertical)
+  {
+    actual_bound.point_right_max = actual_bound.point_right_min;
+    actual_bound.point_left_min = actual_bound.point_left_max;
+  }
+  else
+  {
+    actual_bound.point_right_min = actual_bound.point_right_max;
+    actual_bound.point_left_max = actual_bound.point_left_min;
+  }
+  //SEND THE INITIAL SIZE OF THE BOUND TO FAKE LASER
+  bound_.index = actual_bound.laser_index;
+  bound_.pointleftmin = actual_bound.point_left_min;
+  bound_.pointleftmax = actual_bound.point_left_max;
+  bound_.pointrightmin = actual_bound.point_right_min;
+  bound_.pointrightmax = actual_bound.point_right_max;
+  bound_.isvertical = actual_bound.vertical;
+  bound_.exit = actual_bound.exit;
+  if(bound_.exit) ROS_INFO ("Fail, can not reset the exit right now");
+  bound_.resize = true;
+  fake_bound_pub.publish(bound_);
 }
 
 bool CostmapRes::checkifCorner(CostmapRes::Bound &_bound, geometry_msgs::Point costmap_coords,
