@@ -165,49 +165,51 @@ void DatabaseNode::camera_transformCallback(ros_img_processor::camera_POI_msg ms
   New_Point_notify = true;
 }
 
-void DatabaseNode::PublishMarkers(ROI New_ROI, bool New_ROI_notify)
+void DatabaseNode::PublishMarkers(geometry_msgs::Point pointleft_, geometry_msgs::Point pointright_, int color_)
 {
-  if(New_ROI_notify)
+  switch(color_)
   {
-    switch(New_ROI.color)
-    {
-      case 0:
-        markers.color.r = 1.0;
-        markers.color.g = 0.0;
-        markers.color.b = 0.0;
-        break;
-      case 1:
-        markers.color.r = 0.0;
-        markers.color.g = 1.0;
-        markers.color.b = 0.0;
-        break;
-      case 2:
-        markers.color.r = 0.0;
-        markers.color.g = 0.0;
-        markers.color.b = 1.0;
-        break;
-    }
-    //database_ptr->at(database_size).marker_index = index;
-
-    markers.color.a = 1.0;
-    markers.scale.x = 1.0;
-    markers.scale.y = 1.0;
-    markers.scale.z = 1.0;
-    markers.colors.push_back(markers.color);
-    geometry_msgs::Point publish_point;
-    publish_point.x = New_ROI.center_x;
-    publish_point.y = New_ROI.center_y;
-    publish_point.z = 0.15;
-    markers.points.push_back(publish_point);
+    case 0:
+      markers.color.r = 1.0;
+      markers.color.g = 0.0;
+      markers.color.b = 0.0;
+    break;
+    case 1:
+      markers.color.r = 0.0;
+      markers.color.g = 1.0;
+      markers.color.b = 0.0;
+    break;
+    case 2:
+      markers.color.r = 0.0;
+      markers.color.g = 0.0;
+      markers.color.b = 1.0;
+    break;
   }
+  //database_ptr->at(database_size).marker_index = index;
+
+  markers.color.a = 1.0;
+  markers.scale.x = 1.0;
+  //markers.scale.y = 1.0;
+  //markers.scale.z = 1.0;
+  markers.colors.push_back(markers.color);
+  markers.colors.push_back(markers.color);
+  //publish_point.x = New_ROI.center_x;
+  //publish_point.y = New_ROI.center_y;
+  //publish_point.z = 0.15;
+  //markers.points.push_back(publish_point);
+
+  markers.points.push_back(pointleft_);
+  markers.points.push_back(pointright_);
+  markers.pose.orientation.w = 1.0;
+
 
   markers.header.frame_id = "map";
-  markers.header.stamp = ros::Time::now();
+  markers.header.stamp = ros::Time::now(  );
   markers.scale.x = 0.2;
-  markers.scale.y = 0.2;
-  markers.scale.z = 0.2;
-  markers.pose.orientation.w = 1;
-  markers.type = visualization_msgs::Marker::SPHERE_LIST;
+  //markers.scale.y = 0.2;
+  //markers.scale.z = 0.2;
+  //markers.pose.orientation.w = 1;
+  markers.type = visualization_msgs::Marker::LINE_LIST;
   markers_pub.publish(markers);
 
 
@@ -281,11 +283,11 @@ bool DatabaseNode::Bound::inRange(float new_max_x, float new_max_y, float new_mi
   if (vertical)
   {
     tol_y = 0.4;
-    tol_x = 0.05;
+    tol_x = 0.00;
   }
   else
   {
-    tol_y = 0.05;
+    tol_y = 0.00;
     tol_x = 0.4;
   }
 
@@ -361,7 +363,7 @@ void DatabaseNode::match_boundCallback(turtlebot_2dnav::match_bound bound_matche
     }
     if(isnewROI)
     {
-      PublishMarkers(New_ROI, true);
+      PublishMarkers(bound_matched.pointleft, bound_matched.pointright, bound_matched.color);
       PublishROI(New_ROI);
     }
     //else ROS_INFO("MATCHED TWICE");
@@ -477,9 +479,12 @@ void DatabaseNode::Bound::update_size_conditions()
 bool DatabaseNode::carrying_person_service(turtlebot_2dnav::CarryingPerson::Request &req, turtlebot_2dnav::CarryingPerson::Response &res)
 {
   int index = req.person.index;
-  markers.colors[index].r = 1.0;
-  markers.colors[index].g = 1.0;
-  markers.colors[index].b = 1.0;
+  markers.colors[2*index].r = 1.0;
+  markers.colors[2*index].g = 1.0;
+  markers.colors[2*index].b = 1.0;
+  markers.colors[2*index+1].r = 1.0;
+  markers.colors[2*index+1].g = 1.0;
+  markers.colors[2*index+1].b = 1.0;
   markers_pub.publish(markers);
   res.received = true;
 }

@@ -123,7 +123,7 @@ class DatabaseNode
 
     void PublishROI(ROI New_ROI);
 
-    void PublishMarkers(ROI New_ROI, bool New_ROI_notify);
+    void PublishMarkers(geometry_msgs::Point pointleft_, geometry_msgs::Point pointright_, int color_);
 
     bool checkifisNew(std::vector<ROI> &database, ROI New_ROI);
 

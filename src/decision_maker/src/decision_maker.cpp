@@ -358,9 +358,9 @@ void Decision::inicMarkerCarryingPerson()
   marker_carrying_person.color.g = 0.0;
   marker_carrying_person.color.b = 1.0;
   marker_carrying_person.color.a = 1.0;
-  marker_carrying_person.scale.x = 0.2;
-  marker_carrying_person.scale.y = 0.2;
-  marker_carrying_person.scale.z = 0.2;
+  marker_carrying_person.scale.x = 0.4;
+  marker_carrying_person.scale.y = 0.4;
+  marker_carrying_person.scale.z = 0.4;
   marker_carrying_person.pose.orientation.w = 1;
   marker_carrying_person.type = visualization_msgs::Marker::SPHERE_LIST;
 
