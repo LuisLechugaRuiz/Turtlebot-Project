@@ -895,13 +895,8 @@ costmap_2d_LIB_DEPENDS:STATIC=general;/usr/lib/x86_64-linux-gnu/libboost_system.
 //Value Computed by CMake
 costmap_2d_SOURCE_DIR:STATIC=/home/luis/Turtlebot-Project/src/navigation/costmap_2d
 
-//The directory containing a CMake configuration file for costmap_restrictor/fake_bound.
-costmap_restrictor/fake_bound_DIR:PATH=costmap_restrictor/fake_bound_DIR-NOTFOUND
-
 //Value Computed by CMake
 costmap_restrictor_BINARY_DIR:STATIC=/home/luis/Turtlebot-Project/build/costmap_restrictor
-
-costmap_restrictor_DIR:PATH=
 
 //Value Computed by CMake
 costmap_restrictor_SOURCE_DIR:STATIC=/home/luis/Turtlebot-Project/src/costmap_restrictor

@@ -1,2 +1,0 @@
-set(costmap_restrictor_MESSAGE_FILES "msg/fake_bound.msg")
-set(costmap_restrictor_SERVICE_FILES "")

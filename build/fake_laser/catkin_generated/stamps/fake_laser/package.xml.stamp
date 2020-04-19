@@ -21,13 +21,12 @@
   <build_depend>geometry_msgs</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>std_msgs</build_depend>
-  <build_depend>turtlebot_2dnav</build_depend>
   <build_depend>costmap_2d</build_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>std_msgs</exec_depend>
-  <exec_depend>turtlebot_2dnav</exec_depend>
   <exec_depend>message_runtime</exec_depend>
+  <depend>turtlebot_2dnav</depend>
   <depend>pcl_ros</depend>
   <depend>tf</depend>
 

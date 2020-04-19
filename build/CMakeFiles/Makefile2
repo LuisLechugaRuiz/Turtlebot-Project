@@ -19681,7 +19681,7 @@ fake_laser/preinstall:
 # Target rules for target fake_laser/CMakeFiles/fake_laser.dir
 
 # All Build rule for target.
-fake_laser/CMakeFiles/fake_laser.dir/all:
+fake_laser/CMakeFiles/fake_laser.dir/all: decision_maker/CMakeFiles/decision_maker_gencpp.dir/all
 	$(MAKE) -f fake_laser/CMakeFiles/fake_laser.dir/build.make fake_laser/CMakeFiles/fake_laser.dir/depend
 	$(MAKE) -f fake_laser/CMakeFiles/fake_laser.dir/build.make fake_laser/CMakeFiles/fake_laser.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/luis/Turtlebot-Project/build/CMakeFiles --progress-num=29 "Built target fake_laser"

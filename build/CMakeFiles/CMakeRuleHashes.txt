@@ -22,7 +22,6 @@ f966c7e4e0fab351389006e4a71a619e /home/luis/Turtlebot-Project/devel/include/navf
 b287ef0723b4d54028a3d0cc7ef3a1c0 /home/luis/Turtlebot-Project/devel/include/turtlebot_2dnav/ROI.h
 808c2e03b77df6ec6b3a47790d008176 /home/luis/Turtlebot-Project/devel/include/turtlebot_2dnav/askNewFrontier.h
 9c0a5f5fa1a30e26d0da25b91188c2be /home/luis/Turtlebot-Project/devel/include/turtlebot_2dnav/bounds_point_size.h
-343a17acf6782812644a55d9df0ab6d3 /home/luis/Turtlebot-Project/devel/include/turtlebot_2dnav/clearCostmap.h
 78e44eb69095cdf76c3ba9932999646f /home/luis/Turtlebot-Project/devel/include/turtlebot_2dnav/fakeLaser.h
 38472709ffb56e3e85ea0d4e544d48dd /home/luis/Turtlebot-Project/devel/include/turtlebot_2dnav/fake_bound.h
 b35d6479572c091692fa25286c4084bc /home/luis/Turtlebot-Project/devel/include/turtlebot_2dnav/frontier.h
@@ -68,7 +67,6 @@ c8584c5de8b26fb6155a9e0d5efc68d9 /home/luis/Turtlebot-Project/devel/lib/python2.
 1a66eace8b75f1f413c4552c5d4db1d0 /home/luis/Turtlebot-Project/devel/lib/python2.7/dist-packages/turtlebot_2dnav/srv/_CarryingPerson.py
 a32b94c818e9ae94ab4495c9fefd9721 /home/luis/Turtlebot-Project/devel/lib/python2.7/dist-packages/turtlebot_2dnav/srv/__init__.py
 0870746fb5869d3936ed1c0b35548982 /home/luis/Turtlebot-Project/devel/lib/python2.7/dist-packages/turtlebot_2dnav/srv/_askNewFrontier.py
-53f76ea28084ffa588f7639f462c7ac1 /home/luis/Turtlebot-Project/devel/lib/python2.7/dist-packages/turtlebot_2dnav/srv/_clearCostmap.py
 a35226844e056943005dc81f22588736 /home/luis/Turtlebot-Project/devel/lib/python2.7/dist-packages/turtlebot_2dnav/srv/_fakeLaser.py
 0b0e3e7c70a353cfe57c790c3e93272f /home/luis/Turtlebot-Project/devel/lib/python2.7/dist-packages/turtlebot_2dnav/srv/_recalculateBound.py
 9f9f2e70263daf5ad6ee482cf61cc44d /home/luis/Turtlebot-Project/devel/lib/python2.7/dist-packages/turtlebot_2dnav/srv/_restrictCostmap.py
@@ -107,7 +105,6 @@ a1a090fbb78f97bbf272e1a30751330e /home/luis/Turtlebot-Project/devel/share/common
 5a0f1345b25033a5f9edc33064738219 /home/luis/Turtlebot-Project/devel/share/common-lisp/ros/turtlebot_2dnav/msg/match_bound.lisp
 df72347113b457ce5181558075c8691a /home/luis/Turtlebot-Project/devel/share/common-lisp/ros/turtlebot_2dnav/srv/CarryingPerson.lisp
 534f3492367a50b055b695e6d7cf3ddb /home/luis/Turtlebot-Project/devel/share/common-lisp/ros/turtlebot_2dnav/srv/askNewFrontier.lisp
-405e8cf133bfee3b0329297ba9567944 /home/luis/Turtlebot-Project/devel/share/common-lisp/ros/turtlebot_2dnav/srv/clearCostmap.lisp
 592e4ad957dfb4ecef16d8dcbca6ed50 /home/luis/Turtlebot-Project/devel/share/common-lisp/ros/turtlebot_2dnav/srv/fakeLaser.lisp
 5b6724f09524e5004f0659a3b34fe13e /home/luis/Turtlebot-Project/devel/share/common-lisp/ros/turtlebot_2dnav/srv/recalculateBound.lisp
 5e9c658126f722809815bd80f4edcf6c /home/luis/Turtlebot-Project/devel/share/common-lisp/ros/turtlebot_2dnav/srv/restrictCostmap.lisp
@@ -142,7 +139,6 @@ f7e5a9e8fe0d7ca5624eeb5e8715b1ba /home/luis/Turtlebot-Project/devel/share/gennod
 2a4f396e0fffef68a538b3f71aa75391 /home/luis/Turtlebot-Project/devel/share/gennodejs/ros/turtlebot_2dnav/msg/match_bound.js
 2d5d001a3f7dd2644d17a2b5b2a1f81e /home/luis/Turtlebot-Project/devel/share/gennodejs/ros/turtlebot_2dnav/srv/CarryingPerson.js
 115fafeec22f3d9a98e55b8c7b2d6392 /home/luis/Turtlebot-Project/devel/share/gennodejs/ros/turtlebot_2dnav/srv/askNewFrontier.js
-0c42c710d9e881b16ff22c2ab6126bce /home/luis/Turtlebot-Project/devel/share/gennodejs/ros/turtlebot_2dnav/srv/clearCostmap.js
 38067938da5af2b1bc53441c80e68309 /home/luis/Turtlebot-Project/devel/share/gennodejs/ros/turtlebot_2dnav/srv/fakeLaser.js
 c1d76a7f4e3503be14af791b08bc7312 /home/luis/Turtlebot-Project/devel/share/gennodejs/ros/turtlebot_2dnav/srv/recalculateBound.js
 b25100e5b5d42edf067b91187560f679 /home/luis/Turtlebot-Project/devel/share/gennodejs/ros/turtlebot_2dnav/srv/restrictCostmap.js
@@ -185,7 +181,6 @@ b93e8de32c408546e85d2bf718cdfa5c /home/luis/Turtlebot-Project/devel/share/roseus
 58367faecf48a604927fec083e35176b /home/luis/Turtlebot-Project/devel/share/roseus/ros/turtlebot_2dnav/msg/match_bound.l
 397c8aace24c4fa544b56860fe677e4b /home/luis/Turtlebot-Project/devel/share/roseus/ros/turtlebot_2dnav/srv/CarryingPerson.l
 e78df5d29d1aefaac5f905ec0366de70 /home/luis/Turtlebot-Project/devel/share/roseus/ros/turtlebot_2dnav/srv/askNewFrontier.l
-d3a93f72aacd37132b884d90334dc90f /home/luis/Turtlebot-Project/devel/share/roseus/ros/turtlebot_2dnav/srv/clearCostmap.l
 8a612dccbe8285b83f7c6bed210f8ab7 /home/luis/Turtlebot-Project/devel/share/roseus/ros/turtlebot_2dnav/srv/fakeLaser.l
 493f00878841d01047eaf7b4c786d2a5 /home/luis/Turtlebot-Project/devel/share/roseus/ros/turtlebot_2dnav/srv/recalculateBound.l
 16356eaa111e1397076bd514d26609b0 /home/luis/Turtlebot-Project/devel/share/roseus/ros/turtlebot_2dnav/srv/restrictCostmap.l
