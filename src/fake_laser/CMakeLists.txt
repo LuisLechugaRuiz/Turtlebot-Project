@@ -31,7 +31,7 @@ include_directories(
 
 add_executable(fake_laser ${SRCS})
 
-add_dependencies(fake_laser costmap_restrictor_gencpp)
+add_dependencies(fake_laser decision_maker_gencpp)
 
 target_link_libraries(fake_laser
    ${catkin_LIBRARIES}
