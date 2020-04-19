@@ -85,11 +85,11 @@ void DatabaseNode::process()
 
       if(!insideROI && !isCandidate)
       {
-        ROS_INFO("NEW CANDIDATE");
-        ROS_INFO("min x: %f", New_Bound.min_x);
-        ROS_INFO("min y: %f", New_Bound.min_y);
-        ROS_INFO("max x: %f", New_Bound.max_x);
-        ROS_INFO("max y: %f", New_Bound.max_y);
+        //ROS_INFO("NEW CANDIDATE");
+        //ROS_INFO("min x: %f", New_Bound.min_x);
+        //ROS_INFO("min y: %f", New_Bound.min_y);
+        //ROS_INFO("max x: %f", New_Bound.max_x);
+        //ROS_INFO("max y: %f", New_Bound.max_y);
         if (New_Bound.size_x > min_size)
         {
           //ROS_INFO("IS VERTICAL");
@@ -314,9 +314,9 @@ void DatabaseNode::match_bound(Bound bound_check, int can_index)
 {
   turtlebot_2dnav::restrictCostmap check_;
   check_.request.Point.x = (bound_check.max_x - bound_check.min_x) / 2 + bound_check.min_x;
-  ROS_INFO("Point x: %f", check_.request.Point.x);
+  //ROS_INFO("Point x: %f", check_.request.Point.x);
   check_.request.Point.y = (bound_check.max_y - bound_check.min_y) / 2 + bound_check.min_y;
-  ROS_INFO("Point y: %f", check_.request.Point.y);
+  //ROS_INFO("Point y: %f", check_.request.Point.y);
   check_.request.index = can_index;
   check_.request.isvertical = bound_check.vertical;
   check_.request.restrict = false;
@@ -413,11 +413,11 @@ bool DatabaseNode::Bound::expand_Bound(Bound New_Bound)
   if( ((size_y - size_y_last) > 0.05) || ((size_x - size_x_last) > 0.05))
   {
     expanded = true;
-    ROS_INFO("EXPANDED CANDIDATE");
-    ROS_INFO("min x: %f", min_x);
-    ROS_INFO("min y: %f", min_y);
-    ROS_INFO("max x: %f", max_x);
-    ROS_INFO("max y: %f", max_y);
+    //ROS_INFO("EXPANDED CANDIDATE");
+    //ROS_INFO("min x: %f", min_x);
+    //ROS_INFO("min y: %f", min_y);
+    //ROS_INFO("max x: %f", max_x);
+    //ROS_INFO("max y: %f", max_y);
   }
   return expanded;
 }
