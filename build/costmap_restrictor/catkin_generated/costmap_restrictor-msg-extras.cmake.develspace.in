@@ -1,0 +1,2 @@
+set(costmap_restrictor_MESSAGE_FILES "/home/luis/Turtlebot-Project/src/costmap_restrictor/msg/fake_bound.msg")
+set(costmap_restrictor_SERVICE_FILES "")

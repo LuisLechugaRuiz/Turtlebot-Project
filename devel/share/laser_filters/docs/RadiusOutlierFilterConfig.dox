@@ -1,0 +1,8 @@
+\subsubsection parameters ROS parameters
+
+Reads and maintains the following parameters on the ROS server
+
+- \b "~radius_search" : \b [double] Maximum allowed point distance min: 0.0, default: 0.4, max: 10.0
+- \b "~window" : \b [int] Number of consecutive measurements to consider min: 1, default: 1, max: 100
+- \b "~min_neighbors" : \b [int] Minimum number of neighbors min: 0, default: 20, max: 100
+

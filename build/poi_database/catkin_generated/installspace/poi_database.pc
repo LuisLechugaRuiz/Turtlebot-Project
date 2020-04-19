@@ -1,0 +1,8 @@
+prefix=/home/luis/Turtlebot-Project/install
+
+Name: poi_database
+Description: Description of poi_database
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: geometry_msgs roscpp std_msgs tf2_geometry_msgs message_runtime ros_img_processor turtlebot_2dnav tf
