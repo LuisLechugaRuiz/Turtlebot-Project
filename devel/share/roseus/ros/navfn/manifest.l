@@ -20,6 +20,5 @@
 (ros::load-ros-package "tf")
 (ros::load-ros-package "tf2_msgs")
 (ros::load-ros-package "topic_tools")
-(ros::load-ros-package "turtlebot_2dnav")
 (ros::load-ros-package "visualization_msgs")
 (ros::load-ros-package "navfn")
