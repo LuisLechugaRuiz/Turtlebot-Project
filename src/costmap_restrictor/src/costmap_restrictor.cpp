@@ -3,15 +3,24 @@
 CostmapRes::CostmapRes() :
   nh(ros::this_node::getName())
   {
-  std::string costmap_topic;
-  std::string footprint_topic;
-  nh.param("costmap_topic", costmap_topic, std::string("costmap"));
-  restrict_server = nh.advertiseService("restrict", &CostmapRes::RestrictService, this);
-  recalculate_server = nh.advertiseService("recalculate", &CostmapRes::RecalculateService, this);
-  costmap_sub_ = n.subscribe(costmap_topic, 1000, &CostmapRes::ProcessCostmap, this);
-  fake_bound_pub = nh.advertise<turtlebot_2dnav::fake_bound>("fake_bound", 10);
-  match_bound_pub = nh.advertise<turtlebot_2dnav::match_bound>("match_bound", 10);
+    std::string costmap_topic;
+    std::string footprint_topic;
 
+    nh.param("costmap_topic", costmap_topic, std::string("costmap"));
+    nh.param("resolution", resolution, 0.095);
+    nh.param("max_count_findPerpendicularObstacle", max_count_findPerpendicularObstacle, 3);
+    nh.param("max_count_findParalelObstacle", max_count_findParalelObstacle, 10);
+    nh.param("max_count_findLimits", max_count_findLimits, 15);
+    nh.param("min_count_size", min_count_size, 12);
+    nh.param("max_count_size", max_count_size, 16);
+    nh.param("max_match_count", max_match_count, 50);
+    nh.param("max_recalculate_count", max_recalculate_count, 10);
+
+    restrict_server = nh.advertiseService("restrict", &CostmapRes::RestrictService, this);
+    recalculate_server = nh.advertiseService("recalculate", &CostmapRes::RecalculateService, this);
+    costmap_sub_ = n.subscribe(costmap_topic, 1000, &CostmapRes::ProcessCostmap, this);
+    fake_bound_pub = nh.advertise<turtlebot_2dnav::fake_bound>("fake_bound", 10);
+    match_bound_pub = nh.advertise<turtlebot_2dnav::match_bound>("match_bound", 10);
 }
 
 
@@ -298,7 +307,7 @@ int CostmapRes::findInCostmap(CostmapRes::Bound &_bound, bool obstacle,
       index_ = getIndex(costmap_coords);
       value = msg->data[index_];
     }
-    //if(count == max_count) ROS_INFO ("UNFINISHED OBJECT");
+    //ROS_INFO("size paralel: %d", count);
 
 
     //UPDATE THE LIMIT OF THE OBSTACLE FOUND
@@ -400,10 +409,10 @@ bool CostmapRes::matchBound(CostmapRes::Bound &_bound, const nav_msgs::Occupancy
   //ROS_INFO("bound size: %d", _bound.size_count);
   if(_bound.center_found)
   {
-    if (_bound.size_count > min_count_size)
+    if (_bound.size_count >= min_count_size && _bound.size_count < max_count_size)
     {
       matched = true;
-      //ROS_INFO("BOUND MATCHED");
+      //ROS_INFO("size: %d", _bound.size_count);
       //if bound matched recalculate the center based on the limits!
       //ROS_INFO("Last center x: %f", _bound.center_point.x);
       //ROS_INFO("Last center y: %f", _bound.center_point.y);
@@ -431,12 +440,16 @@ void CostmapRes::resetBound(CostmapRes::Bound &actual_bound)
   if(actual_bound.vertical)
   {
     actual_bound.point_right_max = actual_bound.point_right_min;
+    actual_bound.point_right_max.x++;
     actual_bound.point_left_min = actual_bound.point_left_max;
+    actual_bound.point_left_min.x--;
   }
   else
   {
     actual_bound.point_right_min = actual_bound.point_right_max;
+    actual_bound.point_right_min.y--;
     actual_bound.point_left_max = actual_bound.point_left_min;
+    actual_bound.point_left_max.y++;
   }
   //SEND THE INITIAL SIZE OF THE BOUND TO FAKE LASER
   bound_.index = actual_bound.laser_index;
@@ -491,7 +504,6 @@ void CostmapRes::recalculate_database_index(int data_index, int data_color)
 bool CostmapRes::RecalculateService (turtlebot_2dnav::recalculateBound::Request &req,
                                      turtlebot_2dnav::recalculateBound::Response &res)
 {
-  waiting = 0;
   canRecalculate = req.recalculate;
   res.received = true;
   return true;

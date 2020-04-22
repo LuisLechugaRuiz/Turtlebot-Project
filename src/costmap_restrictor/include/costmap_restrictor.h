@@ -105,16 +105,13 @@ class CostmapRes
 
     //add all of this as a parameter?
     int max_count_findPerpendicularObstacle = 0.3 / resolution;
-    int max_count_findParalelObstacle = 5 / resolution;
+    int max_count_findParalelObstacle = 1.0 / resolution;
     int max_count_findLimits = 15;
-    int min_count_size = 1.0 / resolution;
-    int max_match_count = 10;
+    int min_count_size = 1.2 / resolution;
+    int max_count_size = 1.6 / resolution;
+    int max_match_count = 50;
     int max_recalculate_count = 10;
 
-    int max_iteration = 10;
-
-    int waiting = 0;
-    int wait_count = 5;
 
     // special values:
     unsigned char NO_OBSTACLE = 0; // NO obstacle
