@@ -9,6 +9,7 @@ fake_laser::fake_laser() :
   exitCloud.header.frame_id = "map";
   active_srv = nh.advertiseService("active", &fake_laser::active_service, this);
   bounds_list_pub = nh.advertise<turtlebot_2dnav::bounds_point_size>("bound_list", 1);
+  markers_pub = nh.advertise<visualization_msgs::Marker>("visualization_markers",10);
 }
 
 void fake_laser::boundsCallback(turtlebot_2dnav::fake_bound bound)
@@ -47,6 +48,7 @@ void fake_laser::Processqueue()
     //insert the new numbers of point in the bounds vector
     bounds.insert( bounds.begin() + queue[0].index, last_index );
     p_size.points_size.insert( p_size.points_size.begin() + queue[0].index, last_index );
+    updateMarker(queue[0].index, exitbool, queue[0].resize, queue[0].pointleftmin, queue[0].pointleftmax, queue[0].pointrightmin, queue[0].pointrightmax);
 
     //if resized update the bounds vector
     if(queue[0].resize) updateBoundlist(queue[0].index, last_index);
@@ -108,7 +110,7 @@ void fake_laser::deleteBound(int first_index, int last_index, int bound_index, b
     int dif_index = last_index - first_index;
     //clear points of cloud
     Cloud.points.erase(Cloud.points.begin() + first_index, Cloud.points.begin() + last_index);
-    ROS_INFO("DELETING POINTS: %d", dif_index);
+    //ROS_INFO("DELETING POINTS: %d", dif_index);
     if (exitbool)
     {
       exitCloud.points.erase(exitCloud.points.begin(), exitCloud.points.begin() + dif_index);
@@ -123,14 +125,14 @@ void fake_laser::deleteBound(int first_index, int last_index, int bound_index, b
         p_size.points_size[j] -= dif_index;
       }
     }
-      //clear the vector which contains the size of each bound
-      bounds.erase(bounds.begin() + bound_index);
-      p_size.points_size.erase(p_size.points_size.begin() + bound_index);
+    //clear the vector which contains the size of each bound
+    bounds.erase(bounds.begin() + bound_index);
+    p_size.points_size.erase(p_size.points_size.begin() + bound_index);
 }
 
 void fake_laser::updateBoundlist( int vector_index, int total_new_points)
 {
-  ROS_INFO("UPDATING POINTS: %d", total_new_points);
+  //ROS_INFO("UPDATING POINTS: %d", total_new_points);
   for (int i = vector_index + 1; i < bounds.size(); i++)
   {
     bounds[i] += total_new_points;
@@ -138,12 +140,68 @@ void fake_laser::updateBoundlist( int vector_index, int total_new_points)
   }
 }
 
+void fake_laser::updateMarker(int bound_index, bool exitbool, bool resize,
+                              geometry_msgs::Point pointleftmin_,
+                              geometry_msgs::Point pointleftmax_,
+                              geometry_msgs::Point pointrightmin_,
+                              geometry_msgs::Point pointrightmax_)
+{
+  update_marker = true;
+  markers.color.r = 0.0;
+  markers.color.g = 0.0;
+  markers.color.b = 0.0;
+  markers.color.a = 1.0;
+  markers.scale.x = 1.0;
+  //insert 4 times the same color (first and last point of the bound)
+  //ROS_INFO("Bound index: %d", bound_index);
+  if(resize)
+  {
+    markers_points[4*bound_index] =  pointleftmin_;
+    markers_points[4*bound_index + 1] = pointleftmax_;
+    markers_points[4*bound_index + 2] = pointrightmin_;
+    markers_points[4*bound_index + 3] = pointrightmax_;
+  }
+  else
+  {
+    markers_points.insert(markers_points.begin() + 4*bound_index, pointleftmin_);
+    markers_points.insert(markers_points.begin() + 4*bound_index + 1, pointleftmax_);
+    markers_points.insert(markers_points.begin() + 4*bound_index + 2, pointrightmin_);
+    markers_points.insert(markers_points.begin() + 4*bound_index + 3, pointrightmax_);
+  }
+  if(exitbool)
+  {
+    update_exit = true;
+    markers_exit.clear();
+    markers_exit.push_back(pointleftmin_);
+    markers_exit.push_back(pointleftmax_);
+    markers_exit.push_back(pointrightmin_);
+    markers_exit.push_back(pointrightmax_);
+  }
+  markers.header.frame_id = "map";
+  markers.pose.orientation.w = 1.0;
+  markers.scale.x = 0.2;
+  markers.type = visualization_msgs::Marker::LINE_LIST;
+}
 
 bool fake_laser::active_service(turtlebot_2dnav::fakeLaser::Request &req,
                             turtlebot_2dnav::fakeLaser::Response &res)
 {
   ON = req.active;
   res.received = true;
+  if(!ON)
+  {
+    markers.points.clear();
+    markers.colors.clear();
+    if(update_exit)
+    {
+      markers.points.insert(markers.points.begin(), markers_exit.begin(), markers_exit.end());
+      markers.colors.insert(markers.colors.begin(), 4, markers.color);
+      markers.header.frame_id = "map";
+      markers.header.stamp = ros::Time::now();
+    }
+    markers_pub.publish(markers);
+  }
+  else update_marker = true;
   return true;
 }
 
@@ -155,6 +213,17 @@ void fake_laser::PublishCloud()
     p_size.red_zones_active = true;
     Cloud.header.stamp = ros::Time::now().sec;
     laser_pub.publish(Cloud.makeShared());
+    if(update_marker)
+    {
+      markers.points.clear();
+      markers.colors.clear();
+      markers.points.insert(markers.points.begin(), markers_points.begin(), markers_points.end());
+      markers.colors.insert(markers.colors.begin(), markers_points.size(), markers.color);
+      markers.header.frame_id = "map";
+      markers.header.stamp = ros::Time::now();
+      markers_pub.publish(markers);
+      update_marker = false;
+    }
   }
   else
   {
