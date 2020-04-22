@@ -1,5 +1,10 @@
 <launch>
 
+<node pkg="costmap_restrictor" type="costmap_restrictor" respawn="false" name="costmap_restrictor" output="screen">
+    <rosparam file="$(find turtlebot_2dnav)/param/costmap_restrictor_params.yaml" command="load"/>
+</node>
+
+
 <node pkg="decision_maker" type="decision" respawn="false" name="decision_maker" output="screen">
    <rosparam file="$(find turtlebot_2dnav)/param/decision_maker_params.yaml" command="load"/>
 </node>
