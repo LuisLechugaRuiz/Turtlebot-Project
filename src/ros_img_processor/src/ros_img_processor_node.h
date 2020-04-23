@@ -33,6 +33,7 @@ class RosImgProcessorNode
         // subscribers to the image and camera info topics
         ros::Subscriber cloud_subs_;
         ros::Subscriber camera_info_subs_;
+	    
 
         //publishers
         image_transport::Publisher image_pub_;
@@ -47,9 +48,10 @@ class RosImgProcessorNode
 
         sensor_msgs::ImagePtr image;
         pcl::PointCloud<pcl::PointXYZ> depth;
+	//sensor_msgs::Image depth;
 
-    		//Camera matrix
-    		Eigen::Matrix3d matrixK_;
+    	//Camera matrix
+    	Eigen::Matrix3d matrixK_;
 
         //wished process rate, [hz]
         double rate_;
@@ -57,6 +59,7 @@ class RosImgProcessorNode
     protected:
         // callbacks
         void cloudCallback(const sensor_msgs::PointCloud2ConstPtr & _msg);
+        void depthCallback(const sensor_msgs::ImageConstPtr & _msg);
         void cameraInfoCallback(const sensor_msgs::CameraInfo & _msg);
 
     public:

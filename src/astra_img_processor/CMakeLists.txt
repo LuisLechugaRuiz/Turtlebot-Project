@@ -12,11 +12,10 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   image_transport
   cv_bridge
-  pcl_conversions
-  pcl_ros
   std_msgs
   geometry_msgs
   ros_img_processor
+  image_geometry
 )
 
 ## System dependencies are found with CMake's conventions
@@ -75,8 +74,7 @@ catkin_package(
             rospy
             image_transport
             cv_bridge
-            pcl_conversions
-            pcl_ros
+	    image_geometry
  )
 
 ###########
@@ -108,7 +106,7 @@ add_executable(astra_img_processor ${SRCS} )
 # set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
 
 ## Add cmake target dependencies of the executable
-add_dependencies(astra_img_processor ${astra_img_processor_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(astra_img_processor decision_maker_gencpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(astra_img_processor ${OpenCV_LIBS} ${catkin_LIBRARIES})

@@ -1,11 +1,9 @@
-<!-- Launches ros_img_processor in project maze-->
+<!-- Launches astra_img_processor -->
 
 <launch>
-
-<include file="$(find turtlebot_2dnav)/launch/turtlebot_world.launch"/>
-
+	<!--arg name="video_device"  default="/dev/video0" /-->
 	<arg name="show_image"  default="true" />
-
+    	
 
 	<!--Image processor-->
 	<node name="astra_img_processor"
@@ -13,6 +11,8 @@
 		type="astra_img_processor"
 		output="screen"
 		args="1">
+		<remap from="/astra_img_processor/image_in" to="/camera/rgb/image_raw"/>
+		<remap from="/astra_img_processor/image_depth_in" to="/camera/depth/image_raw"/>
 	</node>
 
 	<!-- display in/out image -->
@@ -24,6 +24,15 @@
 			respawn="false"
 			output="screen">
 			<remap from="image" to="camera/show"/>
+			<param name="autosize" value="false" />
+		</node>
+		<node
+			name="image_view_out"
+			pkg="image_view"
+			type="image_view"
+			respawn="false"
+			output="screen">
+			<remap from="image" to="/astra_img_processor/image_out"/>
 			<param name="autosize" value="false" />
 		</node>
 
