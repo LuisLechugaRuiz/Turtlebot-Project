@@ -111,21 +111,10 @@ void AstraImgProcessorNode::process()
 					pointright.z = depth.at<float>(uv_right);
 					
 					// point (x,y)
-					/*pointleft.x = pointleft.x * pointleft.z;
+					pointleft.x = pointleft.x * pointleft.z;
 					pointright.x = pointright.x * pointright.z;
 					pointleft.y = pointleft.y * pointleft.z;
-					pointright.y = pointright.y * pointright.z;*/
-
-/*
-					int pxy[2]={2,2};
-					pxy[0,0]=pointleft.x;
-					pxy[0,1]=pointleft.y;
-					pxy[1,0]=pointright.x;
-					pxy[1,1]=pointright.y;
-
-					int points3d[2]={3,3};
-                              		int pxyz[2]={3,3};
-					pxyz = cv::rgbd::depthTo3dSparse(cv_img_ptr_depth_->image,  cam_model_depth_.K_, pxy, points3d);*/
+					pointright.y = pointright.y * pointright.z;
 
 					//text with data
           				cv::putText(cv_img_out_.image, identify[i], rectanglecenter, CV_FONT_HERSHEY_DUPLEX, 2, (0,255,0), 10);
