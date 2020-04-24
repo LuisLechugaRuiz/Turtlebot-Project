@@ -133,6 +133,7 @@ void GlobalPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap,
 
         orientation_filter_ = new OrientationFilter();
 
+        plan_pub_query = private_nh.advertise<nav_msgs::Path>("planQuery", 1);
         plan_pub_ = private_nh.advertise<nav_msgs::Path>("plan", 1);
         potential_pub_ = private_nh.advertise<nav_msgs::OccupancyGrid>("potential", 1);
 
@@ -179,6 +180,7 @@ void GlobalPlanner::clearRobotCell(const geometry_msgs::PoseStamped& global_pose
 }
 
 bool GlobalPlanner::makePlanService(nav_msgs::GetPlan::Request& req, nav_msgs::GetPlan::Response& resp) {
+    query = true;
     makePlan(req.start, req.goal, resp.plan.poses);
 
     resp.plan.header.stamp = ros::Time::now();
@@ -307,6 +309,15 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
             ROS_ERROR("Failed to get a plan from potential when a legal potential was found. This shouldn't happen.");
         }
     }else{
+        geometry_msgs::PoseStamped fake_goal;
+        fake_goal.pose.position.x = 0;
+        fake_goal.pose.position.y = 0;
+        fake_goal.pose.position.z = 1000;
+        fake_goal.pose.orientation.w = 1;
+        fake_goal.header.stamp = ros::Time::now();
+        fake_goal.header.frame_id = frame_id_;
+        plan.clear();
+        plan.push_back(fake_goal);
         ROS_ERROR("Failed to get a plan.");
     }
 
@@ -314,6 +325,7 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
     orientation_filter_->processPath(start, plan);
 
     //publish the plan for visualization purposes
+    //HERE IS THE KEY, JUST PUBLISH IN TWO DIFFERENT TOPICS WHEN COMMING FROM SERVICE MAKE PLAN!
     publishPlan(plan);
     delete potential_array_;
     return !plan.empty();
@@ -338,7 +350,8 @@ void GlobalPlanner::publishPlan(const std::vector<geometry_msgs::PoseStamped>& p
         gui_path.poses[i] = path[i];
     }
 
-    plan_pub_.publish(gui_path);
+    if(query) plan_pub_query.publish(gui_path);
+    else plan_pub_.publish(gui_path);
 }
 
 bool GlobalPlanner::getPlanFromPotential(double start_x, double start_y, double goal_x, double goal_y,

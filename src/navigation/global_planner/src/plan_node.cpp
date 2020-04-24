@@ -66,11 +66,11 @@ class PlannerWithCostmap : public GlobalPlanner {
 
 bool PlannerWithCostmap::makePlanService(navfn::MakeNavPlan::Request& req, navfn::MakeNavPlan::Response& resp) {
     vector<PoseStamped> path;
-
     req.start.header.frame_id = "map";
     req.goal.header.frame_id = "map";
     bool success = makePlan(req.start, req.goal, path);
     resp.plan_found = success;
+
     if (success) {
         resp.path = path;
     }
@@ -87,9 +87,17 @@ void PlannerWithCostmap::poseCallback(const rm::PoseStamped::ConstPtr& goal) {
 
 PlannerWithCostmap::PlannerWithCostmap(string name, Costmap2DROS* cmap) :
         GlobalPlanner(name, cmap->getCostmap(), cmap->getGlobalFrameID()) {
+
     ros::NodeHandle private_nh("~");
+
+    //Create another nodehandle with his own queue to answer the make_plan service, this way we dont block the plan calculation.
+    ros::NodeHandle private_second_nh("~");
+
+    //assign the nodehandle to the srv_queue
+    private_second_nh.setCallbackQueue(&srv_queue);
+
     cmap_ = cmap;
-    make_plan_service_ = private_nh.advertiseService("make_plan", &PlannerWithCostmap::makePlanService, this);
+    make_plan_service_ = private_second_nh.advertiseService("make_plan", &PlannerWithCostmap::makePlanService, this);
     pose_sub_ = private_nh.subscribe<rm::PoseStamped>("goal", 1, &PlannerWithCostmap::poseCallback, this);
 }
 
@@ -105,7 +113,11 @@ int main(int argc, char** argv) {
 
     global_planner::PlannerWithCostmap pppp("planner", &lcr);
 
+    //run a new async thread to fill the queue
+    ros::AsyncSpinner spinner(0, &pppp.srv_queue);
+    spinner.start();
+
     ros::spin();
+
     return 0;
 }
-

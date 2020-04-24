@@ -47,25 +47,26 @@ namespace nav_core {
    */
   class BaseGlobalPlanner{
     public:
+      bool query = false;
       /**
        * @brief Given a goal pose in the world, compute a plan
-       * @param start The start pose 
-       * @param goal The goal pose 
+       * @param start The start pose
+       * @param goal The goal pose
        * @param plan The plan... filled by the planner
        * @return True if a valid plan was found, false otherwise
        */
-      virtual bool makePlan(const geometry_msgs::PoseStamped& start, 
+      virtual bool makePlan(const geometry_msgs::PoseStamped& start,
           const geometry_msgs::PoseStamped& goal, std::vector<geometry_msgs::PoseStamped>& plan) = 0;
 
       /**
        * @brief Given a goal pose in the world, compute a plan
-       * @param start The start pose 
-       * @param goal The goal pose 
+       * @param start The start pose
+       * @param goal The goal pose
        * @param plan The plan... filled by the planner
        * @param cost The plans calculated cost
        * @return True if a valid plan was found, false otherwise
        */
-      virtual bool makePlan(const geometry_msgs::PoseStamped& start, 
+      virtual bool makePlan(const geometry_msgs::PoseStamped& start,
                             const geometry_msgs::PoseStamped& goal, std::vector<geometry_msgs::PoseStamped>& plan,
                             double& cost)
       {
