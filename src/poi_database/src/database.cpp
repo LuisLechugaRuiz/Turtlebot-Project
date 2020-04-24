@@ -9,7 +9,7 @@
 DatabaseNode::DatabaseNode():
   nh(ros::this_node::getName())
 {
-  ROI_sub = n.subscribe("ros_img_processor/camera_POI", 1, &DatabaseNode::camera_transformCallback, this);
+  ROI_sub = n.subscribe("astra_img_processor/camera_POI", 1, &DatabaseNode::camera_transformCallback, this);
   bound_sub = n.subscribe("costmap_restrictor/match_bound", 1, &DatabaseNode::match_boundCallback, this);
   markers_pub = nh.advertise<visualization_msgs::Marker>("visualization_markers",10);
   ROI_pub = nh.advertise<turtlebot_2dnav::ROI>("ROI", 1);
