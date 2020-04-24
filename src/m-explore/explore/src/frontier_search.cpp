@@ -2,6 +2,7 @@
 
 #include <mutex>
 
+
 #include <costmap_2d/cost_values.h>
 #include <costmap_2d/costmap_2d.h>
 #include <geometry_msgs/Point.h>
@@ -23,6 +24,7 @@ FrontierSearch::FrontierSearch(costmap_2d::Costmap2D* costmap, double gain_dista
   , gain_size_(gain_size_)
   , min_frontier_size_(min_frontier_size)
 {
+  plan_client = _nh.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
 }
 
 std::vector<Frontier> FrontierSearch::searchFrom(geometry_msgs::Pose pose)
@@ -95,6 +97,58 @@ std::vector<Frontier> FrontierSearch::searchFrom(geometry_msgs::Pose pose)
   return frontier_list;
 }
 
+nav_msgs::Path FrontierSearch::getPlan(geometry_msgs::PoseStamped inic, geometry_msgs::PoseStamped goal)
+{
+  plan_request.request.start = inic;
+  plan_request.request.goal = goal ;
+  plan_request.request.tolerance = 0.4;
+  plan_client.call(plan_request);
+  nav_msgs::Path actualPlan = plan_request.response.plan;
+  if (actualPlan.poses[0].pose.position.z != 1000)
+  {
+    plan_sucess = true;
+    return actualPlan;
+  }
+  else
+  {
+    int size;
+    size = actualPlan.poses.size();
+    ROS_INFO("size: %d", size);
+    nav_msgs::Path Fail_path;
+    Fail_path.header.stamp = ros::Time::now();
+    Fail_path.header.frame_id = "map";
+
+    geometry_msgs::PoseStamped fake_pose;
+    fake_pose.header.stamp = ros::Time::now();
+    fake_pose.header.frame_id = "map";
+    fake_pose.pose.position.x = 0;
+    fake_pose.pose.position.y = 0;
+    fake_pose.pose.orientation.w = 1;
+    Fail_path.poses.push_back(fake_pose);
+    plan_sucess = false;
+    return Fail_path;
+  }
+}
+
+double FrontierSearch::getDistance(nav_msgs::Path path)
+{
+  double path_distance = 0.00;
+  int size = path.poses.size();
+  for(int i = 0; i < (path.poses.size() - 1); i++)
+  {
+    path_distance += calculateEuclideanDistance(path.poses[i].pose.position, path.poses[i+1].pose.position);
+  }
+  //ROS_INFO("distance: %f", path_distance);
+  return path_distance;
+}
+
+double FrontierSearch::calculateEuclideanDistance(geometry_msgs::Point point1, geometry_msgs::Point point2)
+{
+  double x = abs(point2.x - point1.x);
+  double y = abs(point2.y - point1.y);
+  return(sqrt(pow(x,2) + pow(y,2)));
+}
+
 Frontier FrontierSearch::buildNewFrontier(unsigned int initial_cell,
                                           unsigned int reference,
                                           std::vector<bool>& frontier_flag)
@@ -121,12 +175,14 @@ Frontier FrontierSearch::buildNewFrontier(unsigned int initial_cell,
   costmap_->indexToCells(reference, rx, ry);
   costmap_->mapToWorld(rx, ry, reference_x, reference_y);
 
+
   while (!bfs.empty()) {
     unsigned int idx = bfs.front();
     bfs.pop();
 
     // try adding cells in 8-connected neighborhood to frontier
     for (unsigned int nbr : nhood8(idx, *costmap_)) {
+      unsigned int mx, my;
       // check if neighbour is a potential frontier cell
       if (isNewFrontierCell(nbr, frontier_flag)) {
         // mark cell as frontier
@@ -157,16 +213,15 @@ Frontier FrontierSearch::buildNewFrontier(unsigned int initial_cell,
           output.middle.x = wx;
           output.middle.y = wy;
         }
-
         // add to queue for breadth first search
         bfs.push(nbr);
       }
     }
   }
-
   // average out frontier centroid
   output.centroid.x /= output.size;
   output.centroid.y /= output.size;
+
   return output;
 }
 
@@ -209,9 +264,33 @@ double FrontierSearch::frontierAngleCost(const Frontier& frontier, geometry_msgs
   return angle_cost;
 }
 
+double FrontierSearch::frontierDistCost(const Frontier& frontier, geometry_msgs::Pose robotPose)
+{
+  geometry_msgs::PoseStamped reference_pose;
+  reference_pose.pose = robotPose;
+  reference_pose.pose.orientation.w = 1;
+  reference_pose.header.frame_id = "map";
+  reference_pose.header.stamp = ros::Time::now();
+
+  geometry_msgs::PoseStamped centroid_pose;
+  centroid_pose.pose.position.x = frontier.centroid.x;
+  centroid_pose.pose.position.y = frontier.centroid.y;
+  centroid_pose.pose.orientation.w = 1;
+  centroid_pose.header.frame_id = "map";
+  centroid_pose.header.stamp = ros::Time::now();
+  nav_msgs::Path New_Path = getPlan(reference_pose, centroid_pose);
+  if (plan_sucess) return ( getDistance(New_Path) );
+  //check if plan is unreachable!
+  else
+  {
+    ROS_INFO("FAIL");
+    return 100000.0;
+  }
+}
+
 double FrontierSearch::frontierCost(const Frontier& frontier, geometry_msgs::Pose robotPose)
 {
-  float distance_cost = gain_distance_ * frontier.min_distance;
+  float distance_cost = gain_distance_ * frontierDistCost(frontier, robotPose);
   float size_cost = gain_size_ * frontier.size * costmap_->getResolution();
   float angle_cost = gain_angle_ * frontierAngleCost(frontier, robotPose);
   return ( distance_cost + angle_cost - size_cost  );

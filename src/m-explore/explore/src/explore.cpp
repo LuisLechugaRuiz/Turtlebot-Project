@@ -36,6 +36,7 @@
  *********************************************************************/
 
 #include <explore/explore.h>
+#include <ros/callback_queue.h>
 
 #include <thread>
 
@@ -267,7 +268,18 @@ int main(int argc, char** argv)
                                      ros::console::levels::Debug)) {
     ros::console::notifyLoggerLevelsChanged();
   }
+
+  ros::CallbackQueue client_queue;
+
   explore::Explore explore;
+
+  //assign the nodehandle to the srv_queue
+  explore.search_._nh.setCallbackQueue(&client_queue);
+
+  //run a new async thread to fill the queue
+  ros::AsyncSpinner spinner(0, &client_queue);
+  spinner.start();
+
   ros::spin();
 
   return 0;

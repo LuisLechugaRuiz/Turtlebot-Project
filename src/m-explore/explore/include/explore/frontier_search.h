@@ -1,8 +1,11 @@
 #ifndef FRONTIER_SEARCH_H_
 #define FRONTIER_SEARCH_H_
 
+#include <ros/ros.h>
 #include <costmap_2d/costmap_2d.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <nav_msgs/Path.h>
+#include <nav_msgs/GetPlan.h>
 
 namespace frontier_exploration
 {
@@ -27,9 +30,13 @@ struct Frontier {
 class FrontierSearch
 {
 public:
+
   FrontierSearch()
   {
   }
+
+  //Create another nodehandle with his own queue to answer the make_plan service, this way we dont block the plan calculation.
+  ros::NodeHandle _nh;
 
   /**
    * @brief Constructor for search task
@@ -80,12 +87,25 @@ protected:
 
   double frontierAngleCost(const Frontier& frontier, geometry_msgs::Pose robotPose);
 
+  double frontierDistCost(const Frontier& frontier, geometry_msgs::Pose robotPose);
+
+  nav_msgs::Path getPlan(geometry_msgs::PoseStamped inic, geometry_msgs::PoseStamped goal);
+
+  double getDistance(nav_msgs::Path path);
+
+  double calculateEuclideanDistance(geometry_msgs::Point point1, geometry_msgs::Point point2);
+
+  bool plan_sucess = true;
+
 private:
+  ros::NodeHandle n;
+  ros::ServiceClient plan_client;
   costmap_2d::Costmap2D* costmap_;
   unsigned char* map_;
   unsigned int size_x_, size_y_;
   double gain_distance_, gain_size_, gain_angle_;
   double min_frontier_size_;
+  nav_msgs::GetPlan plan_request;
 };
 }
 #endif

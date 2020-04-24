@@ -71,6 +71,7 @@ public:
 
   void start();
   void stop();
+  frontier_exploration::FrontierSearch search_;
 
 private:
   /**
@@ -100,7 +101,6 @@ private:
 
   Costmap2DClient costmap_client_;
 
-  frontier_exploration::FrontierSearch search_;
   ros::Timer exploring_timer_;
   ros::Timer oneshot_;
 
