@@ -38,36 +38,40 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
     if (recalculatequeue.size() > 0)
     {
       resetBound( recalculatequeue[0] );
-      queue.insert( queue.begin(), recalculatequeue[0] );
+      matchqueue.insert( matchqueue.begin(), recalculatequeue[0] );
       recalculatequeue.erase( recalculatequeue.begin() );
     }
   }
 
+  //In case of resize (because a recalculate dont publish just match again!)
   if(matchqueue.size() > 0)
   {
     //ROS_INFO("MATCHING!");
     if( matchBound(matchqueue[0], msg) )
     {
-      turtlebot_2dnav::match_bound matched_bound_;
       //ROS_INFO("BOUND MATCHED");
-      if(matchqueue[0].vertical)
+      if(!matchqueue[0].recalculate)
       {
-        matched_bound_.pointleft = matchqueue[0].point_left_max;
-        matched_bound_.pointright = matchqueue[0].point_right_min;
+        turtlebot_2dnav::match_bound matched_bound_;
+        matched_bound_.matched = true;
+        if(matchqueue[0].vertical)
+        {
+          matched_bound_.pointleft = matchqueue[0].point_left_max;
+          matched_bound_.pointright = matchqueue[0].point_right_min;
+        }
+        else
+        {
+          matched_bound_.pointleft = matchqueue[0].point_left_min;
+          matched_bound_.pointright = matchqueue[0].point_right_max;
+        }
+        matched_bound_.pointcenter = matchqueue[0].center_point;
+        matched_bound_.index = matchqueue[0].database_index;
+        matched_bound_.color = matchqueue[0].color;
+        match_bound_pub.publish(matched_bound_);
+        recalculate_database_index(matchqueue[0].database_index, matchqueue[0].color);
+        //ROS_INFO("BOUND COLOR: %d", matchqueue[0].color);
+        //PUBLISH TO DATABASE!
       }
-      else
-      {
-        matched_bound_.pointleft = matchqueue[0].point_left_min;
-        matched_bound_.pointright = matchqueue[0].point_right_max;
-      }
-      matched_bound_.pointcenter = matchqueue[0].center_point;
-      matched_bound_.index = matchqueue[0].database_index;
-      matched_bound_.matched = true;
-      matched_bound_.color = matchqueue[0].color;
-      match_bound_pub.publish(matched_bound_);
-      recalculate_database_index(matchqueue[0].database_index, matchqueue[0].color);
-      //ROS_INFO("BOUND COLOR: %d", matchqueue[0].color);
-      //PUBLISH TO DATABASE!
       if(matchqueue[0].restriction) queue.push_back(matchqueue[0]);
       matchqueue.erase( matchqueue.begin() );
     }
@@ -84,16 +88,19 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
     }
     else
     {
+      if(!matchqueue[0].recalculate)
+      {
       turtlebot_2dnav::match_bound not_matched_bound_;
+      not_matched_bound_.matched = false;
       not_matched_bound_.pointcenter = matchqueue[0].center_point;
       not_matched_bound_.pointleft = matchqueue[0].center_point;
       not_matched_bound_.pointright = matchqueue[0].center_point;
       not_matched_bound_.index = matchqueue[0].database_index;
       not_matched_bound_.color = matchqueue[0].color;
-      not_matched_bound_.matched = false;
       match_bound_pub.publish(not_matched_bound_);
       recalculate_database_index(matchqueue[0].database_index, matchqueue[0].color);
       //ROS_INFO ("bound not matched, erasing matchqueue");
+      }
       matchqueue.erase( matchqueue.begin() );
     }
   }
@@ -435,6 +442,7 @@ void CostmapRes::resetBound(CostmapRes::Bound &actual_bound)
 {
   ROS_INFO("RESETING BOUND");
   actual_bound.count = 0;
+  actual_bound.recalculate = true;
   actual_bound.recalculateleft = true;
   actual_bound.recalculateright = true;
   if(actual_bound.vertical)
@@ -452,6 +460,7 @@ void CostmapRes::resetBound(CostmapRes::Bound &actual_bound)
     actual_bound.point_left_max.y++;
   }
   //SEND THE INITIAL SIZE OF THE BOUND TO FAKE LASER
+  ROS_INFO("Laser Index Reset: %d", actual_bound.laser_index);
   bound_.index = actual_bound.laser_index;
   bound_.pointleftmin = actual_bound.point_left_min;
   bound_.pointleftmax = actual_bound.point_left_max;

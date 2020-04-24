@@ -40,13 +40,12 @@ class CostmapRes
       int laser_index = -1;
       //in case that the bound give as center a
       int center_LETHAL = 1;
-      bool matched = false;
+      bool recalculate = false;
       bool recalculateleft = true;
       bool recalculateright = true;
       bool exit = false;
 
       bool center_found = false;
-
       //bounds can be restriction or just checks (persons)
       bool restriction = false;
     };
