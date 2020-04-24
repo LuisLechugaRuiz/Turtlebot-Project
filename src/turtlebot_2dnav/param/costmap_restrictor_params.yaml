@@ -2,9 +2,9 @@
  resolution: 0.095
 
  max_count_findPerpendicularObstacle: 3
- max_count_findParalelObstacle: 10
+ max_count_findParalelObstacle: 11
  max_count_findLimits: 15
  max_match_count: 50
  max_recalculate_count: 10
  max_count_size: 16
- min_count_size: 12
+ min_count_size: 11
