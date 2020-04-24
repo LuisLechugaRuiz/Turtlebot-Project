@@ -1,8 +1,0 @@
-prefix=/home/luis/Turtlebot-Project/install
-
-Name: turtlebot_stdr
-Description: Description of turtlebot_stdr
-Version: 2.2.3
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

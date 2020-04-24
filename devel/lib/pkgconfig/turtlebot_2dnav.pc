@@ -1,8 +1,0 @@
-prefix=/home/luis/Turtlebot-Project/devel
-
-Name: turtlebot_2dnav
-Description: Description of turtlebot_2dnav
-Version: 0.0.0
-Cflags: -I/home/luis/Turtlebot-Project/devel/include
-Libs: -L${prefix}/lib 
-Requires: actionlib_msgs geometry_msgs std_msgs message_runtime move_base

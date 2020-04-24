@@ -1,8 +1,0 @@
-prefix=/home/luis/Turtlebot-Project/install
-
-Name: kobuki_bumper2pc
-Description: Description of kobuki_bumper2pc
-Version: 0.7.6
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib -lkobuki_bumper2pc_nodelet
-Requires: roscpp nodelet pluginlib sensor_msgs kobuki_msgs

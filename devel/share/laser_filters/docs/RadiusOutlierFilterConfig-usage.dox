@@ -1,9 +1,0 @@
-\subsubsection usage Usage
-\verbatim
-<node name="laser_filters" pkg="laser_filters" type="laser_filters">
-  <param name="radius_search" type="double" value="0.4" />
-  <param name="window" type="int" value="1" />
-  <param name="min_neighbors" type="int" value="20" />
-</node>
-\endverbatim
-

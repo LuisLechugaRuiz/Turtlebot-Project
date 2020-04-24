@@ -1,8 +1,0 @@
-prefix=/home/luis/Turtlebot-Project/install
-
-Name: fake_laser
-Description: Description of fake_laser
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: geometry_msgs roscpp std_msgs message_runtime turtlebot_2dnav pcl_ros tf

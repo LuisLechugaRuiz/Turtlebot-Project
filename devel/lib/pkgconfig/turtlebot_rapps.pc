@@ -1,8 +1,0 @@
-prefix=/home/luis/Turtlebot-Project/devel
-
-Name: turtlebot_rapps
-Description: Description of turtlebot_rapps
-Version: 2.3.7
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

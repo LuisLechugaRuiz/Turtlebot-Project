@@ -1,8 +1,0 @@
-prefix=/home/luis/Turtlebot-Project/devel
-
-Name: eurecat_grobotics_project
-Description: Description of eurecat_grobotics_project
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 
