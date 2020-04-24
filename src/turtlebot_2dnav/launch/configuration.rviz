@@ -5,6 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Marker1
+        - /Path3
       Splitter Ratio: 0.6686217188835144
     Tree Height: 804
   - Class: rviz/Selection
@@ -323,6 +324,29 @@ Visualization Manager:
         "": true
       Queue Size: 100
       Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 46; 52; 54
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
+      Name: Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic: /move_base/GlobalPlanner/planQuery
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -358,9 +382,9 @@ Visualization Manager:
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -1.089732050895691
-        Y: 0.03033958375453949
-        Z: 11.71517276763916
+        X: -1.6404221057891846
+        Y: -1.0061025619506836
+        Z: 11.47728443145752
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false

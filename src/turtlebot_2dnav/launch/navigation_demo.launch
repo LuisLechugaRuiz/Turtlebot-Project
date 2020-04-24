@@ -32,7 +32,7 @@
   <param name="costmap_topic" value="move_base/global_costmap/costmap"/>
   <param name="costmap_updates_topic" value="move_base/global_costmap/costmap_updates"/>
   <param name="visualize" value="true"/>
-  <param name="planner_frequency" value="2"/>
+  <param name="planner_frequency" value="1"/>
   <param name="progress_timeout" value="1000.0"/>
   <param name="gain_distance" value="1.0"/>
   <param name="gain_size" value="1.0"/>
