@@ -591,9 +591,11 @@ bool Decision::process()
 
               fakeLaserActive(false);
 
+              ros::Duration(0.5).sleep();
               clearCostmap_.request.clear = true;
               clear_costmap_client.call(clearCostmap_);
 
+              ros::Duration(0.5).sleep();
               //let the costmap_restrictor to recalculate if needed as we are not carrying a person anymore!
               recalculate_.request.recalculate= true;
               recalculate_bound_client.call(recalculate_);
