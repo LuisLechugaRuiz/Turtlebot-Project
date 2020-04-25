@@ -47,7 +47,6 @@ namespace nav_core {
    */
   class BaseGlobalPlanner{
     public:
-      bool query = false;
       /**
        * @brief Given a goal pose in the world, compute a plan
        * @param start The start pose

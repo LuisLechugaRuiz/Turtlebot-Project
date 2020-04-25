@@ -114,7 +114,7 @@ class GlobalPlanner : public nav_core::BaseGlobalPlanner {
          * @return True if a valid plan was found, false otherwise
          */
         bool makePlan(const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal, double tolerance,
-                      std::vector<geometry_msgs::PoseStamped>& plan);
+                      std::vector<geometry_msgs::PoseStamped>& plan, bool query);
 
         /**
          * @brief  Computes the full navigation function for the map given a point in the world to start from
@@ -162,7 +162,7 @@ class GlobalPlanner : public nav_core::BaseGlobalPlanner {
         /**
          * @brief  Publish a path for visualization purposes
          */
-        void publishPlan(const std::vector<geometry_msgs::PoseStamped>& path);
+        void publishPlan(const std::vector<geometry_msgs::PoseStamped>& path, bool query);
 
         bool makePlanService(nav_msgs::GetPlan::Request& req, nav_msgs::GetPlan::Response& resp);
 

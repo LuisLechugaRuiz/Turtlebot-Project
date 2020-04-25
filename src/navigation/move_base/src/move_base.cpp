@@ -475,7 +475,6 @@ namespace move_base {
 
     //make sure to set the plan to be empty initially
     plan.clear();
-
     //since this gets called on handle activate
     if(planner_costmap_ros_ == NULL) {
       ROS_ERROR("Planner costmap ROS is NULL, unable to create global plan");
@@ -588,7 +587,6 @@ namespace move_base {
 
       //run planner
       planner_plan_->clear();
-      planner_->query = false;
       bool gotPlan = n.ok() && makePlan(temp_goal, *planner_plan_);
 
       if(gotPlan){

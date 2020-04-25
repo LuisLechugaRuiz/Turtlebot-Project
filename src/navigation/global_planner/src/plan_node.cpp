@@ -82,6 +82,7 @@ void PlannerWithCostmap::poseCallback(const rm::PoseStamped::ConstPtr& goal) {
     geometry_msgs::PoseStamped global_pose;
     cmap_->getRobotPose(global_pose);
     vector<PoseStamped> path;
+
     makePlan(global_pose, *goal, path);
 }
 

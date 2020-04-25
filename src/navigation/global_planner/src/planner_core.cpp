@@ -180,9 +180,7 @@ void GlobalPlanner::clearRobotCell(const geometry_msgs::PoseStamped& global_pose
 }
 
 bool GlobalPlanner::makePlanService(nav_msgs::GetPlan::Request& req, nav_msgs::GetPlan::Response& resp) {
-    query = true;
-    makePlan(req.start, req.goal, resp.plan.poses);
-
+    makePlan(req.start, req.goal, default_tolerance_, resp.plan.poses, true);
     resp.plan.header.stamp = ros::Time::now();
     resp.plan.header.frame_id = frame_id_;
 
@@ -212,11 +210,11 @@ bool GlobalPlanner::worldToMap(double wx, double wy, double& mx, double& my) {
 
 bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal,
                            std::vector<geometry_msgs::PoseStamped>& plan) {
-    return makePlan(start, goal, default_tolerance_, plan);
+    return makePlan(start, goal, default_tolerance_, plan, false);
 }
 
 bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal,
-                           double tolerance, std::vector<geometry_msgs::PoseStamped>& plan) {
+                           double tolerance, std::vector<geometry_msgs::PoseStamped>& plan, bool query) {
     boost::mutex::scoped_lock lock(mutex_);
     if (!initialized_) {
         ROS_ERROR(
@@ -306,18 +304,33 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
             goal_copy.header.stamp = ros::Time::now();
             plan.push_back(goal_copy);
         } else {
+            if (query)
+            {
+              geometry_msgs::PoseStamped fake_goal;
+              fake_goal.pose.position.x = 0;
+              fake_goal.pose.position.y = 0;
+              fake_goal.pose.position.z = 1000;
+              fake_goal.pose.orientation.w = 1;
+              fake_goal.header.stamp = ros::Time::now();
+              fake_goal.header.frame_id = frame_id_;
+              plan.clear();
+              plan.push_back(fake_goal);
+            }
             ROS_ERROR("Failed to get a plan from potential when a legal potential was found. This shouldn't happen.");
         }
     }else{
-        geometry_msgs::PoseStamped fake_goal;
-        fake_goal.pose.position.x = 0;
-        fake_goal.pose.position.y = 0;
-        fake_goal.pose.position.z = 1000;
-        fake_goal.pose.orientation.w = 1;
-        fake_goal.header.stamp = ros::Time::now();
-        fake_goal.header.frame_id = frame_id_;
-        plan.clear();
-        plan.push_back(fake_goal);
+        if(query)
+        {
+          geometry_msgs::PoseStamped fake_goal;
+          fake_goal.pose.position.x = 0;
+          fake_goal.pose.position.y = 0;
+          fake_goal.pose.position.z = 1000;
+          fake_goal.pose.orientation.w = 1;
+          fake_goal.header.stamp = ros::Time::now();
+          fake_goal.header.frame_id = frame_id_;
+          plan.clear();
+          plan.push_back(fake_goal);
+        }
         ROS_ERROR("Failed to get a plan.");
     }
 
@@ -325,13 +338,12 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
     orientation_filter_->processPath(start, plan);
 
     //publish the plan for visualization purposes
-    //HERE IS THE KEY, JUST PUBLISH IN TWO DIFFERENT TOPICS WHEN COMMING FROM SERVICE MAKE PLAN!
-    publishPlan(plan);
+    publishPlan(plan, query);
     delete potential_array_;
     return !plan.empty();
 }
 
-void GlobalPlanner::publishPlan(const std::vector<geometry_msgs::PoseStamped>& path) {
+void GlobalPlanner::publishPlan(const std::vector<geometry_msgs::PoseStamped>& path, bool query) {
     if (!initialized_) {
         ROS_ERROR(
                 "This planner has not been initialized yet, but it is being used, please call initialize() before use");
