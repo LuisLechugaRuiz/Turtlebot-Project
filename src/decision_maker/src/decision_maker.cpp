@@ -101,6 +101,7 @@ void Decision::Frontier_callBack(turtlebot_2dnav::frontier frontier)
 {
   if(!first_frontier_received)
   {
+    ROS_INFO("INIC");
     first_frontier_received = true;
     //initiale bestFrontier
     bestFrontier = NewFrontier;
@@ -278,19 +279,19 @@ void Decision::updateFrontier()
 
 void Decision::explore()
 {
-  checkIfStuck();
+  //checkIfStuck();
   frontierTargetReached = false;
   //try to clean blacklist..
-  if (number_of_frontiers == 0)
-  {
-    askNew_.request.addBlacklist = false;
-    askNew_.request.clearBlacklist = true;
-    ask_new_frontier_client.call(askNew_);
-    explore_override = true;
-    ROS_INFO("No frontiers!");
-  }
+  //if (number_of_frontiers == 0)
+  //{
+  //  askNew_.request.addBlacklist = false;
+  //  askNew_.request.clearBlacklist = true;
+  //  ask_new_frontier_client.call(askNew_);
+  //  explore_override = true;
+  //  ROS_INFO("No frontiers!");
+  //}
   //if is the same frontier and has not been overrided dont publish nothing just wait!
-  else if (sameFrontier(bestFrontier.pose.position, NewFrontier.pose.position) && !explore_override);
+  if (sameFrontier(bestFrontier.pose.position, NewFrontier.pose.position) && !explore_override);
   else
   {
     getActualPose();
@@ -659,4 +660,5 @@ bool Decision::process()
       }
     break;
   }
+  return false;
 }

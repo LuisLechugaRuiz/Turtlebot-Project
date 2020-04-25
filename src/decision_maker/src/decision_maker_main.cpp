@@ -13,7 +13,7 @@ int main(int argc,char **argv)
   ros::Rate loopRate(10);
 
   ros::Time initial_time = ros::Time::now();
-
+  
   while(!decision.process() && ros::ok())
   {
     ros::spinOnce();
