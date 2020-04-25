@@ -24,7 +24,7 @@ FrontierSearch::FrontierSearch(costmap_2d::Costmap2D* costmap, double gain_dista
   , gain_size_(gain_size_)
   , min_frontier_size_(min_frontier_size)
 {
-  plan_client = _nh.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
+  plan_client = n.serviceClient<nav_msgs::GetPlan>("move_base/GlobalPlanner/make_plan");
 }
 
 std::vector<Frontier> FrontierSearch::searchFrom(geometry_msgs::Pose pose)
@@ -67,7 +67,8 @@ std::vector<Frontier> FrontierSearch::searchFrom(geometry_msgs::Pose pose)
     bfs.pop();
 
     // iterate over 4-connected neighbourhood
-    for (unsigned nbr : nhood4(idx, *costmap_)) {
+    for (unsigned nbr : nhood4(idx, *costmap_))
+    {
       // add to queue all free, unvisited cells, use descending search in case
       // initialized on non-free cell
       if (map_[nbr] <= map_[idx] && !visited_flag[nbr]) {
@@ -75,26 +76,46 @@ std::vector<Frontier> FrontierSearch::searchFrom(geometry_msgs::Pose pose)
         bfs.push(nbr);
         // check if cell is new frontier cell (unvisited, NO_INFORMATION, free
         // neighbour)
-      } else if (isNewFrontierCell(nbr, frontier_flag)) {
+      }
+      else if (isNewFrontierCell(nbr, frontier_flag))
+      {
         frontier_flag[nbr] = true;
         Frontier new_frontier = buildNewFrontier(nbr, pos, frontier_flag);
-        if (new_frontier.size * costmap_->getResolution() >=
-            min_frontier_size_) {
+        if ( (new_frontier.size * costmap_->getResolution() >=
+            min_frontier_size_) && !goalOnBlacklist(new_frontier.centroid) )
+        {
+          new_frontier.cost = frontierCost(new_frontier, pose);
+          if( new_frontier.distance_cost != (gain_distance_ * fail_distance) )
           frontier_list.push_back(new_frontier);
         }
       }
     }
   }
 
-  // set costs of frontiers
-  for (auto& frontier : frontier_list) {
-    frontier.cost = frontierCost(frontier, pose);
-  }
   std::sort(
       frontier_list.begin(), frontier_list.end(),
       [](const Frontier& f1, const Frontier& f2) { return f1.cost < f2.cost; });
 
   return frontier_list;
+}
+
+
+bool FrontierSearch::goalOnBlacklist(geometry_msgs::Point checkFrontier)
+{
+  constexpr static size_t tolerance = 5;
+  double inten = tolerance * costmap_->getResolution();
+  // check if a goal is on the blacklist for goals that we're pursuing
+  for (auto& frontier_goal : frontier_blacklist_) {
+    double x_diff = fabs(checkFrontier.x - frontier_goal.x);
+    double y_diff = fabs(checkFrontier.y - frontier_goal.y);
+    if (x_diff < tolerance * costmap_->getResolution() &&
+        y_diff < tolerance * costmap_->getResolution())
+    {
+       return true;
+       ROS_INFO("SAVED");
+    }
+  }
+  return false;
 }
 
 nav_msgs::Path FrontierSearch::getPlan(geometry_msgs::PoseStamped inic, geometry_msgs::PoseStamped goal)
@@ -104,6 +125,7 @@ nav_msgs::Path FrontierSearch::getPlan(geometry_msgs::PoseStamped inic, geometry
   plan_request.request.tolerance = 0.4;
   plan_client.call(plan_request);
   nav_msgs::Path actualPlan = plan_request.response.plan;
+  //
   if (actualPlan.poses[0].pose.position.z != 1000)
   {
     plan_sucess = true;
@@ -111,9 +133,7 @@ nav_msgs::Path FrontierSearch::getPlan(geometry_msgs::PoseStamped inic, geometry
   }
   else
   {
-    int size;
-    size = actualPlan.poses.size();
-    ROS_INFO("size: %d", size);
+    ROS_INFO("FAILED");
     nav_msgs::Path Fail_path;
     Fail_path.header.stamp = ros::Time::now();
     Fail_path.header.frame_id = "map";
@@ -228,8 +248,8 @@ Frontier FrontierSearch::buildNewFrontier(unsigned int initial_cell,
 bool FrontierSearch::isNewFrontierCell(unsigned int idx,
                                        const std::vector<bool>& frontier_flag)
 {
-  // check that cell is unknown and not already marked as frontier
-  if (map_[idx] != NO_INFORMATION || frontier_flag[idx]) {
+  // check that cell is unknown, not already marked as frontier and not at blacklist
+  if ( map_[idx] != NO_INFORMATION || frontier_flag[idx] ) {
     return false;
   }
 
@@ -244,7 +264,7 @@ bool FrontierSearch::isNewFrontierCell(unsigned int idx,
   return false;
 }
 
-double FrontierSearch::frontierAngleCost(const Frontier& frontier, geometry_msgs::Pose robotPose)
+double FrontierSearch::frontierAngleCost(Frontier& frontier, geometry_msgs::Pose robotPose)
 {
   //get the actual angle
   double dx = frontier.centroid.x - robotPose.position.x;
@@ -264,7 +284,7 @@ double FrontierSearch::frontierAngleCost(const Frontier& frontier, geometry_msgs
   return angle_cost;
 }
 
-double FrontierSearch::frontierDistCost(const Frontier& frontier, geometry_msgs::Pose robotPose)
+double FrontierSearch::frontierDistCost(Frontier& frontier, geometry_msgs::Pose robotPose)
 {
   geometry_msgs::PoseStamped reference_pose;
   reference_pose.pose = robotPose;
@@ -283,16 +303,20 @@ double FrontierSearch::frontierDistCost(const Frontier& frontier, geometry_msgs:
   //check if plan is unreachable!
   else
   {
-    ROS_INFO("FAIL");
-    return 100000.0;
+    ROS_INFO("blacklist x: %f", centroid_pose.pose.position.x);
+    ROS_INFO("blacklist y: %f", centroid_pose.pose.position.y);
+    frontier_blacklist_.push_back(centroid_pose.pose.position);
+    int sizeaa = frontier_blacklist_.size();
+    ROS_INFO("blacklist size: %d", sizeaa);
+    return fail_distance;
   }
 }
 
-double FrontierSearch::frontierCost(const Frontier& frontier, geometry_msgs::Pose robotPose)
+double FrontierSearch::frontierCost(Frontier& frontier, geometry_msgs::Pose robotPose)
 {
-  float distance_cost = gain_distance_ * frontierDistCost(frontier, robotPose);
-  float size_cost = gain_size_ * frontier.size * costmap_->getResolution();
-  float angle_cost = gain_angle_ * frontierAngleCost(frontier, robotPose);
-  return ( distance_cost + angle_cost - size_cost  );
+  frontier.distance_cost = gain_distance_ * frontierDistCost(frontier, robotPose);
+  frontier.size_cost = gain_size_ * frontier.size * costmap_->getResolution();
+  frontier.angle_cost = gain_angle_ * frontierAngleCost(frontier, robotPose);
+  return ( frontier.distance_cost + frontier.angle_cost - frontier.size_cost  );
 }
 }

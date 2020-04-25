@@ -143,7 +143,6 @@ void Explore::visualizeFrontiers(
     m.pose.position = {};
     m.scale.x = 0.1;
     m.scale.y = 0.1;
-    m.scale.z = 0.1;
     m.points = frontier.points;
     if (goalOnBlacklist(frontier.centroid)) {
       m.color = red;
@@ -159,7 +158,6 @@ void Explore::visualizeFrontiers(
     double scale = std::min(std::abs(min_cost * 0.4 / frontier.cost), 0.5);
     m.scale.x = scale;
     m.scale.y = scale;
-    m.scale.z = scale;
     m.points = {};
     m.color = green;
     markers.push_back(m);
@@ -185,7 +183,11 @@ void Explore::makePlan()
   // get frontiers sorted according to cost
   auto frontiers = search_.searchFrom(pose);
   //ROS_DEBUG("found %lu frontiers", frontiers.size());
-  if (frontiers.size() == 0) return;
+  if ( (frontiers.size() == 0) || (frontiers.size() - search_.frontier_blacklist_.size()  == 0) )
+  {
+    search_.frontier_blacklist_.clear();
+    return;
+  }
 
   // publish frontiers as visualization markers
   if (visualize_) {
@@ -214,7 +216,7 @@ void Explore::makePlan()
   frontier_msg.goal.pose.orientation.w = 1.;
   frontier_msg.goal.header.frame_id = costmap_client_.getGlobalFrameID();
   frontier_msg.goal.header.stamp = ros::Time::now();
-  frontier_msg.frontiers_count = frontiers.size() - frontier_blacklist_.size();
+  frontier_msg.frontiers_count = frontiers.size();
   frontier_publisher.publish(frontier_msg);
 }
 
@@ -225,13 +227,16 @@ bool Explore::goalOnBlacklist(const geometry_msgs::Point& goal)
   costmap_2d::Costmap2D* costmap2d = costmap_client_.getCostmap();
 
   // check if a goal is on the blacklist for goals that we're pursuing
-  for (auto& frontier_goal : frontier_blacklist_) {
+  for (auto& frontier_goal : search_.frontier_blacklist_) {
     double x_diff = fabs(goal.x - frontier_goal.x);
     double y_diff = fabs(goal.y - frontier_goal.y);
 
     if (x_diff < tolerace * costmap2d->getResolution() &&
         y_diff < tolerace * costmap2d->getResolution())
+    {
+      ROS_INFO("frontier is blacklisted");
       return true;
+    }
   }
   return false;
 }
@@ -240,10 +245,10 @@ bool Explore::goalOnBlacklist(const geometry_msgs::Point& goal)
 bool Explore::blacklist_frontier(turtlebot_2dnav::askNewFrontier::Request &req,
                                  turtlebot_2dnav::askNewFrontier::Response &res)
 {
-  if(req.addBlacklist == true) frontier_blacklist_.push_back(target_position);
-  if(req.clearBlacklist == true) frontier_blacklist_.clear();
-  res.done = true;
-  ROS_INFO("blacklist!");
+  //if(req.addBlacklist == true) search_.frontier_blacklist_.push_back(target_position);
+  //if(req.clearBlacklist == true) search_.frontier_blacklist_.clear();
+  //res.done = true;
+  //ROS_INFO("blacklist!");
 }
 
 void Explore::start()
@@ -269,16 +274,7 @@ int main(int argc, char** argv)
     ros::console::notifyLoggerLevelsChanged();
   }
 
-  ros::CallbackQueue client_queue;
-
   explore::Explore explore;
-
-  //assign the nodehandle to the srv_queue
-  explore.search_._nh.setCallbackQueue(&client_queue);
-
-  //run a new async thread to fill the queue
-  ros::AsyncSpinner spinner(0, &client_queue);
-  spinner.start();
 
   ros::spin();
 

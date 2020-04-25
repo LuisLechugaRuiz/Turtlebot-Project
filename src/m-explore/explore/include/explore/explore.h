@@ -106,7 +106,7 @@ private:
 
   turtlebot_2dnav::frontier frontier_msg;
 
-  std::vector<geometry_msgs::Point> frontier_blacklist_;
+
   geometry_msgs::Point prev_goal_;
   geometry_msgs::Point target_position;
   double prev_distance_;

@@ -17,6 +17,9 @@ struct Frontier {
   std::uint32_t size;
   double min_distance;
   double cost;
+  double distance_cost;
+  double angle_cost;
+  double size_cost;
   geometry_msgs::Point initial;
   geometry_msgs::Point centroid;
   geometry_msgs::Point middle;
@@ -35,8 +38,7 @@ public:
   {
   }
 
-  //Create another nodehandle with his own queue to answer the make_plan service, this way we dont block the plan calculation.
-  ros::NodeHandle _nh;
+  std::vector<geometry_msgs::Point> frontier_blacklist_;
 
   /**
    * @brief Constructor for search task
@@ -53,6 +55,8 @@ public:
   std::vector<Frontier> searchFrom(geometry_msgs::Pose pose);
 
 protected:
+
+  bool goalOnBlacklist(geometry_msgs::Point checkFrontier);
   /**
    * @brief Starting from an initial cell, build a frontier from valid adjacent
    * cells
@@ -83,11 +87,11 @@ protected:
    * @param frontier frontier for which compute the cost
    * @return cost of the frontier
    */
-  double frontierCost(const Frontier& frontier, geometry_msgs::Pose robotPose);
+  double frontierCost(Frontier& frontier, geometry_msgs::Pose robotPose);
 
-  double frontierAngleCost(const Frontier& frontier, geometry_msgs::Pose robotPose);
+  double frontierAngleCost(Frontier& frontier, geometry_msgs::Pose robotPose);
 
-  double frontierDistCost(const Frontier& frontier, geometry_msgs::Pose robotPose);
+  double frontierDistCost(Frontier& frontier, geometry_msgs::Pose robotPose);
 
   nav_msgs::Path getPlan(geometry_msgs::PoseStamped inic, geometry_msgs::PoseStamped goal);
 
@@ -106,6 +110,7 @@ private:
   double gain_distance_, gain_size_, gain_angle_;
   double min_frontier_size_;
   nav_msgs::GetPlan plan_request;
+  double fail_distance = 100000.0;
 };
 }
 #endif
