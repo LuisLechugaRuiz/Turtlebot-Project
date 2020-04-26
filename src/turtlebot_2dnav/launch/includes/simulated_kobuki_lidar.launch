@@ -1,12 +1,15 @@
 <launch>
-  <arg name="base"/>
-  <arg name="stacks"/>
-  <arg name="3d_sensor"/>
-  <arg name="lidar"/>
 
   <arg name="urdf_file" default="$(find xacro)/xacro '$(find turtlebot_2dnav)/robots/kobuki_hexagons_astra_rplidar.urdf.xacro'" />
   <param name="robot_description" command="$(arg urdf_file)" />
 
+  <!-- Gazebo model spawner -->
+  <node name="spawn_turtlebot_model" pkg="gazebo_ros" type="spawn_model"
+         args="$(optenv ROBOT_INITIAL_POSE) -unpause -urdf -param robot_description -model mobile_base"/>
+
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="30.0" />
+  </node>
 
   <!-- Velocity muxer -->
   <node pkg="nodelet" type="nodelet" name="mobile_base_nodelet_manager" args="manager"/>
@@ -18,4 +21,5 @@
 
   <!-- Bumper/cliff to pointcloud (not working, as it needs sensors/core messages) -->
   <include file="$(find turtlebot_bringup)/launch/includes/kobuki/bumper2pc.launch.xml"/>
+
 </launch>
