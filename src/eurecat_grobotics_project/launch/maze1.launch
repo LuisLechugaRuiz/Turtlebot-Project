@@ -6,31 +6,12 @@
   <arg name="headless" default="false" />
   <!-- MODIFY THIS LINE -->
   <arg name="world_name" default="$(find eurecat_grobotics_project)/worlds/maze1.world"/>
-  <arg name="stacks"    value="$(optenv TURTLEBOT_STACKS hexagons)"/>  <!-- circles, hexagons -->
-  <arg name="3d_sensor" value="$(optenv TURTLEBOT_3D_SENSOR astra)"/>  
-  <arg name="lidar" value="$(optenv TURTLEBOT_LIDAR rplidar)"/>  <!-- -->
-  <arg name="base"      value="$(optenv TURTLEBOT_BASE kobuki)"/> <!-- create, roomba -->
-  <arg name="battery"   value="$(optenv TURTLEBOT_BATTERY /proc/acpi/battery/BAT0)"/>  <!-- /proc/acpi/battery/BAT0 -->
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="debug" value="0" />
     <arg name="gui" value="$(arg gui)" />
     <arg name="use_sim_time" value="$(arg use_sim_time)" />
     <arg name="headless" value="$(arg headless)" />
-    <arg name="world_name" value="$(arg world_name)" /> 
+    <arg name="world_name" value="$(arg world_name)" />
   </include>
-
-  <include file="$(find turtlebot_2dnav)/launch/includes/simulated_kobuki_lidar.launch.xml">
-    <arg name="base" value="$(arg base)"/>
-    <arg name="stacks" value="$(arg stacks)"/>
-    <arg name="3d_sensor" value="$(arg 3d_sensor)"/>
-    <arg name="lidar" value="$(arg lidar)"/>
-  </include>
-
-  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
-    <param name="publish_frequency" type="double" value="30.0" />
-  </node>
-
-
- 
 </launch>
