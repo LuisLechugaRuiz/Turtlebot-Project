@@ -2,8 +2,10 @@
 
 <include file="$(find eurecat_grobotics_project)/launch/maze1.launch"/>
 
+<include file="$(find turtlebot_2dnav)/launch/includes/simulated_kobuki_lidar.launch.xml">
+  
 <node pkg="gmapping" type="slam_gmapping" respawn="false" name="slam_gmapping" output="screen">
-  <param name = "delta" value="0.095"/>
+  <param name = "delta" value="0.1"/>
   <param name = "map_update_interval" value = "4"/>
   <param name = "maxRange" value = "6.0"/>
   <param name = "maxUrange" value = "5.9"/>
@@ -32,11 +34,11 @@
   <param name="costmap_topic" value="move_base/global_costmap/costmap"/>
   <param name="costmap_updates_topic" value="move_base/global_costmap/costmap_updates"/>
   <param name="visualize" value="true"/>
-  <param name="planner_frequency" value="1"/>
+  <param name="planner_frequency" value="2"/>
   <param name="progress_timeout" value="1000.0"/>
   <param name="gain_distance" value="1.0"/>
   <param name="gain_size" value="1.0"/>
-  <param name="gain_angle" value="2.0"/>
+  <param name="gain_angle" value="3.0"/>
   <param name="transform_tolerance" value="0.3"/>
   <param name="min_frontier_size" value="0.2"/>
 
