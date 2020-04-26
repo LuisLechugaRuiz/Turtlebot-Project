@@ -87,6 +87,7 @@ std::vector<Frontier> FrontierSearch::searchFrom(geometry_msgs::Pose pose)
           new_frontier.cost = frontierCost(new_frontier, pose);
           if( new_frontier.distance_cost != (gain_distance_ * fail_distance) )
           frontier_list.push_back(new_frontier);
+          else ROS_INFO("UNREACHABLE");
         }
       }
     }

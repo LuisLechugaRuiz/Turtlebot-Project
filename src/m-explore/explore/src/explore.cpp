@@ -143,6 +143,7 @@ void Explore::visualizeFrontiers(
     m.pose.position = {};
     m.scale.x = 0.1;
     m.scale.y = 0.1;
+    m.scale.z = 0.1;
     m.points = frontier.points;
     if (goalOnBlacklist(frontier.centroid)) {
       m.color = red;
@@ -153,11 +154,12 @@ void Explore::visualizeFrontiers(
     ++id;
     m.type = visualization_msgs::Marker::SPHERE;
     m.id = int(id);
-    m.pose.position = frontier.initial;
+    m.pose.position = frontier.centroid;
     // scale frontier according to its cost (costier frontiers will be smaller)
     double scale = std::min(std::abs(min_cost * 0.4 / frontier.cost), 0.5);
     m.scale.x = scale;
     m.scale.y = scale;
+    m.scale.z = scale;
     m.points = {};
     m.color = green;
     markers.push_back(m);
