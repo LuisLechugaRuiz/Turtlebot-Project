@@ -30,7 +30,7 @@ include_directories(
 
 add_executable(costmap_restrictor ${SRCS})
 
-add_dependencies(costmap_restrictor decision_maker_gencpp)
+add_dependencies(costmap_restrictor turtlebot_2dnav)
 
 target_link_libraries(costmap_restrictor
    ${catkin_LIBRARIES}
