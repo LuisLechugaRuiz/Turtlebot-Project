@@ -148,7 +148,7 @@ void Decision::getActualPose()
 }
 
 
-geometry_msgs::PoseStamped Decision::setPose(data target_goal)
+geometry_msgs::PoseStamped Decision::setPose(data target_goal, bool frontier)
 {
   geometry_msgs::PoseStamped goal_pose;
   goal_pose.header.stamp = ros::Time::now();
@@ -156,13 +156,15 @@ geometry_msgs::PoseStamped Decision::setPose(data target_goal)
   if(target_goal.is_vertical())
   {
     goal_pose.pose.position.x = target_goal.get_center_x();
-    goal_pose.pose.position.y = target_goal.get_center_y() - 1;
+    goal_pose.pose.position.y = target_goal.get_center_y();
     goal_pose.pose.orientation.z = 0.707;
     goal_pose.pose.orientation.w = 0.707;
+    if(!frontier) goal_pose.pose.position.y--;
   }
   else
   {
-    goal_pose.pose.position.x = target_goal.get_center_x() - 1;
+    goal_pose.pose.position.x = target_goal.get_center_x();
+    if(!frontier) goal_pose.pose.position.x--;
     goal_pose.pose.position.y = target_goal.get_center_y();
     goal_pose.pose.orientation.w = 1;
   }
@@ -200,7 +202,7 @@ double Decision::getDistanceProb(data Frontier, geometry_msgs::PoseStamped inic_
   double probability = (double)(number_of_persons - persons_rescued) / (double)number_of_frontiers;
   ROS_INFO("probability: %f", probability);
   //to get the cost here we override goal pose which is dangerous.
-  auto Frontier_path = getPlan(inic_pose, setPose(Frontier) );
+  auto Frontier_path = getPlan(inic_pose, setPose(Frontier, true) );
   double distance_frontier = getDistance(Frontier_path);
   distance_frontier = distance_frontier/probability;
   ROS_INFO("distance prob1: %f", distance_frontier);
@@ -231,7 +233,7 @@ void Decision::findNearestPerson(geometry_msgs::PoseStamped inic_pose)
     //Only update the cost if the person is not rescued, else the cost will be standar
     if(person_.get_rescued() == false)
     {
-      auto New_path = getPlan( inic_pose, setPose(person_) );
+      auto New_path = getPlan( inic_pose, setPose(person_, false) );
       person_.updateData( getDistance(New_path) );
     }
   }
@@ -272,7 +274,7 @@ void Decision::updateFrontier()
 {
   bestFrontier = NewFrontier;
   data Frontier(bestFrontier);
-  callMoveAction(  setPose(Frontier) );
+  callMoveAction(  setPose(Frontier, true) );
   frontierTargetReached = false;
   explore_override = false;
 }
@@ -484,7 +486,7 @@ bool Decision::process()
           case _searching_exit:
             if (exit_found)
             {
-              exitPosition = setPose( database_e[0] );
+              exitPosition = setPose( database_e[0], false );
               //start 0.25 * persons/2 so in the rviz all the persons markers are separated near to the exit
               if ( database_e[0].is_vertical() ) exitPosition.pose.position.x -= (number_of_persons/2) * 0.25;
               else exitPosition.pose.position.y -= (number_of_persons/2)* 0.25;
@@ -518,7 +520,7 @@ bool Decision::process()
         {
           case _person:
             ROS_INFO("Direction: Person");
-            bestPerson = setPose(database_p[0]);
+            bestPerson = setPose(database_p[0], false);
             callMoveAction( bestPerson );
           break;
 

@@ -79,7 +79,7 @@ class Decision : public Math
 
     void explore();
 
-    geometry_msgs::PoseStamped setPose(data target_goal);
+    geometry_msgs::PoseStamped setPose(data target_goal, bool frontier);
 
     void callMoveAction(geometry_msgs::PoseStamped inic_pose);
 
