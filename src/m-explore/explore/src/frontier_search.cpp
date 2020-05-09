@@ -87,7 +87,10 @@ std::vector<Frontier> FrontierSearch::searchFrom(geometry_msgs::Pose pose)
           new_frontier.cost = frontierCost(new_frontier, pose);
           if( new_frontier.distance_cost != (gain_distance_ * fail_distance) )
           frontier_list.push_back(new_frontier);
-          else ROS_INFO("UNREACHABLE");
+          else
+          {
+            ROS_INFO("UNREACHABLE");
+          }
         }
       }
     }
@@ -105,6 +108,13 @@ bool FrontierSearch::goalOnBlacklist(geometry_msgs::Point checkFrontier)
 {
   constexpr static size_t tolerance = 5;
   double inten = tolerance * costmap_->getResolution();
+  if(frontier_blacklist_.size() > 0)
+  {
+    //ROS_INFO("frontier blacklist x: %f", frontier_blacklist_[0].x);
+    //ROS_INFO("frontier blacklist y: %f", frontier_blacklist_[0].y);
+    //ROS_INFO("frontier x: %f", checkFrontier.x);
+    //ROS_INFO("frontier y: %f", checkFrontier.y);
+  }
   // check if a goal is on the blacklist for goals that we're pursuing
   for (auto& frontier_goal : frontier_blacklist_) {
     double x_diff = fabs(checkFrontier.x - frontier_goal.x);
@@ -231,18 +241,22 @@ Frontier FrontierSearch::buildNewFrontier(unsigned int initial_cell,
                                pow((double(reference_y) - double(wy)), 2.0));
         if (distance < output.min_distance) {
           output.min_distance = distance;
-          output.middle.x = wx;
-          output.middle.y = wy;
         }
         // add to queue for breadth first search
         bfs.push(nbr);
       }
     }
   }
+
   // average out frontier centroid
   output.centroid.x /= output.size;
   output.centroid.y /= output.size;
-
+  if(output.size > 1)
+  {
+    int middle_index = output.size / 2;
+    output.middle.x = output.points[middle_index].x;
+    output.middle.y = output.points[middle_index].y;
+  }
   return output;
 }
 
@@ -304,11 +318,11 @@ double FrontierSearch::frontierDistCost(Frontier& frontier, geometry_msgs::Pose 
   //check if plan is unreachable!
   else
   {
-    ROS_INFO("blacklist x: %f", centroid_pose.pose.position.x);
-    ROS_INFO("blacklist y: %f", centroid_pose.pose.position.y);
+    //ROS_INFO("blacklist x: %f", centroid_pose.pose.position.x);
+    //ROS_INFO("blacklist y: %f", centroid_pose.pose.position.y);
     frontier_blacklist_.push_back(centroid_pose.pose.position);
     int sizeaa = frontier_blacklist_.size();
-    ROS_INFO("blacklist size: %d", sizeaa);
+    //ROS_INFO("blacklist size: %d", sizeaa);
     return fail_distance;
   }
 }

@@ -154,7 +154,7 @@ void Explore::visualizeFrontiers(
     ++id;
     m.type = visualization_msgs::Marker::SPHERE;
     m.id = int(id);
-    m.pose.position = frontier.centroid;
+    m.pose.position = frontier.middle;
     // scale frontier according to its cost (costier frontiers will be smaller)
     double scale = std::min(std::abs(min_cost * 0.4 / frontier.cost), 0.5);
     m.scale.x = scale;
@@ -202,7 +202,7 @@ void Explore::makePlan()
                            return goalOnBlacklist(f.centroid);
                          });
 
-  target_position = frontier->centroid;
+  target_position = frontier->middle;
 
   // time out if we are not making any progress
   bool same_goal = prev_goal_ == target_position;
@@ -212,6 +212,8 @@ void Explore::makePlan()
   last_progress_ = ros::Time::now();
   prev_distance_ = frontier->min_distance;
   }
+  //int usizee = frontiers.size();
+  //ROS_INFO("SIZE: %d", usizee);
 
   geometry_msgs::PoseStamped goal;
   frontier_msg.goal.pose.position = target_position;
