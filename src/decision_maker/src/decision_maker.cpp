@@ -153,6 +153,7 @@ geometry_msgs::PoseStamped Decision::setPose(data target_goal, bool frontier)
   geometry_msgs::PoseStamped goal_pose;
   goal_pose.header.stamp = ros::Time::now();
   goal_pose.header.frame_id = "map";
+  goal_pose.pose.orientation.w = 1.0;
   if(target_goal.is_vertical())
   {
     goal_pose.pose.position.x = target_goal.get_center_x();
@@ -161,13 +162,13 @@ geometry_msgs::PoseStamped Decision::setPose(data target_goal, bool frontier)
     {
       if (target_goal.is_positive() )
       {
-        goal_pose.pose.position.y--;
+        goal_pose.pose.position.y-= 0.7;
         goal_pose.pose.orientation.z = 0.707;
         goal_pose.pose.orientation.w = 0.707;
       }
       else
       {
-        goal_pose.pose.position.y++;
+        goal_pose.pose.position.y+= 0.7;
         goal_pose.pose.orientation.z = 0.707;
         goal_pose.pose.orientation.w = -0.707;
       }
@@ -181,12 +182,14 @@ geometry_msgs::PoseStamped Decision::setPose(data target_goal, bool frontier)
     {
       if (target_goal.is_positive() )
       {
-        goal_pose.pose.position.x--;
+        goal_pose.pose.position.x-= 0.7;
         goal_pose.pose.orientation.w = 1.0;
+        goal_pose.pose.orientation.z = 0.0;
       }
       else
       {
-        goal_pose.pose.position.x++;
+        goal_pose.pose.position.x+= 0.7;
+        goal_pose.pose.orientation.w = 0.0;
         goal_pose.pose.orientation.z = 1.0;
       }
     }
