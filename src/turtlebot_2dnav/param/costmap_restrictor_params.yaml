@@ -1,10 +1,10 @@
  costmap_topic: "move_base/global_costmap/costmap"
  resolution: 0.095
 
- max_count_findPerpendicularObstacle: 3
+ max_count_findPerpendicularObstacle: 4
  max_count_findParalelObstacle: 11
- max_count_findLimits: 15
+ max_count_findLimits: 30
  max_match_count: 50
  max_recalculate_count: 50
- max_count_size: 16
+ max_count_size: 15
  min_count_size: 11

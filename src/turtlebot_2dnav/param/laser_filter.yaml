@@ -4,6 +4,6 @@ scan_filter_chain:
   params:
     use_message_range_limits: true
     lower_threshold: 0.15
-    upper_threshold: 6
+    upper_threshold: 8
     lower_replacement_value: 0.15
-    upper_replacement_value: 6
+    upper_replacement_value: 8
