@@ -6,7 +6,7 @@
 
 <node pkg="gmapping" type="slam_gmapping" respawn="false" name="slam_gmapping" output="screen">
   <param name = "delta" value="0.095"/>
-  <param name = "map_update_interval" value = "2"/>
+  <param name = "map_update_interval" value = "4"/>
   <param name = "maxRange" value = "12.0"/>
   <param name = "maxUrange" value = "8.0"/>
   <remap from="scan" to="scan_filtered"/>

@@ -36,6 +36,7 @@ void fake_laser::Processqueue()
     //check if need to resize
     if(queue[0].resize) deleteBound( first_index, bounds[queue[0].index], queue[0].index, exitbool);
 
+
     index_left = insertPoints(queue[0].pointleftmin, queue[0].pointleftmax, first_index, queue[0].isvertical, true, exitbool);
 
     //update first_index for the right points
@@ -49,6 +50,7 @@ void fake_laser::Processqueue()
     bounds.insert( bounds.begin() + queue[0].index, last_index );
     p_size.points_size.insert( p_size.points_size.begin() + queue[0].index, last_index );
     updateMarker(queue[0].index, exitbool, queue[0].resize, queue[0].pointleftmin, queue[0].pointleftmax, queue[0].pointrightmin, queue[0].pointrightmax);
+
 
     //if resized update the bounds vector
     if(queue[0].resize) updateBoundlist(queue[0].index, last_index);
@@ -99,7 +101,7 @@ int fake_laser::insertPoints(geometry_msgs::Point pmin, geometry_msgs::Point pma
       else point.y -= (resolution/2);
     }
   }
-  //ROS_INFO("inserted");
+  ROS_INFO("inserted");
   return index;
 }
 
@@ -153,7 +155,7 @@ void fake_laser::updateMarker(int bound_index, bool exitbool, bool resize,
   markers.color.a = 1.0;
   markers.scale.x = 1.0;
   //insert 4 times the same color (first and last point of the bound)
-  //ROS_INFO("Bound index: %d", bound_index);
+  ROS_INFO("UPDATED");
   if(resize)
   {
     markers_points[4*bound_index] =  pointleftmin_;

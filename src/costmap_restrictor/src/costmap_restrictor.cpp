@@ -33,15 +33,15 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
   origin_y = msg->info.origin.position.y;
 
   //TO BE DECIDED
-  if (canRecalculate)
-  {
-    if (recalculatequeue.size() > 0)
-    {
-      resetBound( recalculatequeue[0] );
-      matchqueue.insert( matchqueue.begin(), recalculatequeue[0] );
-      recalculatequeue.erase( recalculatequeue.begin() );
-    }
-  }
+  //if (canRecalculate)
+  //{
+  //  if (recalculatequeue.size() > 0)
+  //  {
+  //    resetBound( recalculatequeue[0] );
+  //    matchqueue.insert( matchqueue.begin(), recalculatequeue[0] );
+  //    recalculatequeue.erase( recalculatequeue.begin() );
+  //  }
+  //}
 
   //In case of resize (because a recalculate dont publish just match again!)
   if(matchqueue.size() > 0)
@@ -180,10 +180,6 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
       }
 
       bound_.index = queue[0].laser_index;
-      bound_.pointleftmin = queue[0].point_left_min;
-      bound_.pointleftmax = queue[0].point_left_max;
-      bound_.pointrightmin = queue[0].point_right_min;
-      bound_.pointrightmax = queue[0].point_right_max;
       bound_.isvertical = queue[0].vertical;
       bound_.exit = queue[0].exit;
 
@@ -193,8 +189,76 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
         queue[0].laser_index = laser_index;
         bound_.index = queue[0].laser_index;
         bound_.resize = false;
-        fake_bound_pub.publish(bound_);
-        laser_index++;
+        if(!queue[0].exit)
+        {
+          for(int i = 0; i <10; i++)
+          {
+            if ( queue[0].vertical )
+            {
+              if(queue[0].point_right_max.x - queue[0].point_right_min.x > 1)
+              {
+                bound_.pointrightmax.x = queue[0].point_right_min.x + 1;
+              }
+              else
+              {
+                bound_.pointrightmax.x = queue[0].point_right_max.x;
+              }
+              if(queue[0].point_left_max.x - queue[0].point_left_min.x > 1)
+              {
+                bound_.pointleftmin.x = queue[0].point_left_max.x - 1;
+              }
+              else
+              {
+                bound_.pointleftmin.x = queue[0].point_left_min.x;
+              }
+              bound_.pointrightmin.x = queue[0].point_left_max.x;
+              bound_.pointleftmax.x = queue[0].point_right_min.x;
+
+              bound_.pointrightmax.y =  queue[0].point_right_min.y - 1 + 0.2 * i;
+              bound_.pointrightmin.y =  queue[0].point_right_min.y - 1 + 0.2 * i;
+              bound_.pointleftmax.y =  queue[0].point_right_min.y - 1 + 0.2 * i;
+              bound_.pointleftmin.y=  queue[0].point_right_min.y - 1 + 0.2 * i;
+            }
+            else
+            {
+              if(queue[0].point_right_max.y - queue[0].point_right_min.y > 1)
+              {
+                bound_.pointrightmin.y = queue[0].point_right_max.y - 1;
+              }
+              else
+              {
+                bound_.pointrightmin.y = queue[0].point_right_min.y;
+              }
+              if(queue[0].point_left_max.y - queue[0].point_left_min.y > 1)
+              {
+                bound_.pointleftmax.y = queue[0].point_left_min.y + 1;
+              }
+              else
+              {
+                bound_.pointleftmax.y = queue[0].point_left_max.y;
+              }
+              bound_.pointrightmax.y = queue[0].point_right_max.y;
+              bound_.pointleftmin.y = queue[0].point_right_min.y;
+
+              bound_.pointrightmax.x =  queue[0].point_right_min.x - 1 + 0.2 * i;
+              bound_.pointrightmin.x =  queue[0].point_right_min.x - 1 + 0.2 * i;
+              bound_.pointleftmax.x =  queue[0].point_right_min.x - 1 + 0.2 * i;
+              bound_.pointleftmin.x=  queue[0].point_right_min.x - 1 + 0.2 * i;
+            }
+            fake_bound_pub.publish(bound_);
+            laser_index++;
+          }
+        }
+        else
+        {
+          bound_.pointrightmax = queue[0].point_right_max;
+          bound_.pointrightmin = queue[0].point_right_min;
+          bound_.pointleftmax = queue[0].point_left_max;
+          bound_.pointleftmin = queue[0].point_left_min;
+          fake_bound_pub.publish(bound_);
+          laser_index++;
+        }
+
       }
 
       //IF ANY UPDATE ON ONE SIDES (and not first time) PUBLISH

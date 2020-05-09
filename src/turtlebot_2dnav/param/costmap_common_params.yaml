@@ -24,4 +24,4 @@ fake_obstacles:
 inflation:
     enabled:              true
     cost_scaling_factor:  5  # exponential rate at which the obstacle cost drops off (default: 10)
-    inflation_radius:     0.55
+    inflation_radius:     0.32

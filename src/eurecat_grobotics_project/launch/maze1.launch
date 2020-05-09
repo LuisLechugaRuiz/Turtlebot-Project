@@ -5,7 +5,7 @@
   <arg name="gui" default="true" />
   <arg name="headless" default="false" />
   <!-- MODIFY THIS LINE -->
-  <arg name="world_name" default="$(find eurecat_grobotics_project)/worlds/ground_robotics_final_project_scenario2.world"/>
+  <arg name="world_name" default="$(find eurecat_grobotics_project)/worlds/ground_robotics_final_project_scenario.world"/>
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="debug" value="0" />

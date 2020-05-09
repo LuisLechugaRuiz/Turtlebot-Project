@@ -82,7 +82,7 @@ std::vector<Frontier> FrontierSearch::searchFrom(geometry_msgs::Pose pose)
         frontier_flag[nbr] = true;
         Frontier new_frontier = buildNewFrontier(nbr, pos, frontier_flag);
         if ( (new_frontier.size * costmap_->getResolution() >=
-            min_frontier_size_) && !goalOnBlacklist(new_frontier.centroid) )
+            min_frontier_size_) && !goalOnBlacklist(new_frontier.middle) )
         {
           new_frontier.cost = frontierCost(new_frontier, pose);
           if( new_frontier.distance_cost != (gain_distance_ * fail_distance) )
@@ -282,8 +282,8 @@ bool FrontierSearch::isNewFrontierCell(unsigned int idx,
 double FrontierSearch::frontierAngleCost(Frontier& frontier, geometry_msgs::Pose robotPose)
 {
   //get the actual angle
-  double dx = frontier.centroid.x - robotPose.position.x;
-  double dy = frontier.centroid.y - robotPose.position.y;
+  double dx = frontier.middle.x - robotPose.position.x;
+  double dy = frontier.middle.y - robotPose.position.y;
   double angle = std::asin(robotPose.orientation.z) * 2;
   //ROS_INFO("angle: %f", angle);
   double modulus = sqrt(pow(dx,2) + pow(dy,2));
@@ -307,20 +307,20 @@ double FrontierSearch::frontierDistCost(Frontier& frontier, geometry_msgs::Pose 
   reference_pose.header.frame_id = "map";
   reference_pose.header.stamp = ros::Time::now();
 
-  geometry_msgs::PoseStamped centroid_pose;
-  centroid_pose.pose.position.x = frontier.centroid.x;
-  centroid_pose.pose.position.y = frontier.centroid.y;
-  centroid_pose.pose.orientation.w = 1;
-  centroid_pose.header.frame_id = "map";
-  centroid_pose.header.stamp = ros::Time::now();
-  nav_msgs::Path New_Path = getPlan(reference_pose, centroid_pose);
+  geometry_msgs::PoseStamped middle_pose;
+  middle_pose.pose.position.x = frontier.middle.x;
+  middle_pose.pose.position.y = frontier.middle.y;
+  middle_pose.pose.orientation.w = 1;
+  middle_pose.header.frame_id = "map";
+  middle_pose.header.stamp = ros::Time::now();
+  nav_msgs::Path New_Path = getPlan(reference_pose, middle_pose);
   if (plan_sucess) return ( getDistance(New_Path) );
   //check if plan is unreachable!
   else
   {
-    //ROS_INFO("blacklist x: %f", centroid_pose.pose.position.x);
-    //ROS_INFO("blacklist y: %f", centroid_pose.pose.position.y);
-    frontier_blacklist_.push_back(centroid_pose.pose.position);
+    //ROS_INFO("blacklist x: %f", middle_pose.pose.position.x);
+    //ROS_INFO("blacklist y: %f", middle_pose.pose.position.y);
+    frontier_blacklist_.push_back(middle_pose.pose.position);
     int sizeaa = frontier_blacklist_.size();
     //ROS_INFO("blacklist size: %d", sizeaa);
     return fail_distance;

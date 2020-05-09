@@ -55,7 +55,6 @@
 #include <dynamic_reconfigure/server.h>
 #include <costmap_2d/ObstaclePluginConfig.h>
 #include <costmap_2d/footprint.h>
-#include <costmap_2d/clearCostmap.h>
 
 namespace costmap_2d
 {
@@ -68,8 +67,6 @@ public:
     costmap_ = NULL;  // this is the unsigned char* member of parent class Costmap2D.
   }
 
-  ros::ServiceServer clear_costmap_server;
-
   virtual ~ObstacleLayer();
   virtual void onInitialize();
   virtual void updateBounds(double robot_x, double robot_y, double robot_yaw, double* min_x, double* min_y,
@@ -79,9 +76,6 @@ public:
   virtual void activate();
   virtual void deactivate();
   virtual void reset();
-
-  bool ClearCostmapSrv(costmap_2d::clearCostmap::Request &req,
-                       costmap_2d::clearCostmap::Response &res);
 
   /**
    * @brief  A callback to handle buffering LaserScan messages
@@ -152,7 +146,7 @@ protected:
 
   std::vector<geometry_msgs::Point> transformed_footprint_;
   bool footprint_clearing_enabled_;
-  void updateFootprint(double robot_x, double robot_y, double robot_yaw, double* min_x, double* min_y,
+  void updateFootprint(double robot_x, double robot_y, double robot_yaw, double* min_x, double* min_y, 
                        double* max_x, double* max_y);
 
   std::string global_frame_;  ///< @brief The global frame for the costmap

@@ -9,6 +9,7 @@
 #include <turtlebot_2dnav/frontier.h>
 #include <turtlebot_2dnav/CarryingPerson.h>
 #include <turtlebot_2dnav/askNewFrontier.h>
+#include <turtlebot_2dnav/fake_bound.h>
 #include <turtlebot_2dnav/fakeLaser.h>
 #include <turtlebot_2dnav/recalculateBound.h>
 #include <nav_msgs/GetPlan.h>
@@ -44,6 +45,7 @@ class Decision : public Math
     ros::ServiceClient clear_costmap_client;
     ros::ServiceClient recalculate_bound_client;
     ros::Publisher marker_carrying_person_pub;
+    ros::Publisher fake_bound_pub;
 
     tf::TransformListener listener;
 
@@ -70,6 +72,8 @@ class Decision : public Math
     bool riskyDecision();
 
     void getActualPose();
+
+    void inflationWall(data New_red_wall);
 
     double getDistanceProb(data Frontier, geometry_msgs::PoseStamped inic_pose);
 
@@ -185,6 +189,7 @@ class Decision : public Math
 
     int points = 0;
 
+    int index_fake = 0;
 };
 
 

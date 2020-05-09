@@ -31,7 +31,7 @@ class fake_laser
   int index_exit = -1;
 
   double resolution = 0.095;
-  std::vector<int> bounds;
+  std::vector<double> bounds;
   pcl::PointCloud<pcl::PointXYZ> Cloud;
   pcl::PointCloud<pcl::PointXYZ> exitCloud;
 
