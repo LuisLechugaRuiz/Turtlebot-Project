@@ -264,6 +264,7 @@ void DatabaseNode::PublishROI(ROI New_ROI)
   ROI_publish.size_x = New_ROI.bound.size_x;
   ROI_publish.size_y = New_ROI.bound.size_y;
   ROI_publish.index = index;
+  ROI_publish.ispositive = New_ROI.positive_axe;
   ROI_publish.isnew = true;
   ROI_pub.publish(ROI_publish);
   index++;
@@ -344,6 +345,23 @@ void DatabaseNode::match_boundCallback(turtlebot_2dnav::match_bound bound_matche
     Bound New_Bound(bound_matched.pointleft, bound_matched.pointright, bound_matched.color);
     ROI New_ROI(New_Bound);
     bool isnewROI = true;
+    geometry_msgs::PoseStamped robot_pose = getRobotPosition();
+    if(New_ROI.bound.size_x > New_ROI.bound.size_y)
+    {
+      if( New_ROI.center_y - robot_pose.pose.position.y > 0 )
+      {
+        New_ROI.positive_axe = true;
+      }
+      else New_ROI.positive_axe = false;
+    }
+    else
+    {
+      if( New_ROI.center_x - robot_pose.pose.position.x > 0 )
+      {
+        New_ROI.positive_axe = true;
+      }
+      else New_ROI.positive_axe = false;
+    }
     switch (bound_matched.color)
     {
       case 0:
@@ -490,7 +508,32 @@ bool DatabaseNode::carrying_person_service(turtlebot_2dnav::CarryingPerson::Requ
 }
 
 
+geometry_msgs::PoseStamped DatabaseNode::getRobotPosition()
+{
+  geometry_msgs::PoseStamped base_link_pose;
+  base_link_pose.header.stamp = ros::Time(0);
+  base_link_pose.header.frame_id = "/base_link";
+  base_link_pose.pose.position.x = 0;
+  base_link_pose.pose.position.y = 0;
+  base_link_pose.pose.position.z = 0;
+  base_link_pose.pose.orientation.x = 0;
+  base_link_pose.pose.orientation.y = 0;
+  base_link_pose.pose.orientation.z = 0;
+  base_link_pose.pose.orientation.w = 1;
 
+  tf::StampedTransform transform;
+  try{
+    listener.lookupTransform("/map","/base_link", ros::Time(0), transform);
+  }
+  catch (tf::TransformException &ex) {
+    ROS_ERROR("%s",ex.what());
+  }
+  geometry_msgs::TransformStamped stampedTransform;
+  tf::transformStampedTFToMsg(transform, stampedTransform);
+  geometry_msgs::PoseStamped robot_pose_map;
+  tf2::doTransform(base_link_pose, robot_pose_map, stampedTransform);
+  return robot_pose_map;
+}
 
 //We will consider that is ROI if one of the 4 conditions for the side is true but the ROI can still be expanded
 // so the marker needs to be relocated.
@@ -519,6 +562,7 @@ DatabaseNode::ROI::ROI(Bound new_bound)
   center_y = (bound.max_y - bound.min_y)/2 + bound.min_y;
   color = bound.database_color;
 }
+
 
 DatabaseNode::ROI::ROI()
 {

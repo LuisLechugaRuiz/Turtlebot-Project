@@ -42,7 +42,7 @@ class DatabaseNode
       bool size_y_cond = false;
 
         //this parameters could be set from parameters server
-        float min_size_small_side = 0.3;
+        float min_size_small_side = 0.2;
         float max_size_small_side = 0.4;
         float tol_small_side = 0.2;
         float min_size_big_side = 0.9;
@@ -68,6 +68,7 @@ class DatabaseNode
       float center_y;
       int marker_index;
       int color;
+      bool positive_axe;
       Bound bound;
       //Bound ROI_Bound;
       void update_ROI();
@@ -126,6 +127,8 @@ class DatabaseNode
     void PublishMarkers(geometry_msgs::Point pointleft_, geometry_msgs::Point pointright_, int color_);
 
     bool checkifisNew(std::vector<ROI> &database, ROI New_ROI);
+
+    geometry_msgs::PoseStamped getRobotPosition();
 
     //points in the mapframe
     geometry_msgs::Point pointleft;
