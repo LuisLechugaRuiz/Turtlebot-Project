@@ -22,6 +22,7 @@ void data::updateData(turtlebot_2dnav::ROI updatedROI)
   size_x = updatedROI.size_x;
   size_y = updatedROI.size_y;
   index  = updatedROI.index;
+  ispositive = updatedROI.ispositive;
 }
 
 
@@ -33,6 +34,11 @@ bool data::data_index_equal_to(int index_)
 bool data::is_vertical()
 {
   return (size_x > size_y);
+}
+
+bool data::is_positive()
+{
+  return ispositive;
 }
 
 float data::get_center_x()

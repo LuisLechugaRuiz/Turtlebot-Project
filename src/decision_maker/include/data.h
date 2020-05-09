@@ -19,6 +19,8 @@ class data
 
     bool is_vertical();
 
+    bool is_positive();
+
     int get_index();
 
     float get_size_x();
@@ -29,6 +31,7 @@ class data
     geometry_msgs::Point center;
     float size_x;
     float size_y;
+    bool ispositive;
     std::string type;
     int index;
 

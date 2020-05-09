@@ -157,16 +157,39 @@ geometry_msgs::PoseStamped Decision::setPose(data target_goal, bool frontier)
   {
     goal_pose.pose.position.x = target_goal.get_center_x();
     goal_pose.pose.position.y = target_goal.get_center_y();
-    goal_pose.pose.orientation.z = 0.707;
-    goal_pose.pose.orientation.w = 0.707;
-    if(!frontier) goal_pose.pose.position.y--;
+    if(!frontier)
+    {
+      if (target_goal.is_positive() )
+      {
+        goal_pose.pose.position.y--;
+        goal_pose.pose.orientation.z = 0.707;
+        goal_pose.pose.orientation.w = 0.707;
+      }
+      else
+      {
+        goal_pose.pose.position.y++;
+        goal_pose.pose.orientation.z = 0.707;
+        goal_pose.pose.orientation.w = -0.707;
+      }
+    }
   }
   else
   {
     goal_pose.pose.position.x = target_goal.get_center_x();
-    if(!frontier) goal_pose.pose.position.x--;
     goal_pose.pose.position.y = target_goal.get_center_y();
-    goal_pose.pose.orientation.w = 1;
+    if(!frontier)
+    {
+      if (target_goal.is_positive() )
+      {
+        goal_pose.pose.position.x--;
+        goal_pose.pose.orientation.w = 1.0;
+      }
+      else
+      {
+        goal_pose.pose.position.x++;
+        goal_pose.pose.orientation.z = 1.0;
+      }
+    }
   }
   return goal_pose;
 }
