@@ -101,7 +101,6 @@ void Decision::Frontier_callBack(turtlebot_2dnav::frontier frontier)
 {
   if(!first_frontier_received)
   {
-    ROS_INFO("INIC");
     first_frontier_received = true;
     //initiale bestFrontier
     bestFrontier = NewFrontier;
