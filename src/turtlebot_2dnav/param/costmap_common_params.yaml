@@ -18,7 +18,7 @@ obstacles_laser:
 
 fake_obstacles:
     observation_sources: fake_laser
-    fake_laser: {sensor_frame: map, data_type: PointCloud2, clearing: false, marking: true, topic: /fake_laser/cloud, min_obstacle_height: -5, obstacle_range: 25}
+    fake_laser: {sensor_frame: map, data_type: PointCloud2, clearing: true, marking: true, topic: /fake_laser/cloud, min_obstacle_height: -5, obstacle_range: 25}
     track_unknown_space: true
 
 inflation:

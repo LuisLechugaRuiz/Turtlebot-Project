@@ -7,4 +7,4 @@
  max_match_count: 20
  max_recalculate_count: 20
  max_count_size: 16
- min_count_size: 11
+ min_count_size: 10

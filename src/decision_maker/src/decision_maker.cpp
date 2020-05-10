@@ -29,7 +29,6 @@ Decision::Decision():
   carrying_person_client = n.serviceClient<turtlebot_2dnav::CarryingPerson>("database/CarryingPerson");
   ROI_sub = n.subscribe("database/ROI", 1, &Decision::ROI_callBack, this);
   frontiers_sub = n.subscribe("explore/frontier", 100, &Decision::Frontier_callBack, this);
-  fake_bound_pub = nh.advertise<turtlebot_2dnav::fake_bound>("fake_bound", 100);
   marker_carrying_person_pub = nh.advertise<visualization_msgs::Marker>("visualization_markers_carrying_person", 10);
   ask_new_frontier_client = n.serviceClient<turtlebot_2dnav::askNewFrontier>("explore/NewFrontier");
   fake_laser_client = n.serviceClient<turtlebot_2dnav::fakeLaser>("fake_laser/active");
@@ -63,7 +62,6 @@ void Decision::ROI_callBack(turtlebot_2dnav::ROI New_ROI)
     {
       data New_data(New_ROI);
       database_r.push_back(New_data);
-      inflationWall(New_data);
       points += points_danger;
     }
     if(type == "E")
@@ -421,47 +419,6 @@ bool Decision::riskyDecision()
     if (checkIfFrontierWorth( exitPosition )) returnrisky = true;
   }
   return returnrisky;
-}
-
-
-void Decision::inflationWall(data New_red_wall)
-{
-  turtlebot_2dnav::fake_bound new_fake_laser;
-  new_fake_laser.isvertical = New_red_wall.is_vertical();
-  new_fake_laser.resize = false;
-  new_fake_laser.exit = false;
-  geometry_msgs::Point pointleftmax;
-  geometry_msgs::Point pointleftmin;
-  geometry_msgs::Point pointrightmin;
-  geometry_msgs::Point pointrightmax;
-  for(int i = 0; i <10; i++)
-  {
-    if ( New_red_wall.is_vertical() )
-    {
-      new_fake_laser.pointleftmin.x =  New_red_wall.get_center_x() - New_red_wall.get_size_x()/2 - 1;
-      new_fake_laser.pointleftmax.x =  New_red_wall.get_center_x() - New_red_wall.get_size_x()/2;
-      new_fake_laser.pointrightmax.x =  New_red_wall.get_center_x() + New_red_wall.get_size_x()/2 + 1;
-      new_fake_laser.pointrightmin.x =  New_red_wall.get_center_x() + New_red_wall.get_size_x()/2;
-      new_fake_laser.pointleftmin.y =  New_red_wall.get_center_y() - 1 + 0.2 * i;
-      new_fake_laser.pointleftmax.y =  New_red_wall.get_center_y() - 1 + 0.2 * i;
-      new_fake_laser.pointrightmax.y =  New_red_wall.get_center_y() - 1 + 0.2 * i;
-      new_fake_laser.pointrightmin.y =  New_red_wall.get_center_y() - 1 + 0.2 * i;
-    }
-    else
-    {
-      new_fake_laser.pointleftmax.y =  New_red_wall.get_center_y() + New_red_wall.get_size_y()/2 + 1;
-      new_fake_laser.pointleftmin.y =  New_red_wall.get_center_y() + New_red_wall.get_size_y()/2;
-      new_fake_laser.pointrightmin.y =  New_red_wall.get_center_y() - New_red_wall.get_size_y()/2 - 1;
-      new_fake_laser.pointrightmax.y =  New_red_wall.get_center_y() - New_red_wall.get_size_y()/2;
-      new_fake_laser.pointleftmin.x =  New_red_wall.get_center_x() - 1 + 0.2 * i;
-      new_fake_laser.pointleftmax.x =  New_red_wall.get_center_x() - 1 + 0.2 * i;
-      new_fake_laser.pointrightmax.x =  New_red_wall.get_center_x() - 1 + 0.2 * i;
-      new_fake_laser.pointrightmin.x =  New_red_wall.get_center_x() - 1 + 0.2 * i;
-    }
-    new_fake_laser.index = index_fake;
-    index_fake++;
-    fake_bound_pub.publish(new_fake_laser);
-  }
 }
 
 

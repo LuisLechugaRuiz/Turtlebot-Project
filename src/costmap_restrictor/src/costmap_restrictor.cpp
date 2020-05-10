@@ -179,7 +179,6 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
         }
       }
 
-      bound_.index = queue[0].laser_index;
       bound_.isvertical = queue[0].vertical;
       bound_.exit = queue[0].exit;
 
@@ -258,16 +257,16 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
           fake_bound_pub.publish(bound_);
           laser_index++;
         }
-
       }
 
       //IF ANY UPDATE ON ONE SIDES (and not first time) PUBLISH
-      else if( needUpdate(queue[0], l_min, l_max, r_min, r_max) )
-      {
+      //else if( needUpdate(queue[0], l_min, l_max, r_min, r_max) )
+      //{
         //ROS_INFO("PUBLISHING UPDATE!");
-        bound_.resize = true;
-        fake_bound_pub.publish(bound_);
-      }
+      //  bound_.resize = true;
+      //  fake_bound_pub.publish(bound_);
+      //}
+
       queue[0].count++;
       if (queue[0].recalculateleft || queue[0].recalculateright) std::rotate(queue.begin(), queue.begin() + 1, queue.end());
       else
