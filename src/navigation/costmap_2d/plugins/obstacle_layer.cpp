@@ -59,6 +59,8 @@ void ObstacleLayer::onInitialize()
   ros::NodeHandle nh("~/" + name_), g_nh;
   rolling_window_ = layered_costmap_->isRolling();
 
+  clear_costmap_server = nh.advertiseService("clear_costmap", &ObstacleLayer::ClearCostmapSrv, this);
+
   bool track_unknown_space;
   nh.param("track_unknown_space", track_unknown_space, layered_costmap_->isTrackingUnknown());
   if (track_unknown_space)
@@ -266,6 +268,29 @@ void ObstacleLayer::laserScanCallback(const sensor_msgs::LaserScanConstPtr& mess
   buffer->bufferCloud(cloud);
   buffer->unlock();
 }
+
+bool ObstacleLayer::ClearCostmapSrv(costmap_2d::clearCostmap::Request &req,
+                                    costmap_2d::clearCostmap::Response &res)
+{
+  if ( req.clear )
+  {
+    for(int x=0; x<(int)getSizeInCellsX(); x++)
+    {
+      for(int y=0; y<(int)getSizeInCellsY(); y++)
+      {
+        int index = getIndex(x,y);
+        //delete all the lethal_obstacle marked by the fake_laser
+        if(costmap_[index]==LETHAL_OBSTACLE) costmap_[index] = FREE_SPACE;
+      }
+    }
+    double ox = getOriginX(), oy = getOriginY();
+    double width = getSizeInMetersX(), height = getSizeInMetersY();
+    addExtraBounds(ox, oy, ox + width, oy + height);
+  }
+  res.received = true;
+  return true;
+}
+
 
 void ObstacleLayer::laserScanValidInfCallback(const sensor_msgs::LaserScanConstPtr& raw_message,
                                               const boost::shared_ptr<ObservationBuffer>& buffer)

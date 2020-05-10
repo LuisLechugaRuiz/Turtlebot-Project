@@ -41,6 +41,14 @@ add_message_files(
     VoxelGrid.msg
 )
 
+## Generate services in the 'srv' folder
+ add_service_files(
+    DIRECTORY srv
+    FILES
+    clearCostmap.srv
+ )
+
+
 generate_messages(
     DEPENDENCIES
         std_msgs
@@ -77,6 +85,7 @@ catkin_package(
         tf2_ros
         visualization_msgs
         voxel_grid
+
     DEPENDS
         EIGEN3
         Boost
