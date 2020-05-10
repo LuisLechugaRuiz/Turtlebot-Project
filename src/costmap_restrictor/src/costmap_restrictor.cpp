@@ -283,12 +283,16 @@ void CostmapRes::ProcessCostmap(const nav_msgs::OccupancyGrid::ConstPtr& msg)
       }
 
       //IF ANY UPDATE ON ONE SIDES (and not first time) PUBLISH
-      //else if( needUpdate(queue[0], l_min, l_max, r_min, r_max) )
-      //{
+      else if( needUpdate(queue[0], l_min, l_max, r_min, r_max) && queue[0].exit )
+      {
+        bound_.pointrightmax =  queue[0].point_right_max;
+        bound_.pointrightmin =  queue[0].point_right_min;
+        bound_.pointleftmax =  queue[0].point_left_max;
+        bound_.pointleftmin=  queue[0].point_left_min;
         //ROS_INFO("PUBLISHING UPDATE!");
-      //  bound_.resize = true;
-      //  fake_bound_pub.publish(bound_);
-      //}
+        bound_.resize = true;
+        fake_bound_pub.publish(bound_);
+      }
 
       queue[0].count++;
       if (queue[0].recalculateleft || queue[0].recalculateright) std::rotate(queue.begin(), queue.begin() + 1, queue.end());
