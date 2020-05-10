@@ -34,7 +34,7 @@ void fake_laser::Processqueue()
     else first_index = bounds[queue[0].index - 1];
 
     //check if need to resize
-    //if(queue[0].resize) deleteBound( first_index, bounds[queue[0].index], queue[0].index, exitbool);
+    if(queue[0].resize) deleteBound( first_index, bounds[queue[0].index], queue[0].index, exitbool);
 
 
     index_left = insertPoints(queue[0].pointleftmin, queue[0].pointleftmax, first_index, queue[0].isvertical, true, exitbool);
@@ -53,7 +53,7 @@ void fake_laser::Processqueue()
 
 
     //if resized update the bounds vector
-    //f(queue[0].resize) updateBoundlist(queue[0].index, last_index);
+    if(queue[0].resize) updateBoundlist(queue[0].index, last_index);
 
     queue.erase( queue.begin() );
   }
