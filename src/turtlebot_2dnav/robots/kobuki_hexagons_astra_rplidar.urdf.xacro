@@ -15,7 +15,7 @@
   <kobuki/>
   <stack_hexagons parent="base_link"/>
   <sensor_astra  parent="base_link"/>
-  <xacro:rplidar name="rplidar" parent="base_link" ros_topic="scan" update_rate="12" ray_count="800" min_angle="0" max_angle="360">
+  <xacro:rplidar name="rplidar" parent="base_link" ros_topic="scan" update_rate="12" ray_count="360" min_angle="0" max_angle="360">
     <origin xyz="-0.1 0 0.420" rpy="3.1415 0 1.5707"/>
   </xacro:rplidar>
 </robot>

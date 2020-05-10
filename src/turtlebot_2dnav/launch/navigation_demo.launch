@@ -8,7 +8,7 @@
   <param name = "delta" value="0.095"/>
   <param name = "map_update_interval" value = "4"/>
   <param name = "maxRange" value = "12.0"/>
-  <param name = "maxUrange" value = "8.0"/>
+  <param name = "maxUrange" value = "6.0"/>
   <remap from="scan" to="scan_filtered"/>
 </node>
 
@@ -34,7 +34,7 @@
   <param name="costmap_topic" value="move_base/global_costmap/costmap"/>
   <param name="costmap_updates_topic" value="move_base/global_costmap/costmap_updates"/>
   <param name="visualize" value="true"/>
-  <param name="planner_frequency" value="2"/>
+  <param name="planner_frequency" value="1"/>
   <param name="progress_timeout" value="1000.0"/>
   <param name="gain_distance" value="1.0"/>
   <param name="gain_size" value="1.0"/>
