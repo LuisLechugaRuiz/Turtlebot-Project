@@ -3,8 +3,6 @@
 ## Video:
 [![Watch the video](https://img.youtube.com/vi/K159mK_JCyY/maxresdefault.jpg)](https://youtube.com/watch?v=K159mK_JCyY&feature=emb_logo)
 
-This project is part of the Master in Robotics of the UVIC - Eurecat.
-
 ## How to run:
 
 Install of the dependencies commented in the description.
