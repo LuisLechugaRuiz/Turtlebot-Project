@@ -1,6 +1,7 @@
 # Turtlebot Project
 
-![Example](https://github.com/LuisLechugaRuiz/Turtlebot-Project/blob/master/images/Screenshot%20from%202020-03-26%2021-55-58.png) 
+## Video:
+[![Watch the video](https://img.youtube.com/vi/K159mK_JCyY/maxresdefault.jpg)](https://youtube.com/watch?v=K159mK_JCyY&feature=emb_logo)
 
 This project is part of the Master in Robotics of the UVIC - Eurecat.
 
